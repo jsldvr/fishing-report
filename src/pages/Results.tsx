@@ -146,16 +146,20 @@ export default function Results() {
           {/* Unit toggles */}
           <div className="flex items-center gap-2">
             <button
-              className={`px-3 py-1 text-sm rounded ${
-                !useFahrenheit ? "bg-blue-600 text-white" : "bg-gray-200"
+              className={`px-3 py-1 text-sm rounded transition-colors ${
+                !useFahrenheit 
+                  ? "bg-blue-600 text-white hover:bg-blue-700" 
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
               onClick={() => setUseFahrenheit(false)}
             >
               °C
             </button>
             <button
-              className={`px-3 py-1 text-sm rounded ${
-                useFahrenheit ? "bg-blue-600 text-white" : "bg-gray-200"
+              className={`px-3 py-1 text-sm rounded transition-colors ${
+                useFahrenheit 
+                  ? "bg-blue-600 text-white hover:bg-blue-700" 
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
               onClick={() => setUseFahrenheit(true)}
             >
@@ -165,16 +169,20 @@ export default function Results() {
 
           <div className="flex items-center gap-2">
             <button
-              className={`px-3 py-1 text-sm rounded ${
-                !useMph ? "bg-blue-600 text-white" : "bg-gray-200"
+              className={`px-3 py-1 text-sm rounded transition-colors ${
+                !useMph 
+                  ? "bg-blue-600 text-white hover:bg-blue-700" 
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
               onClick={() => setUseMph(false)}
             >
               km/h
             </button>
             <button
-              className={`px-3 py-1 text-sm rounded ${
-                useMph ? "bg-blue-600 text-white" : "bg-gray-200"
+              className={`px-3 py-1 text-sm rounded transition-colors ${
+                useMph 
+                  ? "bg-blue-600 text-white hover:bg-blue-700" 
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
               onClick={() => setUseMph(true)}
             >
