@@ -52,6 +52,7 @@ export default function DateRangePicker({
         ⏱️ Mission Timeline
         <span
           className="mission-toggle-indicator"
+          id="mission-toggle-indicator"
           aria-hidden="true"
           data-open={isTimelineOpen}
         >

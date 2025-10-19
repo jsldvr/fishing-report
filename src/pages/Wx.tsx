@@ -165,7 +165,7 @@ export default function Wx() {
               <a
                 className="text-info font-medium"
                 id="wx-link-cdc-heat"
-                href="https://www.cdc.gov/climateandhealth/effects/heat.htm"
+                href="https://www.cdc.gov/disasters/extremeheat/index.html"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -177,7 +177,7 @@ export default function Wx() {
               <a
                 className="text-info font-medium"
                 id="wx-link-mets"
-                href="https://www.met-ed.ucar.edu/"
+                href="https://www.meted.ucar.edu/"
                 target="_blank"
                 rel="noreferrer"
               >
