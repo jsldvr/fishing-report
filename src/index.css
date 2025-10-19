@@ -1390,6 +1390,35 @@ input[type="range"] {
   transition: all 0.2s ease;
 }
 
+.range-input {
+  height: 12px;
+  border: 2px solid var(--border-primary);
+  border-radius: 9999px;
+  background-clip: padding-box;
+  background-color: var(--bg-secondary);
+  padding-bottom: 7px !important;
+}
+
+.range-input::-webkit-slider-runnable-track {
+  height: 12px;
+  border-radius: 9999px;
+  background: transparent;
+}
+
+.range-input::-moz-range-track {
+  height: 12px;
+  border-radius: 9999px;
+  background: transparent;
+}
+
+.range-input::-ms-track {
+  height: 12px;
+  border-radius: 9999px;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;

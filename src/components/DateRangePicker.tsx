@@ -48,12 +48,12 @@ export default function DateRangePicker({
             Duration: {days} Day{days !== 1 ? "s" : ""}
           </label>
           <input
+            className="range-input w-full accent-forest-600"
             id="num-days"
             type="range"
             min="1"
             max={maxDays.toString()}
             step="1"
-            className="w-full accent-forest-600"
             value={days.toString()}
             onChange={(e) => setDays(parseInt(e.target.value, 10))}
             style={{

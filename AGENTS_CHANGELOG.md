@@ -12,3 +12,4 @@
 - Styled unit toggle buttons with shared `btn` components and new secondary variant.
 - Added ids to updated Results page buttons for consistent FE selectors.
 - Made Results header stack vertically on small screens with new responsive classes and ids.
+- Added `range-input` styling (border, height, padding tweaks) and updated Home date range slider with class/id order.
