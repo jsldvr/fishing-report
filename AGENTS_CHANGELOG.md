@@ -15,8 +15,9 @@
 
 - **Enhanced Components**
   - Created `WeatherAlerts` component for safety warnings and marine conditions
-  - Updated `ScoreCard` to display barometric trends and enhanced data
+  - **REDESIGNED `ScoreCard`** with modern card layout and improved visual hierarchy
   - Modified `Results` page to use enhanced weather fetching
+  - Added gradient headers, better spacing, and color-coded sections
 
 - **Smart Weather Fusion**
   - Implemented `fetchEnhancedWeather` with NWS priority for US locations
@@ -39,6 +40,13 @@
   - Fixed NWS alerts API zone ID extraction (was passing full URL)
   - Corrected NWS office API response parsing
   - Enhanced error handling for API failures
+
+- **UI/UX Improvements**
+  - **Redesigned ScoreCard layout** with gradient headers and modern styling
+  - Enhanced visual hierarchy with color-coded sections and better typography
+  - Improved spacing and readability with rounded corners and shadows
+  - Added animated progress bars and status badges
+  - Better mobile responsiveness with responsive grid layouts
 
 ### Previous Updates
 - Updated `public/fishing.svg` to use a simple 🎣 emoji favicon.

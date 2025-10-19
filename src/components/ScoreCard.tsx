@@ -38,56 +38,75 @@ export default function ScoreCard({
 
   return (
     <div className="card p-6">
-      <div className="flex items-center justify-between mb-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-xl font-semibold text-gray-900">
             {new Date(forecast.date + "T12:00:00").toLocaleDateString("en-US", {
               weekday: "long",
               month: "short",
               day: "numeric",
             })}
           </h3>
-          <p className="text-sm text-gray-600" title={`UTC: ${dateInfo.utc}`}>
+          <p
+            className="text-sm text-gray-600 mt-1"
+            title={`UTC: ${dateInfo.utc}`}
+          >
             {dateInfo.local}
           </p>
+          {forecast.weather.source === "NWS" && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
+                NWS Data
+              </span>
+              {forecast.weather.barometricTrend !== "STEADY" && (
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                  {forecast.weather.barometricTrend.toLowerCase()} pressure
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <div className="text-center">
           <div
-            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(
+            className={`inline-flex items-center px-4 py-2 rounded-full text-lg font-medium ${getScoreColor(
               forecast.biteScore0100
             )}`}
           >
-            <span className="mr-1">
+            <span className="mr-2">
               {getScoreEmoji(forecast.biteScore0100)}
             </span>
             {forecast.biteScore0100}
           </div>
+          <p className="text-xs text-gray-500 mt-1">Bite Score</p>
         </div>
       </div>
 
-      {/* Component Breakdown */}
-      <div className="space-y-3">
+      {/* Score Breakdown */}
+      <div className="space-y-4 mb-6">
         <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span>🌙 Moon ({forecast.moon.phaseName})</span>
-            <span>{forecast.components.moon}</span>
+          <div className="flex justify-between text-sm mb-2">
+            <span className="font-medium">
+              🌙 Moon ({forecast.moon.phaseName})
+            </span>
+            <span className="font-semibold">{forecast.components.moon}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-3">
             <div
-              className="bg-blue-600 h-2 rounded-full"
+              className="bg-blue-600 h-3 rounded-full transition-all duration-300"
               style={{ width: `${forecast.components.moon}%` }}
             ></div>
           </div>
         </div>
 
         <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span>🌤️ Weather</span>
-            <span>{forecast.components.weather}</span>
+          <div className="flex justify-between text-sm mb-2">
+            <span className="font-medium">🌤️ Weather</span>
+            <span className="font-semibold">{forecast.components.weather}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-3">
             <div
-              className="bg-green-600 h-2 rounded-full"
+              className="bg-green-600 h-3 rounded-full transition-all duration-300"
               style={{ width: `${forecast.components.weather}%` }}
             ></div>
           </div>
@@ -95,13 +114,15 @@ export default function ScoreCard({
 
         {forecast.components.almanac !== undefined && (
           <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span>📖 Almanac</span>
-              <span>{forecast.components.almanac}</span>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="font-medium">📖 Almanac</span>
+              <span className="font-semibold">
+                {forecast.components.almanac}
+              </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-3">
               <div
-                className="bg-purple-600 h-2 rounded-full"
+                className="bg-purple-600 h-3 rounded-full transition-all duration-300"
                 style={{ width: `${forecast.components.almanac}%` }}
               ></div>
             </div>
@@ -109,52 +130,54 @@ export default function ScoreCard({
         )}
       </div>
 
-      {/* Detailed Info */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="grid grid-cols-2 gap-4 text-sm">
+      {/* Details */}
+      <div className="border-t border-gray-200 pt-4">
+        <div className="grid grid-cols-2 gap-6 text-sm">
           <div>
-            <h4 className="font-medium text-gray-700 mb-2">Moon</h4>
-            <p>Phase: {forecast.moon.phaseName}</p>
-            <p>Illumination: {Math.round(forecast.moon.illumination * 100)}%</p>
-            <p>Angle: {forecast.moon.phaseAngleDeg}°</p>
+            <h4 className="font-semibold text-gray-700 mb-3">🌙 Moon</h4>
+            <div className="space-y-1">
+              <p>Phase: {forecast.moon.phaseName}</p>
+              <p>
+                Illumination: {Math.round(forecast.moon.illumination * 100)}%
+              </p>
+              <p>Angle: {forecast.moon.phaseAngleDeg}°</p>
+            </div>
           </div>
           <div>
-            <h4 className="font-medium text-gray-700 mb-2">Weather</h4>
-            <p>
-              Temp:{" "}
-              {useFahrenheit ? `${tempF}°F` : `${forecast.weather.tempC}°C`}
-            </p>
-            <p>
-              Wind:{" "}
-              {useMph ? `${windMph} mph` : `${forecast.weather.windKph} km/h`}
-            </p>
-            <p>Rain: {forecast.weather.precipMm}mm</p>
-            <p>Clouds: {forecast.weather.cloudPct}%</p>
-            {forecast.weather.pressureHpa && (
-              <p>Pressure: {forecast.weather.pressureHpa} hPa</p>
-            )}
-            {forecast.weather.source === "NWS" &&
-              forecast.weather.barometricTrend !== "STEADY" && (
-                <p>Trend: {forecast.weather.barometricTrend.toLowerCase()}</p>
+            <h4 className="font-semibold text-gray-700 mb-3">🌤️ Weather</h4>
+            <div className="space-y-1">
+              <p>
+                Temp:{" "}
+                {useFahrenheit ? `${tempF}°F` : `${forecast.weather.tempC}°C`}
+              </p>
+              <p>
+                Wind:{" "}
+                {useMph ? `${windMph} mph` : `${forecast.weather.windKph} km/h`}
+              </p>
+              <p>Rain: {forecast.weather.precipMm}mm</p>
+              <p>Clouds: {forecast.weather.cloudPct}%</p>
+              {forecast.weather.pressureHpa && (
+                <p>Pressure: {forecast.weather.pressureHpa} hPa</p>
               )}
+            </div>
           </div>
         </div>
 
         {forecast.almanac.notes && (
-          <div className="mt-3 p-2 bg-gray-50 rounded">
-            <p className="text-sm text-gray-700">
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded">
+            <p className="text-sm text-amber-800">
               <strong>Almanac:</strong> {forecast.almanac.notes}
             </p>
           </div>
         )}
 
-        {/* Enhanced Weather Information */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <WeatherDebugInfo weather={forecast.weather} className="mb-4" />
-          {forecast.weather.source === "NWS" && (
+        {/* NWS Information */}
+        {forecast.weather.source === "NWS" && (
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <WeatherDebugInfo weather={forecast.weather} className="mb-4" />
             <WeatherAlerts weather={forecast.weather} />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
