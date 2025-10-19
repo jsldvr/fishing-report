@@ -17,6 +17,7 @@ export default function LocationInput({
   const [locationName, setLocationName] = useState("");
   const [isValid, setIsValid] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [isGeolocating, setIsGeolocating] = useState(false);
 
   useEffect(() => {
     const latNum = parseFloat(lat);
@@ -141,29 +142,229 @@ export default function LocationInput({
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const newLat = position.coords.latitude;
-        const newLon = position.coords.longitude;
+    setIsGeolocating(true);
 
-        if (validateNorthAmericaCoords(newLat, newLon)) {
-          setLat(newLat.toFixed(4));
-          setLon(newLon.toFixed(4));
-          setLocationName("");
-        } else {
-          alert("Your current location is outside North America");
-        }
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-        alert("Failed to get current location");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000, // 5 minutes
+    // Success handler - shared across all attempts
+    const handleSuccess = (position: GeolocationPosition) => {
+      const newLat = position.coords.latitude;
+      const newLon = position.coords.longitude;
+
+      if (validateNorthAmericaCoords(newLat, newLon)) {
+        setLat(newLat.toFixed(4));
+        setLon(newLon.toFixed(4));
+        setLocationName("");
+      } else {
+        alert("Your current location is outside North America");
       }
-    );
+      setIsGeolocating(false);
+    };
+
+    // First attempt: Quick network location with cached data
+    const tryQuickLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        (error) => {
+          console.warn("Quick location failed:", error);
+
+          // If permission denied, skip other geolocation attempts and go straight to IP
+          if (error.code === error.PERMISSION_DENIED) {
+            console.log(
+              "Permission denied on first attempt, skipping to IP location..."
+            );
+            tryIpLocation().catch((ipError) => {
+              console.error("IP location also failed:", ipError);
+              alert(
+                "Location permission denied. We tried to get your approximate location using your IP address, but that also failed. Please enter coordinates manually or allow location access and try again."
+              );
+              setIsGeolocating(false);
+            });
+            return;
+          }
+
+          tryWatchPosition();
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 3000, // 3 seconds - very fast
+          maximumAge: 1800000, // 30 minutes - use older cached data
+        }
+      );
+    };
+
+    // Second attempt: Use watchPosition for continuous updates
+    const tryWatchPosition = () => {
+      let watchId: number;
+      let hasSucceeded = false;
+
+      // Set a fallback timeout
+      const fallbackTimer = setTimeout(() => {
+        if (!hasSucceeded) {
+          navigator.geolocation.clearWatch(watchId);
+          tryLastResort();
+        }
+      }, 5000); // 5 second fallback
+
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          if (!hasSucceeded) {
+            hasSucceeded = true;
+            clearTimeout(fallbackTimer);
+            navigator.geolocation.clearWatch(watchId);
+            handleSuccess(position);
+          }
+        },
+        (error) => {
+          console.warn("Watch position failed:", error);
+          if (!hasSucceeded) {
+            hasSucceeded = true;
+            clearTimeout(fallbackTimer);
+            navigator.geolocation.clearWatch(watchId);
+            tryLastResort();
+          }
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 2000, // 2 seconds per attempt
+          maximumAge: 3600000, // 1 hour - very old cached data is fine
+        }
+      );
+    };
+
+    // Final attempt: Aggressive cached location
+    const tryLastResort = () => {
+      navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        (error) => {
+          console.error("All geolocation attempts failed:", error);
+
+          // For permission denied or any other error, try IP location immediately
+          if (error.code === error.PERMISSION_DENIED) {
+            console.log("Permission denied, trying IP location...");
+            tryIpLocation().catch((ipError) => {
+              console.error("IP location also failed:", ipError);
+              alert(
+                "Location permission denied. We tried to get your approximate location using your IP address, but that also failed. Please enter coordinates manually or allow location access and try again."
+              );
+              setIsGeolocating(false);
+            });
+            return;
+          }
+
+          // For other errors, provide specific messages and try IP fallback
+          let errorMessage = "Unable to get your location. ";
+          switch (error.code) {
+            case error.POSITION_UNAVAILABLE:
+              errorMessage +=
+                "Location services are unavailable. Trying alternative method...";
+              break;
+            case error.TIMEOUT:
+              errorMessage +=
+                "Location services are too slow. Trying alternative method...";
+              break;
+            default:
+              errorMessage += "Trying alternative method...";
+              break;
+          }
+
+          console.log(errorMessage);
+          tryIpLocation().catch((ipError) => {
+            console.error("IP location failed:", ipError);
+            alert(
+              errorMessage.replace(
+                "Trying alternative method...",
+                "Please enter coordinates manually."
+              )
+            );
+            setIsGeolocating(false);
+          });
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 1000, // 1 second - extremely fast
+          maximumAge: Infinity, // Accept any cached data, no matter how old
+        }
+      );
+    };
+
+    // Absolute last resort: IP-based location
+    const tryIpLocation = async () => {
+      console.log("Attempting IP-based location...");
+
+      try {
+        // Try multiple IP geolocation services for better reliability
+        const services = [
+          "https://ipapi.co/json/",
+          "https://ip-api.com/json/",
+          "https://ipinfo.io/json",
+        ];
+
+        for (const service of services) {
+          try {
+            console.log(`Trying IP service: ${service}`);
+            const response = await fetch(service);
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log("IP location response:", data);
+
+              let lat: number = NaN,
+                lon: number = NaN,
+                city: string = "",
+                region: string = "";
+
+              // Handle different response formats
+              if (service.includes("ipapi.co")) {
+                lat = parseFloat(data.latitude);
+                lon = parseFloat(data.longitude);
+                city = data.city || "";
+                region = data.region || "";
+              } else if (service.includes("ip-api.com")) {
+                lat = parseFloat(data.lat);
+                lon = parseFloat(data.lon);
+                city = data.city || "";
+                region = data.regionName || "";
+              } else if (service.includes("ipinfo.io")) {
+                const [latStr, lonStr] = (data.loc || "").split(",");
+                lat = parseFloat(latStr);
+                lon = parseFloat(lonStr);
+                city = data.city || "";
+                region = data.region || "";
+              }
+              if (!isNaN(lat) && !isNaN(lon)) {
+                console.log(`Found IP location: ${lat}, ${lon}`);
+
+                if (validateNorthAmericaCoords(lat, lon)) {
+                  setLat(lat.toFixed(4));
+                  setLon(lon.toFixed(4));
+                  setLocationName(city && region ? `${city}, ${region}` : "");
+                  console.log("IP location set successfully");
+                  setIsGeolocating(false);
+                  return;
+                } else {
+                  console.warn(
+                    `IP location ${lat}, ${lon} is outside North America`
+                  );
+                  // Continue to next service
+                }
+              }
+            }
+          } catch (serviceError) {
+            console.warn(`IP service ${service} failed:`, serviceError);
+            // Continue to next service
+          }
+        }
+
+        throw new Error(
+          "All IP location services failed or returned invalid coordinates"
+        );
+      } catch (error) {
+        console.error("IP location completely failed:", error);
+        throw error;
+      }
+    };
+
+    // Start with quick location attempt
+    tryQuickLocation();
   };
 
   return (
@@ -245,8 +446,19 @@ export default function LocationInput({
           </div>
         </div>
 
-        <button className="btn btn-primary" onClick={handleGetCurrentLocation}>
-          📍 Use Current Location
+        <button
+          className="btn btn-primary"
+          onClick={handleGetCurrentLocation}
+          disabled={isGeolocating}
+        >
+          {isGeolocating ? (
+            <>
+              <span className="spinner"></span>
+              Getting Location...
+            </>
+          ) : (
+            <>📍 Use Current Location</>
+          )}
         </button>
 
         {!isValid && (
