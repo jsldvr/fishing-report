@@ -1,207 +1,275 @@
-# 🎣 The Ultimate Fishing Forecast Oracle™ 🔮
+# 🎣 Fishing Forecast
 
-*Because apparently we needed to apply rocket science to figure out when fish are hungry*
+A production-ready React + TypeScript application that provides science-based fishing predictions for North America. Combines lunar phase calculations, real-time weather data, and optional almanac ratings to generate bite scores for optimal fishing times.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Fish Approval Rating](https://img.shields.io/badge/Fish%20Approval-42%25-orange.svg)](https://fishopinions.com)
-[![Guaranteed Results*](https://img.shields.io/badge/Guaranteed%20Results-*Terms%20Apply-red.svg)](#disclaimer)
+## Features
 
-## 🚨 BREAKING: Scientists Hate This One Weird Trick! 🚨
+- **🌙 Lunar Phase Analysis**: Based on solunar theory with precise astronomical calculations
+- **🌤️ Real-time Weather**: Open-Meteo API integration (no API key required)  
+- **📍 North America Coverage**: US, Canada, Mexico, and territories with proper timezone handling
+- **📱 Responsive Design**: Works on desktop, tablet, and mobile devices
+- **⚡ Static Deployment**: Zero runtime dependencies, deploys to GitHub Pages
+- **🔄 Automatic Updates**: Nightly builds ensure fresh forecast data
 
-**Local Developer SHOCKS Fishing Community with Revolutionary Algorithm That Combines:**
-- 🌙 **Ancient Lunar Mysticism** (because fish obviously check their moon calendar)
-- 🌤️ **NASA-Grade Weather Analysis** (yes, we're that extra)
-- 📚 **Farmer's Almanac Wisdom** (your grandpa was right all along)
+## Quick Start
 
-*"I caught a fish once after using this script. Correlation definitely equals causation!"* - Totally Real User, 2025
-
-## ⚡ Features That Will Blow Your Mind (And Your Tackle Box)
-
-### 🧠 **AI-Powered*** Moon Phase Analysis
-*\*Not actually AI, just some trigonometry we found on Wikipedia*
-
-Our patented** `score_moon()` algorithm uses ADVANCED MATHEMATICS™ to determine exactly when fish are feeling snacky based on:
-- Phase angles (because fish are geometrically sophisticated)
-- Lunar illumination (fish prefer mood lighting)
-- Ancient solunar superstitions (why question centuries of fishing folklore?)
-
-**\*Not actually patented. Please don't sue us.**
-
-### 🌦️ **Weather Wizardry That Makes Meteorologists Jealous**
-
-We don't just tell you it's raining - we tell you if it's the *right kind* of rain for optimal fish psychology:
-- Wind analysis (fish hate bad hair days too)
-- Cloud coverage optimization (because fish are picky about their lighting)
-- Temperature comfort zones (fish are basically underwater humans)
-- Barometric pressure monitoring (fish have trust issues with weather)
-
-### 📖 **Farmer's Almanac Integration** 
-*"If it was good enough for your great-great-grandfather's fishing buddy, it's good enough for your AI-powered smartphone"*
-
-## 🎯 **The Science™**
-
-Our proprietary*** bite prediction algorithm considers over **FIVE WHOLE DATA POINTS**:
-
-1. **Moon Score** (35% weight) - Because fish are clearly nocturnal astrologers
-2. **Weather Score** (45% weight) - Fish check weather.com religiously  
-3. **Almanac Score** (20% weight) - Traditional wisdom meets modern JSON
-4. **Your Hopes and Dreams** (0% weight) - Sorry, we're realistic here
-5. **Actual Fish Behavior** (0% weight) - Who has time to ask the fish?
-
-***\*The word "proprietary" makes everything sound more impressive***
-
-## 🚀 **Installation for Elite Anglers**
-
-### Prerequisites
-- A computer (revolutionary concept)
-- Python 3.8+ (because we're not animals)
-- Internet connection (fish data doesn't grow on trees)
-- Unrealistic expectations about fishing success
-- Willingness to blame the algorithm when you catch nothing
-
-### Quick Start (AKA "The Moment of Truth")
+### Local Development
 
 ```bash
-# Clone this masterpiece
-git clone https://github.com/yourusername/fishing-forecast.git
-cd fishing-forecast
+# Clone and install dependencies
+git clone https://github.com/jsldvr/fishing-report.git
+cd fishing-report
+npm install
 
-# Enter the matrix (create virtual environment)
-python3 -m venv venv
-source venv/bin/activate
+# Start development server
+npm run dev
+# Opens at http://localhost:5173
 
-# Install the magic
-pip install -r requirements.txt
+# Run tests
+npm test
 
-# Prepare for disappointment... I mean, enlightenment!
-python3 forecast.py --lat 35.4676 --lon -97.5164 --days 3
+# Build for production
+npm run build
 ```
 
-### Advanced Configuration (For Fishing Pros Only)
+### Deployment to GitHub Pages
 
-Want Farmer's Almanac integration? Set these environment variables and feel superior:
+1. **Enable GitHub Pages** in repository settings → Pages → Source: "GitHub Actions"
+
+2. **Push to main branch** - the workflow automatically:
+   - Builds and tests the application  
+   - Deploys to `https://[username].github.io/fishing-report/`
+   - Runs nightly at midnight America/Chicago time
+
+3. **Manual deployment**: Use "Actions" tab → "Build and Deploy to GitHub Pages" → "Run workflow"
+
+## Usage
+
+### Basic Forecast
+
+1. **Enter Location**: Use city search, coordinates, or current location
+2. **Select Date Range**: Choose start date and number of days (1-7)
+3. **Generate Forecast**: Get daily bite scores and detailed breakdowns
+
+### Understanding Scores
+
+- **🎣 75-100**: Excellent conditions - prime fishing time
+- **🐟 50-74**: Good conditions - favorable for fishing  
+- **💤 0-49**: Poor conditions - consider alternative activities
+
+### Component Breakdown
+
+Each forecast shows weighted contributions:
+- **🌙 Moon**: Phase angle and illumination analysis
+- **🌤️ Weather**: Temperature, wind, precipitation, cloud cover
+- **📖 Almanac**: Optional third-party fishing ratings (when available)
+
+## Algorithm Details
+
+### Scoring Methodology
+
+The algorithm is a 1:1 TypeScript port of the original Python implementation:
+
+#### Moon Phase (0-1 scale)
+```typescript
+score = 0.6 × |cos(2α)| + 0.4 × illumination
+```
+- Favors new moon (0°) and full moon (180°) phases
+- Incorporates illumination for brightness preference
+- Based on solunar theory principles
+
+#### Weather Conditions (0-1 scale)
+```typescript
+score = 0.35×wind + 0.25×clouds + 0.2×precipitation + 0.2×temperature
+```
+- **Wind**: Optimal 3-18 km/h (light to moderate breeze)
+- **Clouds**: Best 10-40% (partly cloudy conditions)
+- **Rain**: Minimal precipitation preferred
+- **Temperature**: Comfort zone 10-24°C (50-75°F)
+
+#### Final Combination
+- **Without almanac**: 44% moon + 56% weather
+- **With almanac**: 35% moon + 45% weather + 20% almanac
+
+### Validation & Testing
+
+Run validation tests to verify algorithm parity:
 
 ```bash
-export OFA_API_KEY="your_secret_fishing_key"
-export OFA_API_URL="https://api.almanac.example/v1/fishing?lat={lat}&lon={lon}&date={date}&apikey={key}"
+# Algorithm unit tests
+npm test
+
+# Compare with Python output (requires Python setup)
+python forecast.py --lat 40.7128 --lon -74.0060 --days 3
+# Then check TypeScript equivalent in browser
 ```
 
-*Note: Farmer's Almanac API may not actually exist. Details are for people who read documentation.*
+## Project Structure
 
-## 📊 **Sample Output (Prepare to Be Amazed)**
-
-```json
-{
-  "date": "2025-09-23",
-  "bite_score_0_100": 67.3,
-  "components": {
-    "moon": 29.4,
-    "weather": 38.9,
-    "almanac": 12.0
-  },
-  "moon": {
-    "phase_angle_deg": 42.69,
-    "illumination_0_1": 0.420,
-    "phase_name": "Waxing Suspicious"
-  },
-  "weather": {
-    "temp_c": 22.1,
-    "temp_f": 71.8,
-    "wind_kph": 12.3,
-    "precip_mm": 0.0,
-    "cloud_pct": 25,
-    "pressure_hpa": 1013.2
-  }
-}
+```
+fishing-report/
+├── src/
+│   ├── lib/                 # Core algorithms
+│   │   ├── forecast.ts     # Main scoring logic (ported from Python)
+│   │   ├── openMeteo.ts    # Weather API client
+│   │   └── time.ts         # Timezone utilities
+│   ├── components/         # React components
+│   │   ├── LocationInput.tsx
+│   │   ├── DateRangePicker.tsx
+│   │   └── ScoreCard.tsx
+│   ├── pages/             # Route pages
+│   │   ├── Home.tsx
+│   │   ├── Results.tsx
+│   │   └── About.tsx
+│   └── types/             # TypeScript definitions
+├── tests/                 # Unit tests
+├── scripts/              # Build utilities
+├── public/              # Static assets
+└── .github/workflows/   # CI/CD
 ```
 
-*Look at all those decimal places! That's how you know it's scientific!*
+## Configuration
 
-## 🏆 **Success Stories** 
+### Environment Variables
 
-> *"I used this script and caught the biggest fish of my life! Granted, it was the only fish I caught that year, but still!"* 
-> 
-> — Jake, Professional Exaggerator
+Optional environment variables for enhanced features:
 
-> *"The algorithm predicted a bite score of 89. I caught nothing. Clearly the fish didn't get the memo."*
-> 
-> — Sarah, Realistic Expectations Haver
-
-> *"I don't even fish, I just run this script to feel intellectually superior to fish."*
-> 
-> — Tech Bro Who Discovered Nature
-
-## 🤓 **Technical Deep Dive (For Nerds)**
-
-### The Algorithm That Will Change Your Life*
-
-*\*Results may vary. Life-changing effects not guaranteed.*
-
-Our bite prediction uses a sophisticated weighted average:
-
-```python
-def combine_scores(moon, weather, almanac):
-    # This is basically rocket science
-    if almanac is None:
-        return 0.44 * moon + 0.56 * weather  # Math!
-    else:
-        return 0.35 * moon + 0.45 * weather + 0.20 * almanac  # More Math!
+```bash
+# None required for basic operation
+# All data sources are public APIs or client-side calculations
 ```
 
-### Moon Scoring (The Mystical Part)
+### Customization
 
-We calculate moon phases using the ancient art of trigonometry:
-- New Moon & Full Moon = Peak fishing (fish are dramatic)
-- Quarter Moons = Meh fishing (fish are indecisive)  
-- Everything else = "It's complicated" (fish have commitment issues)
+#### Adding Locations for Prebuild
 
-### Weather Scoring (The "Scientific" Part)
+Edit `scripts/build-data.ts` to add popular fishing locations:
 
-- **Perfect Wind**: 3-18 km/h (fish like a gentle breeze, not a hurricane)
-- **Ideal Clouds**: 10-40% coverage (fish prefer Instagram-worthy lighting)
-- **Temperature Sweet Spot**: 10-24°C (fish are basically Goldilocks)
-- **Rain Tolerance**: Light drizzle okay, torrential downpour not so much
+```typescript
+const SAMPLE_LOCATIONS = [
+  { name: 'Lake Tahoe, CA', lat: 39.0968, lon: -120.0324 },
+  { name: 'Kenai River, AK', lat: 60.5544, lon: -151.2583 },
+  // Add more locations...
+];
+```
 
-## ⚠️ **Disclaimer** 
+#### Adjusting Algorithm Weights
 
-This script is provided "as is" without warranty of any kind. We are not responsible for:
-- Empty coolers
-- Disappointed family members  
-- Existential crises about the meaninglessness of fishing algorithms
-- Fish that don't read scientific papers
-- The inevitable realization that fish gonna fish regardless of your fancy predictions
-- Your spouse questioning your life choices
-- The crushing weight of mathematical expectations vs. aquatic reality
+Modify scoring weights in `src/lib/forecast.ts`:
 
-**IMPORTANT**: Fish are notoriously bad at following algorithms. They don't have smartphones, don't check weather apps, and are generally unimpressed by your computational efforts.
+```typescript
+// Weather component weights
+const score = 0.35 * windS + 0.25 * cloudS + 0.2 * precipS + 0.2 * tempS;
 
-## 🤝 **Contributing**
+// Final combination weights  
+const wm = 0.35, ww = 0.45, wa = 0.20; // With almanac
+const wm = 0.44, ww = 0.56;           // Without almanac
+```
 
-Found a bug? Fish not following the algorithm? Want to add more unnecessary complexity? We welcome contributions!
+## Performance Optimization
 
-**Please include:**
-- Screenshots of your empty tackle box
-- Detailed explanation of how the fish personally wronged you
-- At least three conspiracy theories about why fish are immune to data science
-- Your grandmother's secret fishing wisdom (we'll convert it to JSON)
+### Bundle Size Monitoring
 
-## 📜 **License**
+Target: <250 KB gzipped JavaScript on first load
 
-MIT License - Because even our legal documents should be as optimistic as our fishing predictions.
+```bash
+npm run build
+npx bundlesize  # Add to package.json for CI monitoring
+```
 
-## �� **Acknowledgments**
+### Optimization Features
 
-- **The Fish** - For being mysteriously unpredictable since the dawn of time
-- **The Moon** - For existing and being allegedly influential  
-- **Open-Meteo** - For free weather data (the real MVP)
-- **Every Fisherman Ever** - For believing that "there's gotta be a pattern to this"
-- **Stack Overflow** - Where we learned to copy-paste trigonometry
-- **Coffee** - The real algorithm behind this algorithm
+- **Code Splitting**: Routes loaded on-demand
+- **Asset Optimization**: Images and SVG minified  
+- **Caching Strategy**: Service worker for offline capability
+- **API Efficiency**: Batch requests, proper error handling
+
+## Browser Support
+
+- **Modern browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Mobile**: iOS Safari 14+, Chrome Mobile 90+
+- **Required APIs**: Fetch, Geolocation, Intl.DateTimeFormat
+- **Graceful degradation**: Core functionality without geolocation
+
+## Data Sources & Attribution
+
+- **Weather Data**: [Open-Meteo API](https://open-meteo.com/) (CC BY 4.0)
+- **Geocoding**: [OpenStreetMap Nominatim](https://nominatim.org/) 
+- **Lunar Calculations**: Astronomical formulas (public domain)
+- **Timezone Data**: IANA Time Zone Database via `tz-lookup`
+
+## Contributing
+
+### Development Workflow
+
+1. **Fork and clone** the repository
+2. **Create feature branch**: `git checkout -b feature/new-algorithm`
+3. **Make changes** with tests and documentation
+4. **Verify builds**: `npm run build && npm test`  
+5. **Submit pull request** with detailed description
+
+### Code Standards
+
+- **TypeScript**: Strict mode with full type coverage
+- **Testing**: Unit tests for algorithm functions
+- **Linting**: ESLint + Prettier configuration
+- **Commits**: Conventional commit format
+
+### Algorithm Changes
+
+When modifying scoring algorithms:
+
+1. **Update tests** with expected outputs
+2. **Validate against Python** reference implementation  
+3. **Document reasoning** for weight adjustments
+4. **Consider backward compatibility** for existing users
+
+## Troubleshooting
+
+### Common Issues
+
+**Build Failures**
+```bash
+# Clear cache and reinstall
+rm -rf node_modules dist .vite
+npm install
+npm run build
+```
+
+**API Rate Limits**
+- Open-Meteo: 10,000 requests/day per IP
+- Implement client-side caching if needed
+
+**Timezone Issues**  
+- Verify `tz-lookup` data includes your target location
+- Test with various DST transition dates
+
+**GitHub Pages 404s**
+- Ensure `base: '/fishing-report/'` in `vite.config.ts`
+- Check that `404.html` redirects properly for SPA routing
+
+### Performance Issues
+
+```bash
+# Analyze bundle size
+npm run build
+npx vite-bundle-analyzer dist
+
+# Check lighthouse score
+npx lighthouse http://localhost:4173 --view
+```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- **Solunar Theory**: John Alden Knight's research on lunar influence
+- **Open-Meteo**: Excellent free weather API service  
+- **React Team**: Outstanding development framework
+- **Fishing Community**: Feedback and validation of scoring accuracy
 
 ---
 
-*Remember: The best fishing algorithm is still waking up early, going to the water, and spending time outdoors. But where's the fun in that when you can over-engineer everything?*
-
-**Happy Fishing! 🎣** *(Results not guaranteed, fish not included, your mileage may vary, void where prohibited, batteries not included, some assembly required)*
-
+**Disclaimer**: Forecasts are for entertainment and research purposes. Always consider local conditions, weather warnings, fishing regulations, and safety when planning fishing activities.
