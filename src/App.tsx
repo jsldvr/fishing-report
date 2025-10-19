@@ -1,10 +1,13 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import packageJson from "../package.json";
 import Home from "./pages/Home";
 import Results from "./pages/Results";
 import About from "./pages/About";
 import Wx from "./pages/Wx";
 import Guide from "./pages/Guide";
+
+const APP_VERSION = (packageJson as { version: string }).version;
 
 function App() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -96,6 +99,16 @@ function App() {
                   <span className="nav-text">INTEL</span>
                 </a>
                 <a
+                  href="#/wx"
+                  className="nav-link"
+                  id="nav-link-wx"
+                  data-section="weather"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">🌦</span>
+                  <span className="nav-text">WX</span>
+                </a>
+                <a
                   href="#/guide"
                   className="nav-link"
                   id="nav-link-guide"
@@ -114,16 +127,6 @@ function App() {
                 >
                   <span className="nav-icon">📋</span>
                   <span className="nav-text">MISSION</span>
-                </a>
-                <a
-                  href="#/wx"
-                  className="nav-link"
-                  id="nav-link-wx"
-                  data-section="weather"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">🌐</span>
-                  <span className="nav-text">WX</span>
                 </a>
               </div>
 
@@ -144,12 +147,15 @@ function App() {
           </div>
 
           {/* Status Bar */}
-          <div className="status-bar">
+          <div className="status-bar" id="status-bar">
             <div className="status-indicator">
               <span className="status-dot active"></span>
               <span className="status-text">SYSTEM OPERATIONAL</span>
             </div>
-            <div className="timestamp">
+            <div className="app-version" id="app-version">
+              VERSION CTRL: {APP_VERSION}
+            </div>
+            <div className="timestamp" id="status-timestamp">
               {new Date().toLocaleTimeString("en-US", {
                 hour12: false,
                 hour: "2-digit",
@@ -184,22 +190,12 @@ function App() {
                   <span className="nav-description">Mission Control</span>
                 </a>
                 <a
-                  href="#/about"
-                  className="mobile-nav-link"
-                  id="mobile-nav-about"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">📋</span>
-                  <span className="nav-text">MISSION BRIEF</span>
-                  <span className="nav-description">System Info</span>
-                </a>
-                <a
                   href="#/wx"
                   className="mobile-nav-link"
                   id="mobile-nav-wx"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🌐</span>
+                  <span className="nav-icon">🌦</span>
                   <span className="nav-text">WX LINKS</span>
                   <span className="nav-description">Weather Resources</span>
                 </a>
@@ -212,6 +208,16 @@ function App() {
                   <span className="nav-icon">🧭</span>
                   <span className="nav-text">GUIDE</span>
                   <span className="nav-description">Survival Tips</span>
+                </a>
+                <a
+                  href="#/about"
+                  className="mobile-nav-link"
+                  id="mobile-nav-about"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">📋</span>
+                  <span className="nav-text">MISSION BRIEF</span>
+                  <span className="nav-description">System Info</span>
                 </a>
               </nav>
             </div>
