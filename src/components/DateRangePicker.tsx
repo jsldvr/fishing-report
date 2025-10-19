@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
-import { getCurrentDateISO, addDaysToDate } from '../lib/time';
+import { useState, useEffect } from "react";
+import { getCurrentDateISO, addDaysToDate } from "../lib/time";
 
 interface DateRangePickerProps {
   onDateRangeChange: (startDate: string, days: number) => void;
   maxDays?: number;
 }
 
-export default function DateRangePicker({ onDateRangeChange, maxDays = 7 }: DateRangePickerProps) {
+export default function DateRangePicker({
+  onDateRangeChange,
+  maxDays = 7,
+}: DateRangePickerProps) {
   const [startDate, setStartDate] = useState(getCurrentDateISO());
   const [days, setDays] = useState(3);
 
@@ -18,12 +21,17 @@ export default function DateRangePicker({ onDateRangeChange, maxDays = 7 }: Date
 
   return (
     <div className="card p-6">
-      <h2 className="text-xl font-semibold mb-4">Date Range</h2>
-      
+      <h2 className="text-xl font-semibold mb-4 text-primary">
+        ⏱️ Mission Timeline
+      </h2>
+
       <div className="grid gap-4">
         <div>
-          <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-2">
-            Start Date
+          <label
+            htmlFor="start-date"
+            className="block text-sm font-medium mb-2"
+          >
+            Operation Commencement
           </label>
           <input
             id="start-date"
@@ -34,10 +42,10 @@ export default function DateRangePicker({ onDateRangeChange, maxDays = 7 }: Date
             onChange={(e) => setStartDate(e.target.value)}
           />
         </div>
-        
+
         <div>
-          <label htmlFor="num-days" className="block text-sm font-medium text-gray-700 mb-2">
-            Number of Days ({days})
+          <label htmlFor="num-days" className="block text-sm font-medium mb-2">
+            Duration: {days} Day{days !== 1 ? "s" : ""}
           </label>
           <input
             id="num-days"
@@ -45,19 +53,30 @@ export default function DateRangePicker({ onDateRangeChange, maxDays = 7 }: Date
             min="1"
             max={maxDays.toString()}
             step="1"
-            className="w-full"
+            className="w-full accent-forest-600"
             value={days.toString()}
             onChange={(e) => setDays(parseInt(e.target.value, 10))}
+            style={{
+              background: `linear-gradient(to right, var(--color-forest-500) 0%, var(--color-forest-500) ${
+                (days / maxDays) * 100
+              }%, var(--border-primary) ${
+                (days / maxDays) * 100
+              }%, var(--border-primary) 100%)`,
+            }}
           />
-          <div className="flex justify-between text-sm text-gray-500 mt-1">
-            <span>1 day</span>
-            <span>{maxDays} days</span>
+          <div className="flex justify-between text-sm text-muted mt-1">
+            <span>Short Op</span>
+            <span>Extended Mission</span>
           </div>
         </div>
 
-        <div className="bg-gray-50 p-3 rounded">
-          <p className="text-sm text-gray-700">
-            <strong>Forecast period:</strong> {startDate} to {endDate} ({days} day{days !== 1 ? 's' : ''})
+        <div className="bg-accent p-3 rounded-lg border border-primary">
+          <p className="text-sm text-secondary">
+            <strong className="text-primary">Mission Window:</strong>{" "}
+            {startDate} → {endDate}
+          </p>
+          <p className="text-xs text-muted mt-1">
+            📅 {days} day operational period with tactical assessment intervals
           </p>
         </div>
       </div>

@@ -369,23 +369,25 @@ export default function LocationInput({
 
   return (
     <div className="card p-6">
-      <h2 className="text-xl font-semibold mb-4">Location</h2>
+      <h2 className="text-xl font-semibold mb-4 text-primary">
+        🎯 Target Coordinates
+      </h2>
 
       <div className="grid gap-4">
         {/* Location Name Search */}
         <div>
           <label
             htmlFor="location-name"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium mb-2"
           >
-            Search by City/Address
+            Location Intel Search
           </label>
           <div className="flex gap-2">
             <input
               id="location-name"
               type="text"
               className="input flex-1"
-              placeholder="e.g., New York, NY or 35.3383, -97.4867"
+              placeholder="e.g., Oklahoma City, OK or 35.3383, -97.4867"
               value={locationName}
               onChange={(e) => setLocationName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleGeocodeLocation()}
@@ -395,12 +397,12 @@ export default function LocationInput({
               onClick={handleGeocodeLocation}
               disabled={!locationName.trim() || isGeocoding}
             >
-              {isGeocoding ? <span className="spinner"></span> : "Search"}
+              {isGeocoding ? <span className="spinner"></span> : "🔍 Recon"}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Enter a city name or coordinates (lat, lon). If city search fails,
-            try entering coordinates directly.
+          <p className="text-xs text-muted mt-1">
+            Enter target designation or precise coordinates (lat, lon). Multiple
+            search vectors available for target acquisition.
           </p>
         </div>
 
@@ -409,9 +411,9 @@ export default function LocationInput({
           <div>
             <label
               htmlFor="latitude"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium mb-2"
             >
-              Latitude
+              Latitude (°N)
             </label>
             <input
               id="latitude"
@@ -428,9 +430,9 @@ export default function LocationInput({
           <div>
             <label
               htmlFor="longitude"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium mb-2"
             >
-              Longitude
+              Longitude (°W)
             </label>
             <input
               id="longitude"
@@ -454,17 +456,17 @@ export default function LocationInput({
           {isGeolocating ? (
             <>
               <span className="spinner"></span>
-              Getting Location...
+              Acquiring Position...
             </>
           ) : (
-            <>📍 Use Current Location</>
+            <>�️ GPS Lock</>
           )}
         </button>
 
         {!isValid && (
-          <p className="text-sm text-red-600">
-            Please enter valid coordinates within North America (Lat: 14-83°N,
-            Lon: -180 to -50°W)
+          <p className="text-sm text-error mt-2">
+            ⚠️ Invalid coordinates. AO must be within North America (Lat:
+            14-83°N, Lon: -180 to -50°W)
           </p>
         )}
       </div>
