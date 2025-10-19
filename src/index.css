@@ -1698,6 +1698,206 @@ button.btn.btn-primary.text-lg.px-8.py-3:active {
   transform: translateY(-1px) scale(1.01) !important;
 }
 
+/* ===========================================
+   LEGAL BRIEFINGS
+   =========================================== */
+.legal-page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.legal-header {
+  background: var(--bg-card);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-command);
+  padding: 2.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.legal-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top right,
+    rgba(74, 124, 74, 0.2),
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.legal-header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--ranger-500),
+    var(--coyote-500),
+    var(--ranger-400)
+  );
+}
+
+.legal-title {
+  font-size: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.legal-summary {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 48rem;
+}
+
+.legal-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-left: 4px solid var(--ranger-500);
+  border-radius: 0.75rem;
+  padding: 2rem 2.25rem;
+  box-shadow: var(--shadow-tactical);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.legal-section::before {
+  content: "";
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: 3px;
+  height: calc(100% - 3rem);
+  background: linear-gradient(
+    180deg,
+    rgba(74, 124, 74, 0.65),
+    rgba(74, 124, 74, 0)
+  );
+  opacity: 0.7;
+}
+
+.legal-section:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-command);
+  border-color: var(--border-focus);
+}
+
+.legal-heading {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
+}
+
+.legal-paragraph {
+  color: var(--text-secondary);
+  line-height: 1.9;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.legal-paragraph:last-of-type {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .legal-header {
+    padding: 2rem 1.5rem;
+  }
+
+  .legal-title {
+    font-size: 1.75rem;
+  }
+
+  .legal-section {
+    padding: 1.5rem 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .legal-section::before {
+    display: none;
+  }
+
+  .legal-section {
+    border-left-width: 3px;
+    padding: 1.5rem;
+  }
+}
+
+/* ===========================================
+   TACTICAL FOOTER
+   =========================================== */
+.site-footer {
+  background: rgba(15, 58, 15, 0.85);
+  border-top: 3px solid var(--ranger-600);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
+  padding: 2rem 1.5rem;
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.footer-link {
+  color: var(--coyote-200);
+  font-size: 0.875rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--coyote-50);
+  border-color: var(--ranger-500);
+  outline: none;
+}
+
+.footer-disclaimer {
+  font-size: 0.75rem;
+  color: var(--coyote-300);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .site-footer {
+    padding: 1.5rem 1rem;
+  }
+
+  .footer-link {
+    font-size: 0.75rem;
+  }
+}
+
 /* Mobile Optimization for Tactical Button */
 @media (max-width: 639px) {
   button.btn.btn-primary.text-lg.px-8.py-3 {

@@ -6,6 +6,10 @@ import Results from "./pages/Results";
 import About from "./pages/About";
 import Wx from "./pages/Wx";
 import Guide from "./pages/Guide";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CookieConsent from "./pages/CookieConsent";
+import ComplianceStatement from "./pages/ComplianceStatement";
 
 const APP_VERSION = (packageJson as { version: string }).version;
 
@@ -232,15 +236,44 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/wx" element={<Wx />} />
           <Route path="/guide" element={<Guide />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/cookies" element={<CookieConsent />} />
+          <Route path="/compliance" element={<ComplianceStatement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <footer
-        className="text-center text-xs text-gray-500 py-4"
-        id="site-disclaimer"
-      >
-        This website is for entertainment purposes only and any real life outcome
-        is purely coincidental.
+      <footer className="site-footer" id="site-footer">
+        <div className="footer-links" id="footer-links">
+          <a
+            href="#/privacy"
+            className="footer-link"
+            id="footer-link-privacy"
+          >
+            Privacy Policy
+          </a>
+          <a href="#/terms" className="footer-link" id="footer-link-terms">
+            Terms of Service
+          </a>
+          <a
+            href="#/cookies"
+            className="footer-link"
+            id="footer-link-cookies"
+          >
+            Cookie Consent
+          </a>
+          <a
+            href="#/compliance"
+            className="footer-link"
+            id="footer-link-compliance"
+          >
+            Compliance
+          </a>
+        </div>
+        <div className="footer-disclaimer" id="site-disclaimer">
+          This website is for entertainment purposes only and any real life
+          outcome is purely coincidental.
+        </div>
       </footer>
     </div>
   );
