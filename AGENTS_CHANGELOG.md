@@ -5,6 +5,8 @@
 - Bumped `package.json` version to `1.1.0` for the release branch workflow.
 - Added Open Graph image meta tag pointing to `public/images/sharing-fishing-report.png` for social sharing.
 - Reordered primary and mobile navigation links to `INTEL → WX → GUIDE → MISSION` and updated the WX icon to `🌦`.
+- Introduced automated GitHub release workflow that tags and publishes releases from `release/*` branches using the `package.json` version.
+- Surface current version in the header status bar (`VERSION CTRL: X.X.X`) using the package metadata.
 
 ### Enhanced Weather Integration (Major Update)
 - **Added National Weather Service (NWS) API integration**

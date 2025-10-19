@@ -1,10 +1,13 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import packageJson from "../package.json";
 import Home from "./pages/Home";
 import Results from "./pages/Results";
 import About from "./pages/About";
 import Wx from "./pages/Wx";
 import Guide from "./pages/Guide";
+
+const APP_VERSION = (packageJson as { version: string }).version;
 
 function App() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -144,12 +147,15 @@ function App() {
           </div>
 
           {/* Status Bar */}
-          <div className="status-bar">
+          <div className="status-bar" id="status-bar">
             <div className="status-indicator">
               <span className="status-dot active"></span>
               <span className="status-text">SYSTEM OPERATIONAL</span>
             </div>
-            <div className="timestamp">
+            <div className="app-version" id="app-version">
+              VERSION CTRL: {APP_VERSION}
+            </div>
+            <div className="timestamp" id="status-timestamp">
               {new Date().toLocaleTimeString("en-US", {
                 hour12: false,
                 hour: "2-digit",
