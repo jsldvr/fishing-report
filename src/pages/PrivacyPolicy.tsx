@@ -26,7 +26,7 @@ const sections = [
     title: "User Controls and Contact",
     paragraphs: [
       "You may manage cookies through your browser security console. Disabling functional cookies is permissible, though it will result in a degraded experience as mission-critical features rely on them. Continued use of the site constitutes consent to the functional cookie deployment described herein.",
-      "For questions regarding this Privacy Policy or to exercise applicable data rights, contact the Tactical Fishing Intel compliance channel at privacy@tacticalfishingintel.example. Requests will be evaluated promptly and resolved in accordance with governing law and operational constraints.",
+      "For questions regarding this Privacy Policy or to exercise applicable data rights, contact the Tactical Fishing Intel compliance channel at nospam@sldvr.com. Requests will be evaluated promptly and resolved in accordance with governing law and operational constraints.",
     ],
   },
 ];
@@ -38,7 +38,8 @@ const PrivacyPolicy: FC = () => (
         Privacy Policy
       </h1>
       <p className="legal-summary" id="privacy-summary">
-        Effective October 19, 2025 — Tactical Fishing Intel deploys only functional cookies required to sustain forecast delivery.
+        Effective October 19, 2025 — Tactical Fishing Intel deploys only
+        functional cookies required to sustain forecast delivery.
       </p>
     </header>
     {sections.map((section, index) => (
@@ -47,10 +48,7 @@ const PrivacyPolicy: FC = () => (
         id={`privacy-section-${index + 1}`}
         key={section.title}
       >
-        <h2
-          className="legal-heading"
-          id={`privacy-section-title-${index + 1}`}
-        >
+        <h2 className="legal-heading" id={`privacy-section-title-${index + 1}`}>
           {section.title}
         </h2>
         {section.paragraphs.map((paragraph, paragraphIndex) => (
