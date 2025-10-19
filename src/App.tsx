@@ -96,6 +96,16 @@ function App() {
                   <span className="nav-text">INTEL</span>
                 </a>
                 <a
+                  href="#/wx"
+                  className="nav-link"
+                  id="nav-link-wx"
+                  data-section="weather"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">🌦</span>
+                  <span className="nav-text">WX</span>
+                </a>
+                <a
                   href="#/guide"
                   className="nav-link"
                   id="nav-link-guide"
@@ -114,16 +124,6 @@ function App() {
                 >
                   <span className="nav-icon">📋</span>
                   <span className="nav-text">MISSION</span>
-                </a>
-                <a
-                  href="#/wx"
-                  className="nav-link"
-                  id="nav-link-wx"
-                  data-section="weather"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">🌐</span>
-                  <span className="nav-text">WX</span>
                 </a>
               </div>
 
@@ -184,22 +184,12 @@ function App() {
                   <span className="nav-description">Mission Control</span>
                 </a>
                 <a
-                  href="#/about"
-                  className="mobile-nav-link"
-                  id="mobile-nav-about"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">📋</span>
-                  <span className="nav-text">MISSION BRIEF</span>
-                  <span className="nav-description">System Info</span>
-                </a>
-                <a
                   href="#/wx"
                   className="mobile-nav-link"
                   id="mobile-nav-wx"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🌐</span>
+                  <span className="nav-icon">🌦</span>
                   <span className="nav-text">WX LINKS</span>
                   <span className="nav-description">Weather Resources</span>
                 </a>
@@ -212,6 +202,16 @@ function App() {
                   <span className="nav-icon">🧭</span>
                   <span className="nav-text">GUIDE</span>
                   <span className="nav-description">Survival Tips</span>
+                </a>
+                <a
+                  href="#/about"
+                  className="mobile-nav-link"
+                  id="mobile-nav-about"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">📋</span>
+                  <span className="nav-text">MISSION BRIEF</span>
+                  <span className="nav-description">System Info</span>
                 </a>
               </nav>
             </div>

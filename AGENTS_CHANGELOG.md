@@ -1,6 +1,11 @@
 # Changelog
 
 ## 2025-10-19
+### Version 1.1.0 Release Prep
+- Bumped `package.json` version to `1.1.0` for the release branch workflow.
+- Added Open Graph image meta tag pointing to `public/images/sharing-fishing-report.png` for social sharing.
+- Reordered primary and mobile navigation links to `INTEL → WX → GUIDE → MISSION` and updated the WX icon to `🌦`.
+
 ### Enhanced Weather Integration (Major Update)
 - **Added National Weather Service (NWS) API integration**
   - Implemented `NWSWeatherService` class with full API support
