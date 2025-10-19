@@ -1,6 +1,12 @@
 # Changelog
 
 ## 2025-10-19
+### Version 1.1.2 Mobile Readiness
+- Locked the viewport scaling behavior in `index.html` so mobile users cannot zoom when focusing inputs, keeping the layout stable.
+- **Fixed HashRouter scroll restoration**: Simplified scroll reset to use `location.pathname` dependency and immediate `window.scrollTo(0, 0)` call, removing overcomplicated timing logic that failed to work.
+- **Updated contact emails**: Changed placeholder `@tacticalfishingintel.example` addresses to `nospam@sldvr.com` in Privacy Policy and Cookie Consent pages.
+
+## 2025-10-19
 ### Version 1.1.1 Legal Compliance Pack
 - Updated `package.json` version to `1.1.1`.
 - Added dedicated Privacy Policy, Terms of Service, Cookie Consent, and Compliance Statement pages with comprehensive legal copy.

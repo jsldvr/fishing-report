@@ -18,7 +18,7 @@ const sections = [
   {
     title: "Additional Information",
     paragraphs: [
-      "Should you require clarifications or wish to transmit a cookie-related request, contact cookies@tacticalfishingintel.example. Communications will receive a formal acknowledgement and response consistent with governing privacy obligations.",
+      "Should you require clarifications or wish to transmit a cookie-related request, contact nospam@sldvr.com. Communications will receive a formal acknowledgement and response consistent with governing privacy obligations.",
       "This statement operates alongside our Privacy Policy, which expands on data minimization and disclosure practices. Both documents should be reviewed for complete situational awareness.",
     ],
   },
@@ -31,7 +31,8 @@ const CookieConsent: FC = () => (
         Cookie Consent
       </h1>
       <p className="legal-summary" id="cookie-summary">
-        Tactical Fishing Intel uses functional cookies exclusively to sustain the console experience. No auxiliary tracking is deployed.
+        Tactical Fishing Intel uses functional cookies exclusively to sustain
+        the console experience. No auxiliary tracking is deployed.
       </p>
     </header>
     {sections.map((section, index) => (
@@ -40,10 +41,7 @@ const CookieConsent: FC = () => (
         id={`cookie-section-${index + 1}`}
         key={section.title}
       >
-        <h2
-          className="legal-heading"
-          id={`cookie-section-title-${index + 1}`}
-        >
+        <h2 className="legal-heading" id={`cookie-section-title-${index + 1}`}>
           {section.title}
         </h2>
         {section.paragraphs.map((paragraph, paragraphIndex) => (
