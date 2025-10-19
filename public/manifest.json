@@ -1,0 +1,16 @@
+{
+  "name": "Fishing Forecast",
+  "short_name": "FishingForecast",
+  "description": "Science-based fishing predictions for North America",
+  "icons": [
+    {
+      "src": "fishing.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/fishing-report/",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff"
+}
