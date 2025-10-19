@@ -5,6 +5,7 @@
 - Updated `package.json` version to `1.1.1`.
 - Added dedicated Privacy Policy, Terms of Service, Cookie Consent, and Compliance Statement pages with comprehensive legal copy.
 - Wired footer links to the new legal pages and extended routing to expose each document.
+- Styled the legal briefing pages and footer with existing tactical UI patterns for visual consistency.
 - Surfaced current version in the header status bar (`VERSION CTRL: X.X.X`) using the package metadata.
 
 ### Version 1.1.0 Release Prep
