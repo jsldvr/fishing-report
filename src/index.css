@@ -196,6 +196,9 @@ body {
   font-size: 1.25rem;
   line-height: 1.75rem;
 }
+.leading-relaxed {
+  line-height: 1.7;
+}
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -396,6 +399,18 @@ body {
 .gap-8 {
   gap: 2rem;
 }
+.space-y-1 > * + * {
+  margin-top: 0.25rem;
+}
+.space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
 .justify-between {
   justify-content: space-between;
 }
@@ -404,6 +419,70 @@ body {
 }
 .block {
   display: block;
+}
+
+/* Results Header */
+.results-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  justify-content: flex-start;
+}
+
+.results-header-title {
+  width: 100%;
+}
+
+.results-header-controls {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.results-header-controls > * {
+  width: 100%;
+}
+
+.results-unit-group {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+#action-new-forecast {
+  align-self: flex-start;
+}
+
+@media (min-width: 768px) {
+  .results-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+  }
+
+  .results-header-title {
+    width: auto;
+  }
+
+  .results-header-controls {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    width: auto;
+  }
+
+  .results-header-controls > * {
+    width: auto;
+  }
+
+  .results-unit-group {
+    flex-wrap: nowrap;
+  }
+
+  #action-new-forecast {
+    align-self: auto;
+  }
 }
 
 /* ===========================================
@@ -893,8 +972,8 @@ body {
   .theme-toggle {
     width: 2.5rem;
     height: 2.5rem;
-    top: 0.75rem;
-    right: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.75rem;
     font-size: 1rem;
   }
 }
@@ -1038,6 +1117,24 @@ body {
 
 .btn-primary:disabled::before {
   display: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-tactical);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card);
+  transform: translateY(-1px);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-command);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
 }
 
 /* Enhanced Button Sizes */
@@ -1314,8 +1411,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
 /* Theme Toggle */
 .theme-toggle {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
   z-index: 101;
   width: 3rem;
   height: 3rem;

@@ -134,63 +134,61 @@ export default function Results() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex mb-6 results-header" id="results-header">
+        <div className="results-header-title" id="results-header-title">
           <h1 className="text-2xl font-bold text-gray-900">Fishing Forecast</h1>
           <p className="text-gray-600">
             {locationName || `${lat.toFixed(4)}, ${lon.toFixed(4)}`}
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex gap-4 results-header-controls" id="results-header-controls">
           {/* Unit toggles */}
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 results-unit-group"
+            id="temperature-unit-group"
+          >
             <button
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                !useFahrenheit 
-                  ? "bg-blue-600 text-white hover:bg-blue-700" 
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`btn ${!useFahrenheit ? "btn-primary" : "btn-secondary"}`}
+              id="unit-toggle-celsius"
               onClick={() => setUseFahrenheit(false)}
             >
               °C
             </button>
             <button
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                useFahrenheit 
-                  ? "bg-blue-600 text-white hover:bg-blue-700" 
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`btn ${useFahrenheit ? "btn-primary" : "btn-secondary"}`}
+              id="unit-toggle-fahrenheit"
               onClick={() => setUseFahrenheit(true)}
             >
               °F
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 results-unit-group"
+            id="wind-unit-group"
+          >
             <button
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                !useMph 
-                  ? "bg-blue-600 text-white hover:bg-blue-700" 
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`btn ${!useMph ? "btn-primary" : "btn-secondary"}`}
+              id="unit-toggle-kmh"
               onClick={() => setUseMph(false)}
             >
               km/h
             </button>
             <button
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                useMph 
-                  ? "bg-blue-600 text-white hover:bg-blue-700" 
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`btn ${useMph ? "btn-primary" : "btn-secondary"}`}
+              id="unit-toggle-mph"
               onClick={() => setUseMph(true)}
             >
               mph
             </button>
           </div>
 
-          <button className="btn btn-primary" onClick={handleBackToHome}>
+          <button
+            className="btn btn-primary"
+            id="action-new-forecast"
+            onClick={handleBackToHome}
+          >
             New Forecast
           </button>
         </div>
