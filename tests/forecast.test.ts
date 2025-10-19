@@ -41,6 +41,15 @@ describe("Forecast Algorithm", () => {
       expect(moon2.illumination).toBeGreaterThanOrEqual(0);
       expect(moon2.illumination).toBeLessThanOrEqual(1);
       expect(moon2.phaseName).toBeDefined();
+
+      // Verify the fix: moon phase should progress correctly
+      const moon3 = getMoonData("2025-01-30"); // Day after new moon
+      expect(moon3.phaseName).toBe("Waxing Crescent");
+
+      // Test a sequence to ensure smooth progression
+      const moon4 = getMoonData("2025-01-31");
+      expect(moon4.phaseAngleDeg).toBeGreaterThan(moon3.phaseAngleDeg);
+      expect(moon4.phaseName).toBe("Waxing Crescent");
     });
   });
 
