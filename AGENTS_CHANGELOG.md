@@ -41,3 +41,4 @@
 - Added ids to updated Results page buttons for consistent FE selectors.
 - Made Results header stack vertically on small screens with new responsive classes and ids.
 - Added `range-input` styling (border, height, padding tweaks) and updated Home date range slider with class/id order.
+- Made Mission Timeline card collapsible by default with keyboard-accessible toggle, dynamic spacing, and supporting styles.

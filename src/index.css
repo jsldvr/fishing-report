@@ -421,6 +421,47 @@ body {
   display: block;
 }
 
+/* Mission Timeline Toggle */
+.mission-timeline-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.mission-timeline-toggle:focus {
+  outline: none;
+}
+
+.mission-timeline-toggle:focus-visible {
+  outline: 3px solid var(--border-focus);
+  outline-offset: 3px;
+}
+
+.mission-toggle-indicator {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.mission-toggle-indicator[data-open="false"] {
+  transform: rotate(180deg);
+}
+
+.mission-timeline-toggle[data-open="false"] {
+  margin-bottom: 0;
+}
+
+.mission-timeline-toggle[data-open="true"] {
+  margin-bottom: 1rem;
+}
+
+.mission-timeline-content[data-open="false"] {
+  display: none;
+}
+
 /* Results Header */
 .results-header {
   flex-direction: column;
