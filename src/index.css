@@ -393,6 +393,9 @@ body {
 .gap-6 {
   gap: 1.5rem;
 }
+.gap-8 {
+  gap: 2rem;
+}
 .justify-between {
   justify-content: space-between;
 }

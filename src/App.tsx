@@ -167,7 +167,7 @@ function App() {
         )}
       </header>
 
-      <main className="animate-slide-in">
+      <main className="animate-slide-in" id="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/results" element={<Results />} />
@@ -175,6 +175,13 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <footer
+        className="text-center text-xs text-gray-500 py-4"
+        id="site-disclaimer"
+      >
+        This website is for entertainment purposes only and any real life outcome
+        is purely coincidental.
+      </footer>
     </div>
   );
 }
