@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Home from "./pages/Home";
 import Results from "./pages/Results";
 import About from "./pages/About";
+import Wx from "./pages/Wx";
+import Guide from "./pages/Guide";
 
 function App() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -81,11 +83,12 @@ function App() {
             </div>
 
             {/* Navigation Controls */}
-            <nav className="header-nav">
-              <div className="nav-primary">
+            <nav className="header-nav" id="primary-navigation">
+              <div className="nav-primary" id="primary-navigation-links">
                 <a
                   href="#/"
                   className="nav-link"
+                  id="nav-link-home"
                   data-section="intel"
                   onClick={closeMobileMenu}
                 >
@@ -93,13 +96,34 @@ function App() {
                   <span className="nav-text">INTEL</span>
                 </a>
                 <a
+                  href="#/guide"
+                  className="nav-link"
+                  id="nav-link-guide"
+                  data-section="guide"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">🧭</span>
+                  <span className="nav-text">GUIDE</span>
+                </a>
+                <a
                   href="#/about"
                   className="nav-link"
+                  id="nav-link-about"
                   data-section="mission"
                   onClick={closeMobileMenu}
                 >
                   <span className="nav-icon">📋</span>
                   <span className="nav-text">MISSION</span>
+                </a>
+                <a
+                  href="#/wx"
+                  className="nav-link"
+                  id="nav-link-wx"
+                  data-section="weather"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">🌐</span>
+                  <span className="nav-text">WX</span>
                 </a>
               </div>
 
@@ -108,6 +132,7 @@ function App() {
                 className={`mobile-menu-toggle ${
                   mobileMenuOpen ? "active" : ""
                 }`}
+                id="mobile-menu-toggle"
                 onClick={toggleMobileMenu}
                 aria-label="Toggle navigation"
               >
@@ -137,15 +162,21 @@ function App() {
 
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-          <div className="mobile-menu-overlay" onClick={closeMobileMenu}>
+          <div
+            className="mobile-menu-overlay"
+            id="mobile-menu-overlay"
+            onClick={closeMobileMenu}
+          >
             <div
               className="mobile-menu-content"
+              id="mobile-menu-content"
               onClick={(e) => e.stopPropagation()}
             >
-              <nav className="mobile-nav">
+              <nav className="mobile-nav" id="mobile-navigation">
                 <a
                   href="#/"
                   className="mobile-nav-link"
+                  id="mobile-nav-home"
                   onClick={closeMobileMenu}
                 >
                   <span className="nav-icon">🏠</span>
@@ -155,11 +186,32 @@ function App() {
                 <a
                   href="#/about"
                   className="mobile-nav-link"
+                  id="mobile-nav-about"
                   onClick={closeMobileMenu}
                 >
                   <span className="nav-icon">📋</span>
                   <span className="nav-text">MISSION BRIEF</span>
                   <span className="nav-description">System Info</span>
+                </a>
+                <a
+                  href="#/wx"
+                  className="mobile-nav-link"
+                  id="mobile-nav-wx"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">🌐</span>
+                  <span className="nav-text">WX LINKS</span>
+                  <span className="nav-description">Weather Resources</span>
+                </a>
+                <a
+                  href="#/guide"
+                  className="mobile-nav-link"
+                  id="mobile-nav-guide"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-icon">🧭</span>
+                  <span className="nav-text">GUIDE</span>
+                  <span className="nav-description">Survival Tips</span>
                 </a>
               </nav>
             </div>
@@ -172,6 +224,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/results" element={<Results />} />
           <Route path="/about" element={<About />} />
+          <Route path="/wx" element={<Wx />} />
+          <Route path="/guide" element={<Guide />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

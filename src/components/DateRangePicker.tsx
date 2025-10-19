@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, type KeyboardEvent } from "react";
 import { getCurrentDateISO, addDaysToDate } from "../lib/time";
 
 interface DateRangePickerProps {
@@ -12,6 +12,7 @@ export default function DateRangePicker({
 }: DateRangePickerProps) {
   const [startDate, setStartDate] = useState(getCurrentDateISO());
   const [days, setDays] = useState(3);
+  const [isTimelineOpen, setTimelineOpen] = useState(false);
 
   useEffect(() => {
     onDateRangeChange(startDate, days);
@@ -19,13 +20,52 @@ export default function DateRangePicker({
 
   const endDate = addDaysToDate(startDate, days - 1);
 
+  const toggleTimeline = useCallback(() => {
+    setTimelineOpen((prev) => !prev);
+  }, []);
+
+  const handleTimelineKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLHeadingElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggleTimeline();
+      }
+    },
+    [toggleTimeline]
+  );
+
+  const timelineContentId = "mission-timeline-content";
+
   return (
     <div className="card p-6">
-      <h2 className="text-xl font-semibold mb-4 text-primary">
+      <h2
+        className="text-xl font-semibold text-primary mission-timeline-toggle"
+        id="mission-timeline-toggle"
+        role="button"
+        tabIndex={0}
+        aria-expanded={isTimelineOpen}
+        aria-controls={timelineContentId}
+        data-open={isTimelineOpen}
+        onClick={toggleTimeline}
+        onKeyDown={handleTimelineKeyDown}
+      >
         ⏱️ Mission Timeline
+        <span
+          className="mission-toggle-indicator"
+          id="mission-toggle-indicator"
+          aria-hidden="true"
+          data-open={isTimelineOpen}
+        >
+          ▾
+        </span>
       </h2>
 
-      <div className="grid gap-4">
+      <div
+        className="grid gap-4 mission-timeline-content"
+        id={timelineContentId}
+        data-open={isTimelineOpen}
+        aria-hidden={!isTimelineOpen}
+      >
         <div>
           <label
             htmlFor="start-date"

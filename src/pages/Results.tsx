@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import type { ForecastScore, DayInputs } from "../types/forecast";
-import { fetchWeather } from "../lib/openMeteo";
+import { fetchEnhancedWeather } from "../lib/enhancedWeather";
 import { forecastForDay } from "../lib/forecast";
 import { addDaysToDate, validateNorthAmericaCoords } from "../lib/time";
 import ScoreCard from "../components/ScoreCard";
@@ -62,8 +62,8 @@ export default function Results() {
           lon,
         };
 
-        // Fetch weather data
-        const weatherData = await fetchWeather(dayInputs);
+        // Fetch enhanced weather data
+        const weatherData = await fetchEnhancedWeather(dayInputs);
 
         // Generate forecast (no almanac data for now)
         const forecast = forecastForDay(dayInputs, weatherData);
@@ -142,21 +142,28 @@ export default function Results() {
           </p>
         </div>
 
-        <div className="flex gap-4 results-header-controls" id="results-header-controls">
+        <div
+          className="flex gap-4 results-header-controls"
+          id="results-header-controls"
+        >
           {/* Unit toggles */}
           <div
             className="flex items-center gap-2 results-unit-group"
             id="temperature-unit-group"
           >
             <button
-              className={`btn ${!useFahrenheit ? "btn-primary" : "btn-secondary"}`}
+              className={`btn ${
+                !useFahrenheit ? "btn-primary" : "btn-secondary"
+              }`}
               id="unit-toggle-celsius"
               onClick={() => setUseFahrenheit(false)}
             >
               °C
             </button>
             <button
-              className={`btn ${useFahrenheit ? "btn-primary" : "btn-secondary"}`}
+              className={`btn ${
+                useFahrenheit ? "btn-primary" : "btn-secondary"
+              }`}
               id="unit-toggle-fahrenheit"
               onClick={() => setUseFahrenheit(true)}
             >
