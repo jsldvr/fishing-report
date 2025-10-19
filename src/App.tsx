@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useLayoutEffect } from "react";
 import packageJson from "../package.json";
 import Home from "./pages/Home";
 import Results from "./pages/Results";
@@ -16,6 +16,7 @@ const APP_VERSION = (packageJson as { version: string }).version;
 function App() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
@@ -62,6 +63,11 @@ function App() {
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
+
+  // Handle scroll restoration on route changes
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br">
@@ -245,21 +251,13 @@ function App() {
       </main>
       <footer className="site-footer" id="site-footer">
         <div className="footer-links" id="footer-links">
-          <a
-            href="#/privacy"
-            className="footer-link"
-            id="footer-link-privacy"
-          >
+          <a href="#/privacy" className="footer-link" id="footer-link-privacy">
             Privacy Policy
           </a>
           <a href="#/terms" className="footer-link" id="footer-link-terms">
             Terms of Service
           </a>
-          <a
-            href="#/cookies"
-            className="footer-link"
-            id="footer-link-cookies"
-          >
+          <a href="#/cookies" className="footer-link" id="footer-link-cookies">
             Cookie Consent
           </a>
           <a
