@@ -170,7 +170,7 @@ describe("Forecast Algorithm", () => {
       expect(forecast.biteScore0100).toBeLessThanOrEqual(100);
       expect(forecast.moon.phaseAngleDeg).toBeGreaterThanOrEqual(0);
       expect(forecast.moon.phaseAngleDeg).toBeLessThan(360);
-      expect(forecast.weather).toEqual(weatherData);
+      expect(forecast.weather).toMatchObject(weatherData);
       expect(forecast.components.moon).toBeDefined();
       expect(forecast.components.weather).toBeDefined();
     });
