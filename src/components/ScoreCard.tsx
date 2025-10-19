@@ -1,5 +1,7 @@
 import type { ForecastScore } from "../types/forecast";
 import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
+import WeatherAlerts from "./WeatherAlerts";
+import WeatherDebugInfo from "./WeatherDebugInfo";
 
 interface ScoreCardProps {
   forecast: ForecastScore;
@@ -131,6 +133,10 @@ export default function ScoreCard({
             {forecast.weather.pressureHpa && (
               <p>Pressure: {forecast.weather.pressureHpa} hPa</p>
             )}
+            {forecast.weather.source === "NWS" &&
+              forecast.weather.barometricTrend !== "STEADY" && (
+                <p>Trend: {forecast.weather.barometricTrend.toLowerCase()}</p>
+              )}
           </div>
         </div>
 
@@ -141,6 +147,14 @@ export default function ScoreCard({
             </p>
           </div>
         )}
+
+        {/* Enhanced Weather Information */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <WeatherDebugInfo weather={forecast.weather} className="mb-4" />
+          {forecast.weather.source === "NWS" && (
+            <WeatherAlerts weather={forecast.weather} />
+          )}
+        </div>
       </div>
     </div>
   );
