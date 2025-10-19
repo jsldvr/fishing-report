@@ -1,12 +1,17 @@
 # Changelog
 
 ## 2025-10-19
+### Version 1.1.1 Legal Compliance Pack
+- Updated `package.json` version to `1.1.1`.
+- Added dedicated Privacy Policy, Terms of Service, Cookie Consent, and Compliance Statement pages with comprehensive legal copy.
+- Wired footer links to the new legal pages and extended routing to expose each document.
+- Surfaced current version in the header status bar (`VERSION CTRL: X.X.X`) using the package metadata.
+
 ### Version 1.1.0 Release Prep
 - Bumped `package.json` version to `1.1.0` for the release branch workflow.
 - Added Open Graph image meta tag pointing to `public/images/sharing-fishing-report.png` for social sharing.
 - Reordered primary and mobile navigation links to `INTEL → WX → GUIDE → MISSION` and updated the WX icon to `🌦`.
 - Introduced automated GitHub release workflow that tags and publishes releases from `release/*` branches using the `package.json` version.
-- Surface current version in the header status bar (`VERSION CTRL: X.X.X`) using the package metadata.
 
 ### Enhanced Weather Integration (Major Update)
 - **Added National Weather Service (NWS) API integration**
