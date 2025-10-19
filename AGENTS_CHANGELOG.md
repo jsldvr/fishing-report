@@ -28,6 +28,18 @@
   - Fishing safety rating system (EXCELLENT → DANGEROUS)
   - Risk factor identification and safety recommendations
 
+- **Local NWS Office Integration**
+  - Added `NWSOfficeInfo` and `LocalWeatherOfficeInfo` types
+  - Implemented office lookup with distance calculation
+  - Created `NWSOfficeInfo` component for office details
+  - Added 50+ NWS Weather Forecast Office coordinates
+  - Shows local meteorologist contact information and coverage area
+
+- **Bug Fixes**
+  - Fixed NWS alerts API zone ID extraction (was passing full URL)
+  - Corrected NWS office API response parsing
+  - Enhanced error handling for API failures
+
 ### Previous Updates
 - Updated `public/fishing.svg` to use a simple 🎣 emoji favicon.
 - Pointed favicon links to `/fishing.svg` to avoid duplicate `/fishing-report/` path segments.

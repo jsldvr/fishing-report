@@ -54,6 +54,12 @@ export default function WeatherDebugInfo({
               fields
             </p>
           )}
+          {weather.localOffice && (
+            <p>
+              <strong>NWS Office:</strong> {weather.localOffice.office.id} (
+              {weather.localOffice.distance.toFixed(0)}km)
+            </p>
+          )}
         </div>
       </div>
 

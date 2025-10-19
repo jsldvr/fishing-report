@@ -72,6 +72,7 @@ export interface EnhancedWeatherData extends WeatherData {
   safety: SafetyAssessment;
   barometricTrend: "RISING" | "FALLING" | "STEADY";
   source: "NWS" | "OPEN_METEO" | "FUSED";
+  localOffice?: LocalWeatherOfficeInfo;
 }
 
 export interface NWSPointMetadata {
@@ -84,4 +85,30 @@ export interface NWSPointMetadata {
   fireWeatherZone: string;
   marineZone?: string;
   timeZone: string;
+}
+
+export interface NWSOfficeInfo {
+  id: string;
+  name: string;
+  address: {
+    streetAddress: string;
+    addressLocality: string;
+    addressRegion: string;
+    postalCode: string;
+  };
+  telephone: string;
+  faxNumber: string;
+  email: string;
+  nwsRegion: string;
+  parentOrganization: string;
+  responsibleCounties: string[];
+  responsibleForecastZones: string[];
+  responsibleFireZones: string[];
+  approvedObservationStations: string[];
+}
+
+export interface LocalWeatherOfficeInfo {
+  office: NWSOfficeInfo;
+  distance: number; // km from user location
+  servingArea: string; // description of coverage area
 }

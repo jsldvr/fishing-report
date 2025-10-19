@@ -2,6 +2,7 @@ import type {
   SafetyAssessment,
   EnhancedWeatherData,
 } from "../types/forecast.js";
+import NWSOfficeInfo from "./NWSOfficeInfo";
 
 interface WeatherAlertsProps {
   weather: EnhancedWeatherData;
@@ -223,6 +224,11 @@ export default function WeatherAlerts({
             </div>
           </div>
         )}
+
+      {/* Local NWS Office Information */}
+      {weather.localOffice && (
+        <NWSOfficeInfo localOffice={weather.localOffice} />
+      )}
     </div>
   );
 }
