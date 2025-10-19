@@ -359,7 +359,9 @@ def main():
         },
         "weather": {
             "temp_c": round(r.weather.temp_c, 1),
+            "temp_f": round(r.weather.temp_c * 9/5 + 32, 1),
             "wind_kph": round(r.weather.wind_kph, 1),
+            "wind_mph": round(r.weather.wind_kph / 1.609344, 1),
             "precip_mm": round(r.weather.precip_mm, 2),
             "cloud_pct": round(r.weather.cloud_pct, 0),
             "pressure_hpa": None if r.weather.pressure_hpa is None else round(r.weather.pressure_hpa, 1)
