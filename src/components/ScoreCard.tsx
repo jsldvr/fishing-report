@@ -178,6 +178,12 @@ export default function ScoreCard({
                 Illumination: {Math.round(forecast.moon.illumination * 100)}%
               </p>
               <p>Angle: {forecast.moon.phaseAngleDeg}°</p>
+              {forecast.astronomical && (
+                <>
+                  <p>Rise: {forecast.astronomical.moonrise}</p>
+                  <p>Set: {forecast.astronomical.moonset}</p>
+                </>
+              )}
             </div>
           </div>
           <div>
@@ -199,6 +205,58 @@ export default function ScoreCard({
             </div>
           </div>
         </div>
+
+        {/* Sun & Solunar Information */}
+        {forecast.astronomical && forecast.solunar && (
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-6 text-sm">
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-3">
+                  ☀️ Sun Times
+                </h4>
+                <div className="space-y-1">
+                  <p>Sunrise: {forecast.astronomical.sunrise}</p>
+                  <p>Sunset: {forecast.astronomical.sunset}</p>
+                  <p>Solar Noon: {forecast.astronomical.solarNoon}</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-3">
+                  🎣 Solunar Rating
+                  <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {forecast.solunar.dayRating}/4
+                  </span>
+                </h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="font-medium">⭐ Major Periods</span>
+                    <span className="text-xs text-gray-500">2h each</span>
+                  </div>
+                  {forecast.solunar.majorPeriods.map((period, idx) => (
+                    <p
+                      key={`major-${idx}`}
+                      className="text-xs bg-green-50 px-2 py-1 rounded"
+                    >
+                      {period.start} - {period.end}
+                    </p>
+                  ))}
+                  <div className="flex justify-between mt-2">
+                    <span className="font-medium">• Minor Periods</span>
+                    <span className="text-xs text-gray-500">1h each</span>
+                  </div>
+                  {forecast.solunar.minorPeriods.map((period, idx) => (
+                    <p
+                      key={`minor-${idx}`}
+                      className="text-xs bg-yellow-50 px-2 py-1 rounded"
+                    >
+                      {period.start} - {period.end}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {forecast.almanac.notes && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded">
@@ -228,8 +286,7 @@ export default function ScoreCard({
                   : "Open-Meteo"}
                 {forecast.weather.barometricTrend !== "STEADY" && (
                   <span className="ml-2">
-                    | Pressure:{" "}
-                    {forecast.weather.barometricTrend.toLowerCase()}
+                    | Pressure: {forecast.weather.barometricTrend.toLowerCase()}
                   </span>
                 )}
               </div>

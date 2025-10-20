@@ -3,7 +3,13 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import type { ForecastScore, DayInputs } from "../types/forecast";
 import { fetchEnhancedWeather } from "../lib/enhancedWeather";
 import { forecastForDay } from "../lib/forecast";
-import { addDaysToDate, validateNorthAmericaCoords } from "../lib/time";
+import {
+  addDaysToDate,
+  validateNorthAmericaCoords,
+  getAstronomicalTimes,
+  getSolunarTimes,
+  getTimezoneFromCoords,
+} from "../lib/time";
 import ScoreCard from "../components/ScoreCard";
 
 export default function Results() {
@@ -67,6 +73,26 @@ export default function Results() {
 
         // Generate forecast (no almanac data for now)
         const forecast = forecastForDay(dayInputs, weatherData);
+
+        // Add astronomical and solunar data
+        const timezone = getTimezoneFromCoords(lat, lon);
+        const astronomical = getAstronomicalTimes(
+          currentDate,
+          lat,
+          lon,
+          timezone
+        );
+        const solunar = getSolunarTimes(
+          currentDate,
+          lat,
+          lon,
+          forecast.moon.illumination,
+          timezone
+        );
+
+        forecast.astronomical = astronomical;
+        forecast.solunar = solunar;
+
         results.push(forecast);
       }
 
