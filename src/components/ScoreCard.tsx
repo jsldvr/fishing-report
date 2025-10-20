@@ -1,8 +1,9 @@
-import type { ForecastScore } from "../types/forecast";
+import type { ForecastScore, SafetyAssessment } from "../types/forecast";
 import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
 import WeatherDebugInfo from "./WeatherDebugInfo";
 import MarineConditions from "./MarineConditions";
+import NWSOfficeInfo from "./NWSOfficeInfo";
 
 interface ScoreCardProps {
   forecast: ForecastScore;
@@ -24,6 +25,7 @@ export default function ScoreCard({
 
   const tempF = Math.round((forecast.weather.tempC * 9) / 5 + 32);
   const windMph = Math.round((forecast.weather.windKph / 1.609) * 10) / 10;
+  const safety = forecast.weather.safety;
 
   const getScoreColor = (score: number) => {
     if (score >= 75) return "bg-green-100 text-green-800";
@@ -35,6 +37,40 @@ export default function ScoreCard({
     if (score >= 75) return "🎣";
     if (score >= 50) return "🐟";
     return "💤";
+  };
+
+  const getSafetyStyles = (rating: SafetyAssessment["rating"]) => {
+    switch (rating) {
+      case "EXCELLENT":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "GOOD":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "FAIR":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "POOR":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "DANGEROUS":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getSafetyIcon = (rating: SafetyAssessment["rating"]) => {
+    switch (rating) {
+      case "EXCELLENT":
+        return "🎣";
+      case "GOOD":
+        return "✅";
+      case "FAIR":
+        return "⚠️";
+      case "POOR":
+        return "🚫";
+      case "DANGEROUS":
+        return "⛔";
+      default:
+        return "❓";
+    }
   };
 
   return (
@@ -102,7 +138,7 @@ export default function ScoreCard({
 
         <div>
           <div className="flex justify-between text-sm mb-2">
-            <span className="font-medium">🌤️ Weather</span>
+            <span className="font-medium">Weather</span>
             <span className="font-semibold">{forecast.components.weather}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
@@ -145,7 +181,7 @@ export default function ScoreCard({
             </div>
           </div>
           <div>
-            <h4 className="font-semibold text-gray-700 mb-3">🌤️ Weather</h4>
+            <h4 className="font-semibold text-gray-700 mb-3">Weather</h4>
             <div className="space-y-1">
               <p>
                 Temp:{" "}
@@ -172,6 +208,61 @@ export default function ScoreCard({
           </div>
         )}
 
+        {safety && (
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <div
+              className={`p-4 rounded-lg border-2 ${getSafetyStyles(
+                safety.rating
+              )}`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">{getSafetyIcon(safety.rating)}</span>
+                <h3 className="font-semibold text-lg">
+                  Fishing Safety: {safety.rating}
+                </h3>
+              </div>
+              <div className="text-sm opacity-75 mb-2">
+                Data source:{" "}
+                {forecast.weather.source === "NWS"
+                  ? "National Weather Service"
+                  : "Open-Meteo"}
+                {forecast.weather.barometricTrend !== "STEADY" && (
+                  <span className="ml-2">
+                    | Pressure:{" "}
+                    {forecast.weather.barometricTrend.toLowerCase()}
+                  </span>
+                )}
+              </div>
+              {safety.riskFactors.length > 0 && (
+                <div className="mb-3">
+                  <h4 className="font-medium mb-1">Risk Factors:</h4>
+                  <ul className="text-sm space-y-1">
+                    {safety.riskFactors.map((factor, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <span className="text-red-500">•</span>
+                        {factor}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {safety.recommendations.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-1">Recommendations:</h4>
+                  <ul className="text-sm space-y-1">
+                    {safety.recommendations.map((rec, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <span className="text-blue-500">•</span>
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {forecast.weather.marine && (
           <MarineConditions
             marine={forecast.weather.marine}
@@ -184,7 +275,10 @@ export default function ScoreCard({
         {forecast.weather.source === "NWS" && (
           <div className="mt-6 pt-4 border-t border-gray-200">
             <WeatherDebugInfo weather={forecast.weather} className="mb-4" />
-            <WeatherAlerts weather={forecast.weather} />
+            <WeatherAlerts weather={forecast.weather} className="mb-4" />
+            {forecast.weather.localOffice && (
+              <NWSOfficeInfo localOffice={forecast.weather.localOffice} />
+            )}
           </div>
         )}
       </div>
