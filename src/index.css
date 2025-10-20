@@ -1365,6 +1365,178 @@ body {
   border-color: var(--border-focus);
 }
 
+/* Forecast Card Layout */
+.forecast-card {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 1.25rem + 1vw, 2rem);
+  padding: clamp(1.5rem, 1rem + 2vw, 2rem);
+  color: var(--text-primary);
+}
+
+.forecast-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.forecast-card__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.forecast-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.forecast-card__score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 160px;
+}
+
+.forecast-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  color: var(--text-primary);
+}
+
+.forecast-card__section--divider {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.forecast-card__info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.forecast-card__info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.forecast-card__section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.forecast-card__info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.forecast-card__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.forecast-card__metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.forecast-card__metric-value {
+  font-weight: 600;
+}
+
+.forecast-card__metric-track {
+  position: relative;
+  width: 100%;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.35);
+  overflow: hidden;
+}
+
+.forecast-card__metric-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.forecast-card__metric-fill--moon {
+  background: #2563eb;
+}
+
+.forecast-card__metric-fill--weather {
+  background: #16a34a;
+}
+
+.forecast-card__metric-fill--almanac {
+  background: #9333ea;
+}
+
+.forecast-card__callout {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: rgba(249, 250, 251, 0.9);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+}
+
+.forecast-card .marine-conditions {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.forecast-card__heading {
+  color: var(--text-primary);
+}
+
+.forecast-card__subtext,
+.forecast-card__score-label,
+.forecast-card__metric-hint {
+  color: var(--text-secondary);
+}
+
+.forecast-card__metric-hint {
+  font-weight: 500;
+}
+
+[data-theme="dark"] .forecast-card__metric-track {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+[data-theme="dark"] .forecast-card__callout {
+  background: rgba(55, 65, 81, 0.45);
+}
+
+@media (max-width: 640px) {
+  .forecast-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .forecast-card__score {
+    width: 100%;
+  }
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

@@ -1,6 +1,14 @@
 # Changelog
 
 ## 2025-10-19
+### Fishing Forecast Card Layout Cleanup
+- **Refined** `ScoreCard` markup with structured sections and explicit ids for reliable targeting and accessibility.
+- **Aligned** bite score, component metrics, and detail panels with consistent spacing via new `.forecast-card*` utility classes.
+- **Introduced** dedicated forecast card CSS to normalize progress bars, grids, and callouts while preserving the existing theme.
+- **Wrapped** marine, safety, and NWS panels in shared section dividers for uniform borders and rhythm throughout the results list.
+- **Improved** dark mode readability across forecast card sections by tying typography colors to the global theme palette.
+
+## 2025-10-19
 ### Coastal Marine Conditions Integration
 - **Added** NOAA Tides & Currents service to locate nearby tide stations and pull tide, wave, wind, and water temperature samples for daily forecasts.
 - **Enriched** safety assessment pipeline with marine-aware downgrades and actionable tide timing recommendations for salt-water anglers.
