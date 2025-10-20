@@ -4,6 +4,20 @@ export interface MoonData {
   phaseName: string;
 }
 
+export interface AstronomicalTimes {
+  sunrise: string;
+  sunset: string;
+  moonrise: string;
+  moonset: string;
+  solarNoon: string;
+}
+
+export interface SolunarTimes {
+  majorPeriods: Array<{ start: string; end: string; type: "major" }>;
+  minorPeriods: Array<{ start: string; end: string; type: "minor" }>;
+  dayRating: number; // 0-4 scale
+}
+
 export interface WeatherData {
   tempC: number;
   windKph: number;
@@ -24,6 +38,8 @@ export interface ForecastScore {
   almanac: AlmanacData;
   biteScore0100: number;
   components: Record<string, number>;
+  astronomical?: AstronomicalTimes;
+  solunar?: SolunarTimes;
 }
 
 export interface DayInputs {
@@ -52,12 +68,27 @@ export interface NWSAlert {
   areas: string[];
 }
 
+export interface TideEvent {
+  timeIso: string;
+  heightMeters: number;
+  type: "HIGH" | "LOW";
+}
+
 export interface MarineWeatherData {
   waveHeight?: number; // meters
   swellDirection?: number; // degrees
   waterTemperature?: number; // celsius
   visibility?: number; // km
   windWaveHeight?: number; // meters
+  tideEvents?: TideEvent[];
+  stationId?: string;
+  stationName?: string;
+  stationDistanceKm?: number;
+  observationTimeIso?: string;
+  waveObservationTimeIso?: string;
+  windSpeedKph?: number;
+  windDirectionDeg?: number;
+  windDirectionText?: string;
 }
 
 export interface SafetyAssessment {

@@ -1,4 +1,115 @@
+import { FormEvent, useState, useEffect } from "react";
+import WeatherOutlookPanel from "../components/WeatherOutlookPanel";
+
 export default function Wx() {
+  const [locationInput, setLocationInput] = useState("");
+  const [lat, setLat] = useState(40.7128);
+  const [lon, setLon] = useState(-74.006);
+  const [inputError, setInputError] = useState<string | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // Auto-detect user location on page load (non-intrusive)
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLat(latitude);
+          setLon(longitude);
+          setLocationInput(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        },
+        () => {
+          // Silently fail - user may have denied permission or location unavailable
+          setLocationInput("40.7128, -74.0060"); // Default to NYC
+        },
+        {
+          timeout: 3000,
+          enableHighAccuracy: false, // Less battery drain, faster response
+          maximumAge: 600000, // Accept cached position up to 10 minutes old
+        }
+      );
+    } else {
+      setLocationInput("40.7128, -74.0060"); // Default to NYC
+    }
+  }, []);
+
+  const parseLocationInput = (input: string) => {
+    // Try to parse coordinates from various formats
+    const coordRegex = /(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)/;
+    const match = input.match(coordRegex);
+
+    if (match) {
+      const parsedLat = Number.parseFloat(match[1]);
+      const parsedLon = Number.parseFloat(match[2]);
+
+      if (
+        Number.isFinite(parsedLat) &&
+        Number.isFinite(parsedLon) &&
+        parsedLat >= -90 &&
+        parsedLat <= 90 &&
+        parsedLon >= -180 &&
+        parsedLon <= 180
+      ) {
+        return { lat: parsedLat, lon: parsedLon };
+      }
+    }
+    return null;
+  };
+
+  const handleLocationSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const coords = parseLocationInput(locationInput);
+    if (!coords) {
+      setInputError("Enter valid coordinates (e.g., 40.7128, -74.0060)");
+      return;
+    }
+
+    setInputError(null);
+    setLat(coords.lat);
+    setLon(coords.lon);
+  };
+
+  const handleUseCurrentLocation = async () => {
+    if (!("geolocation" in navigator)) {
+      setInputError("Geolocation not supported by this browser");
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setInputError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLat(latitude);
+        setLon(longitude);
+        setLocationInput(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        let message = "Unable to get current location";
+        if (error.code === error.PERMISSION_DENIED) {
+          message =
+            "Location access denied. Click the location icon in your browser's address bar to enable, then try again.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          message =
+            "Location information unavailable. Please enter coordinates manually.";
+        } else if (error.code === error.TIMEOUT) {
+          message =
+            "Location request timed out. Check your connection and try again.";
+        }
+        setInputError(message);
+        setIsGettingLocation(false);
+      },
+      {
+        timeout: 15000,
+        enableHighAccuracy: false, // Less strict for better compatibility
+        maximumAge: 300000, // Accept cached position up to 5 minutes old
+      }
+    );
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8" id="wx-page">
       <div className="text-center mb-8" id="wx-intro">
@@ -6,17 +117,79 @@ export default function Wx() {
           WX Intel Hub
         </h1>
         <p className="text-lg text-gray-600" id="wx-subtitle">
-          Critical weather resources for situational awareness and field preparedness
+          Critical weather resources for situational awareness and field
+          preparedness
         </p>
       </div>
+
+      <div className="card p-6 mb-8" id="wx-location-card">
+        <form
+          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-3"
+          id="wx-location-form"
+          onSubmit={handleLocationSubmit}
+        >
+          <div className="flex-1" id="wx-location-input-field">
+            <input
+              className="input w-full"
+              id="wx-location-input"
+              type="text"
+              placeholder="Enter coordinates (e.g., 40.7128, -74.0060)"
+              value={locationInput}
+              onChange={(event) => setLocationInput(event.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-2" id="wx-location-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              id="wx-location-gps"
+              onClick={handleUseCurrentLocation}
+              disabled={isGettingLocation}
+              title="Use your current location (requires browser permission)"
+            >
+              {isGettingLocation ? "📍..." : "📍 GPS"}
+            </button>
+            <button
+              className="btn btn-primary"
+              id="wx-location-apply"
+              type="submit"
+            >
+              Get Forecast
+            </button>
+          </div>
+        </form>
+
+        <div
+          className="mt-2 text-xs text-muted text-center"
+          id="wx-location-help"
+        >
+          📍 GPS requires location permission • Format: latitude, longitude
+        </div>
+
+        {inputError && (
+          <p
+            className="mt-3 text-sm text-error text-center"
+            id="wx-location-error"
+          >
+            {inputError}
+          </p>
+        )}
+      </div>
+
+      <WeatherOutlookPanel lat={lat} lon={lon} />
 
       <div className="grid gap-8" id="wx-sections">
         <div className="card p-6" id="wx-public-resources">
           <h2 className="text-xl font-semibold mb-4" id="wx-public-heading">
             Public Weather Resources
           </h2>
-          <p className="text-gray-600 leading-relaxed mb-4" id="wx-public-intro">
-            Trusted sources for official forecasts, radar, and warnings across North America.
+          <p
+            className="text-gray-600 leading-relaxed mb-4"
+            id="wx-public-intro"
+          >
+            Trusted sources for official forecasts, radar, and warnings across
+            North America.
           </p>
           <ul className="text-sm text-gray-600 space-y-3" id="wx-public-list">
             <li className="leading-relaxed" id="wx-public-item-noaa">
@@ -53,7 +226,8 @@ export default function Wx() {
               >
                 Environment and Climate Change Canada
               </a>{" "}
-              – National warnings and alerts for Canadian provinces and territories.
+              – National warnings and alerts for Canadian provinces and
+              territories.
             </li>
             <li className="leading-relaxed" id="wx-public-item-noaa-marine">
               <a
@@ -71,13 +245,23 @@ export default function Wx() {
         </div>
 
         <div className="card p-6" id="wx-preparedness">
-          <h2 className="text-xl font-semibold mb-4" id="wx-preparedness-heading">
+          <h2
+            className="text-xl font-semibold mb-4"
+            id="wx-preparedness-heading"
+          >
             Preparedness & Safety Guides
           </h2>
-          <p className="text-gray-600 leading-relaxed mb-4" id="wx-preparedness-intro">
-            Pre-mission checklists and safety planning resources for severe weather readiness.
+          <p
+            className="text-gray-600 leading-relaxed mb-4"
+            id="wx-preparedness-intro"
+          >
+            Pre-mission checklists and safety planning resources for severe
+            weather readiness.
           </p>
-          <ul className="text-sm text-gray-600 space-y-3" id="wx-preparedness-list">
+          <ul
+            className="text-sm text-gray-600 space-y-3"
+            id="wx-preparedness-list"
+          >
             <li className="leading-relaxed" id="wx-preparedness-item-ready">
               <a
                 className="text-info font-medium"
@@ -133,10 +317,17 @@ export default function Wx() {
           <h2 className="text-xl font-semibold mb-4" id="wx-awareness-heading">
             Weather Awareness & Training
           </h2>
-          <p className="text-gray-600 leading-relaxed mb-4" id="wx-awareness-intro">
-            Build your weather IQ with training programs and operational awareness guides.
+          <p
+            className="text-gray-600 leading-relaxed mb-4"
+            id="wx-awareness-intro"
+          >
+            Build your weather IQ with training programs and operational
+            awareness guides.
           </p>
-          <ul className="text-sm text-gray-600 space-y-3" id="wx-awareness-list">
+          <ul
+            className="text-sm text-gray-600 space-y-3"
+            id="wx-awareness-list"
+          >
             <li className="leading-relaxed" id="wx-awareness-item-skywarn">
               <a
                 className="text-info font-medium"
@@ -171,7 +362,8 @@ export default function Wx() {
               >
                 CDC Heat & Climate Health Guidance
               </a>{" "}
-              – Health-focused guidance for extreme heat events and dehydration risk.
+              – Health-focused guidance for extreme heat events and dehydration
+              risk.
             </li>
             <li className="leading-relaxed" id="wx-awareness-item-mets">
               <a
@@ -183,14 +375,21 @@ export default function Wx() {
               >
                 UCAR MetEd Modules
               </a>{" "}
-              – Free meteorology lessons covering radar interpretation and mesoscale analysis.
+              – Free meteorology lessons covering radar interpretation and
+              mesoscale analysis.
             </li>
           </ul>
         </div>
 
-        <div className="bg-accent p-4 rounded-lg border border-primary text-sm text-gray-600 leading-relaxed" id="wx-disclaimer">
-          <strong className="text-primary" id="wx-disclaimer-label">Mission Reminder:</strong>{" "}
-          These external resources supplement the Fishing Forecast intel. Always consult official warnings and follow local emergency directives.
+        <div
+          className="bg-accent p-4 rounded-lg border border-primary text-sm text-gray-600 leading-relaxed"
+          id="wx-disclaimer"
+        >
+          <strong className="text-primary" id="wx-disclaimer-label">
+            Mission Reminder:
+          </strong>{" "}
+          These external resources supplement the Fishing Forecast intel. Always
+          consult official warnings and follow local emergency directives.
         </div>
       </div>
     </div>
