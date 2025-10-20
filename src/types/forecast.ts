@@ -52,12 +52,27 @@ export interface NWSAlert {
   areas: string[];
 }
 
+export interface TideEvent {
+  timeIso: string;
+  heightMeters: number;
+  type: "HIGH" | "LOW";
+}
+
 export interface MarineWeatherData {
   waveHeight?: number; // meters
   swellDirection?: number; // degrees
   waterTemperature?: number; // celsius
   visibility?: number; // km
   windWaveHeight?: number; // meters
+  tideEvents?: TideEvent[];
+  stationId?: string;
+  stationName?: string;
+  stationDistanceKm?: number;
+  observationTimeIso?: string;
+  waveObservationTimeIso?: string;
+  windSpeedKph?: number;
+  windDirectionDeg?: number;
+  windDirectionText?: string;
 }
 
 export interface SafetyAssessment {

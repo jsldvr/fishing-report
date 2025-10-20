@@ -1,6 +1,14 @@
 # Changelog
 
 ## 2025-10-19
+### Coastal Marine Conditions Integration
+- **Added** NOAA Tides & Currents service to locate nearby tide stations and pull tide, wave, wind, and water temperature samples for daily forecasts.
+- **Enriched** safety assessment pipeline with marine-aware downgrades and actionable tide timing recommendations for salt-water anglers.
+- **Exposed** a coastal conditions panel on each results card showing station distance, wave height, wind, water temperature, and upcoming tide events.
+- **Guarded** NOAA data requests by caching station product support and skipping unsupported wave/wind endpoints to prevent repeated API errors.
+- **Improved** Weather Alerts panel with friendly placeholders so alert and marine sections describe where information will appear when data is unavailable.
+
+## 2025-10-19
 ### Weather Day Cards Desktop Layout Enhancement
 - **Added** CSS rule for `.wx-outlook-day-card > div:first-child` on desktop (≥1024px)
 - **Set** first child div to `display: flex; flex-direction: column; width: 25%`

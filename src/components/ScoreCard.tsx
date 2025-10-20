@@ -2,6 +2,7 @@ import type { ForecastScore } from "../types/forecast";
 import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
 import WeatherDebugInfo from "./WeatherDebugInfo";
+import MarineConditions from "./MarineConditions";
 
 interface ScoreCardProps {
   forecast: ForecastScore;
@@ -169,6 +170,14 @@ export default function ScoreCard({
               <strong>Almanac:</strong> {forecast.almanac.notes}
             </p>
           </div>
+        )}
+
+        {forecast.weather.marine && (
+          <MarineConditions
+            marine={forecast.weather.marine}
+            dateIso={forecast.date}
+            useMph={useMph}
+          />
         )}
 
         {/* NWS Information */}
