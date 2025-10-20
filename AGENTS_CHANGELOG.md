@@ -1,6 +1,76 @@
 # Changelog
 
 ## 2025-10-19
+### Weather Day Cards Desktop Layout Enhancement
+- **Added** CSS rule for `.wx-outlook-day-card > div:first-child` on desktop (≥1024px)
+- **Set** first child div to `display: flex; flex-direction: column; width: 25%`
+- **Improved** layout proportions for day info section on large screens
+
+## 2025-10-19
+### Weather Outlook Disclaimer Border Removal
+- **Removed** left border from `#wx-outlook-disclaimer` element
+- **Removed** `border-l-4 border-coyote-500` Tailwind classes from disclaimer component
+- **Simplified** disclaimer styling to clean background-only appearance
+
+## 2025-10-19
+### Weather Day Cards Mobile Flex Direction Fix
+- **Added** `display: flex; flex-direction: column` to `.wx-outlook-day-card` on mobile
+- **Added** `display: flex; flex-direction: column` to `.wx-outlook-day-card > div` on mobile
+- **Enforced** consistent vertical stacking of card elements on mobile view
+
+## 2025-10-19
+### Weather Day Cards Mobile Overflow Fix  
+- **Fixed** horizontal overflow on mobile for `.wx-outlook-day-card` components
+- **Added** `min-width: 0` and `overflow-wrap: break-word` to prevent text overflow
+- **Enhanced** word breaking with `word-break: break-word` and `hyphens: auto` for long weather descriptions
+- **Reduced** font size from `text-xs` to `0.7rem` on mobile for better fit
+- **Added** `overflow: hidden` to grid container and flex-shrink properties to child elements
+- **Implemented** mobile-first approach with `display: flex; flex-direction: column` override for grid on small screens
+
+## 2025-10-19
+### Weather Day Cards Mobile Layout Fix
+- **Fixed** mobile responsive behavior for `.wx-outlook-day-card` components
+- **Changed** grid breakpoints from `md:grid-cols-2 lg:grid-cols-5` to `lg:grid-cols-5` for single column on mobile/tablet
+- **Changed** card layout breakpoints from `md:flex-row` to `lg:flex-row` to maintain vertical layout until large screens
+- **Updated** metrics layout breakpoints from `md:flex-row` to `lg:flex-row` for consistency
+- **Added** mobile-specific CSS with reduced padding and visual separator between day info and metrics
+- **Enhanced** card appearance on mobile with subtle border-top on metrics section
+
+## 2025-10-19
+### Geolocation Error Handling Improvements
+- **Enhanced** GPS button error messages with actionable guidance for location permission issues
+- **Added** specific error handling for `POSITION_UNAVAILABLE` and improved timeout messages
+- **Improved** geolocation settings: longer timeout (15s), disabled high accuracy for better compatibility, cache acceptance
+- **Added** helpful tooltip to GPS button explaining permission requirement
+- **Added** inline help text showing GPS requirements and coordinate format
+- **Optimized** initial location detection with less aggressive settings and better caching
+
+## 2025-10-19
+### WX Location Card UX Redesign
+- **Redesigned** `#wx-location-card` to clean one-line form with intuitive workflow
+- **Added** auto-detection of user location on page load using Geolocation API
+- **Added** GPS button with 📍 icon for quick current location input
+- **Simplified** coordinate input to single text field accepting multiple formats (lat, lon)
+- **Enhanced** error handling with specific messages for geolocation failures
+- **Improved** mobile responsiveness with stacked layout on small screens
+- **Removed** separate latitude/longitude fields and location label for cleaner UX
+
+## 2025-10-19
+### WX Outlook Card Layout Fixes
+- **Added** `btn-sm` styles for proper toggle button sizing with padding 0.375rem×0.75rem, font-size 0.75rem, and tactical styling.
+- **Enhanced** `#wx-outlook-card` responsive layout with mobile-first approach, improved header flex behavior, and better toggle grouping.
+- **Improved** mobile responsiveness: toggles stack vertically on mobile, horizontal on larger screens, with proper label spacing.
+- **Updated** disclaimer styling with tactical border-left accent, better padding, and advisory language formatting.
+- **Fixed** component structure with responsive padding (p-4 sm:p-6), larger breakpoints (lg:) for header layout, and semantic grouping of controls.
+
+## 2025-10-19
+### Version 1.2.0 WX Outlook Integration
+- Deployed `fetchWeatherOutlook` service with NWS-first sourcing and OpenWeatherMap fallback plus shared utilities for compass headings and formatting.
+- Added `WeatherOutlookPanel` React component and coordinate form on `src/pages/Wx.tsx` to surface a 5-day forecast with unit toggles and validation.
+- Restyled outlook cards with tactical horizontal layout, responsive stacking, and reinforced border/shadow treatments.
+- Declared `src/vite-env.d.ts` to expose `import.meta.env` typings for the new OpenWeatherMap key requirement.
+
+## 2025-10-19
 ### Version 1.1.2 Mobile Readiness
 - Locked the viewport scaling behavior in `index.html` so mobile users cannot zoom when focusing inputs, keeping the layout stable.
 - **Fixed HashRouter scroll restoration**: Simplified scroll reset to use `location.pathname` dependency and immediate `window.scrollTo(0, 0)` call, removing overcomplicated timing logic that failed to work.
