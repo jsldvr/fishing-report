@@ -1,6 +1,31 @@
 # Changelog
 
 ## 2025-10-19
+### Astronomical Timezone Alignment Fix
+- **Refactored** sun and moon time calculations to derive instants in the forecast location's timezone instead of the server locale.
+- **Adjusted** solar time corrections to leverage real timezone offsets, eliminating multi-hour sunrise/sunset skew on the results page.
+- **Updated** solunar period generation to reuse the timezone-aware instants so downstream formatting stays accurate.
+- **Verified** the build (`npm run build`) to ensure the TypeScript refactor compiles cleanly.
+
+### Forecast Metric Helper Text
+- **Clarified** the Moon metric header with inline guidance describing how lunar phase strength influences bite scoring.
+- **Explained** the Weather metric header with helper copy detailing which conditions contribute to the score.
+- **Styled** new helper text with compact typography to preserve the metric layout.
+
+### GPS Lock Icon Fix
+- **Replaced** the garbled glyph on the Home page GPS button with the intended 📍 icon to restore the “GPS Lock” label.
+
+### WX Location Acquisition Parity
+- **Matched** the WX page coordinate handling with the home workflow by validating against the North America bounds before applying updates.
+- **Implemented** the multi-phase geolocation flow (quick lookup, watch fallback, cached retry, and IP-based estimate) while keeping the minimal WX UI intact.
+- **Auto-seeded** the WX form with smart geolocation on load without surfacing spinner noise unless the user explicitly requests GPS.
+
+### WX NWS Attribution Details
+- **Extended** the 5-day outlook fetcher to pull the issuing NWS forecast office metadata alongside the forecast.
+- **Augmented** the WX outlook attribution line to cite the responsible office name, location, and ID so users know which local office issued the guidance.
+- **Tweaked** the attribution layout to break the office detail onto its own line and prevent duplicate city/state labels.
+
+## 2025-10-19
 ### Fishing Forecast Card Layout Cleanup
 - **Refined** `ScoreCard` markup with structured sections and explicit ids for reliable targeting and accessibility.
 - **Aligned** bite score, component metrics, and detail panels with consistent spacing via new `.forecast-card*` utility classes.

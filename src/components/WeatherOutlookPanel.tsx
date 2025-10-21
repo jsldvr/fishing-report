@@ -71,6 +71,46 @@ export default function WeatherOutlookPanel({
       : `Lat/Lon • ${coordText}`;
   }, [lat, lon, locationLabel]);
 
+  const attributionDetails = useMemo(() => {
+    if (!outlook) {
+      return {
+        sourceLine: "Awaiting data source",
+        officeLine: null as string | null,
+      };
+    }
+
+    let officeLine: string | null = null;
+
+    if (outlook.source === "NWS" && outlook.office) {
+      const officeName = outlook.office.name?.trim();
+      const officeLocation = [outlook.office.city, outlook.office.state]
+        .filter(Boolean)
+        .join(", ");
+      const officeId = outlook.office.id?.toUpperCase();
+
+      const detailSegments = Array.from(
+        new Set(
+          [officeName, officeLocation].filter(
+            (segment): segment is string => Boolean(segment)
+          )
+        )
+      );
+
+      if (officeId) {
+        detailSegments.push(`Office ${officeId}`);
+      }
+
+      if (detailSegments.length > 0) {
+        officeLine = `Forecast Office: ${detailSegments.join(" • ")}`;
+      }
+    }
+
+    return {
+      sourceLine: outlook.attribution,
+      officeLine,
+    };
+  }, [outlook]);
+
   const handleRetry = () => {
     setRefreshCounter((value) => value + 1);
   };
@@ -336,8 +376,16 @@ export default function WeatherOutlookPanel({
             id="wx-outlook-attribution"
           >
             <p className="font-medium text-muted" id="wx-outlook-source">
-              {outlook?.attribution ?? "Awaiting data source"}
+              {attributionDetails.sourceLine}
             </p>
+            {attributionDetails.officeLine && (
+              <p
+                className="text-xs text-muted leading-snug"
+                id="wx-outlook-office"
+              >
+                {attributionDetails.officeLine}
+              </p>
+            )}
             <p className="text-muted" id="wx-outlook-issued">
               Issued: {issuedDisplay}
             </p>

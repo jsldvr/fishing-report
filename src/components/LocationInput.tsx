@@ -459,7 +459,7 @@ export default function LocationInput({
               Acquiring Position...
             </>
           ) : (
-            <>�️ GPS Lock</>
+            <>📍 GPS Lock</>
           )}
         </button>
 

@@ -1459,6 +1459,22 @@ body {
   font-weight: 500;
 }
 
+.forecast-card__metric-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.forecast-card__metric-title {
+  font-weight: 600;
+}
+
+.forecast-card__metric-help {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
 .forecast-card__metric-value {
   font-weight: 600;
 }
