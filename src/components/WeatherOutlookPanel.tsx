@@ -90,8 +90,8 @@ export default function WeatherOutlookPanel({
 
       const detailSegments = Array.from(
         new Set(
-          [officeName, officeLocation].filter(
-            (segment): segment is string => Boolean(segment)
+          [officeName, officeLocation].filter((segment): segment is string =>
+            Boolean(segment)
           )
         )
       );
@@ -304,10 +304,7 @@ export default function WeatherOutlookPanel({
 
   return (
     <div className="card p-6" id="wx-outlook-card">
-      <div
-        className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
-        id="wx-outlook-header"
-      >
+      <div className="flex flex-col gap-4 xl:gap-6" id="wx-outlook-header">
         <div className="flex flex-col gap-1" id="wx-outlook-heading">
           <h2
             className="text-xl sm:text-2xl font-semibold text-primary"
@@ -323,7 +320,10 @@ export default function WeatherOutlookPanel({
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 text-xs" id="wx-outlook-meta">
+        <div
+          className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 text-xs"
+          id="wx-outlook-controls"
+        >
           <div
             className="flex flex-col sm:flex-row gap-2"
             id="wx-outlook-toggles"
@@ -371,25 +371,29 @@ export default function WeatherOutlookPanel({
               </button>
             </div>
           </div>
-          <div
-            className="flex flex-col gap-1 text-right"
-            id="wx-outlook-attribution"
+        </div>
+
+        <div
+          className="flex flex-col gap-1 text-xs text-muted sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between"
+          id="wx-outlook-attribution"
+        >
+          <p
+            className="font-medium text-muted sm:text-right sm:flex-1"
+            id="wx-outlook-source"
           >
-            <p className="font-medium text-muted" id="wx-outlook-source">
-              {attributionDetails.sourceLine}
+            {attributionDetails.sourceLine}
+          </p>
+          {attributionDetails.officeLine && (
+            <p
+              className="text-muted sm:text-right sm:flex-1"
+              id="wx-outlook-office"
+            >
+              {attributionDetails.officeLine}
             </p>
-            {attributionDetails.officeLine && (
-              <p
-                className="text-xs text-muted leading-snug"
-                id="wx-outlook-office"
-              >
-                {attributionDetails.officeLine}
-              </p>
-            )}
-            <p className="text-muted" id="wx-outlook-issued">
-              Issued: {issuedDisplay}
-            </p>
-          </div>
+          )}
+          <p className="text-muted sm:text-right sm:flex-1" id="wx-outlook-issued">
+            Issued: {issuedDisplay}
+          </p>
         </div>
       </div>
 

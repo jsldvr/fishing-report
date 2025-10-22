@@ -24,6 +24,7 @@
 - **Extended** the 5-day outlook fetcher to pull the issuing NWS forecast office metadata alongside the forecast.
 - **Augmented** the WX outlook attribution line to cite the responsible office name, location, and ID so users know which local office issued the guidance.
 - **Tweaked** the attribution layout to break the office detail onto its own line and prevent duplicate city/state labels.
+- **Reworked** the WX outlook header into stacked sections with widened desktop spacing so titles, unit toggles, and attribution never overlap.
 
 ## 2025-10-19
 ### Fishing Forecast Card Layout Cleanup
