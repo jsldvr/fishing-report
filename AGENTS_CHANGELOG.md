@@ -1,6 +1,12 @@
 # Changelog
 
 ## 2025-10-19
+### WX Outlook Header Flex Cleanup
+- **Removed** flex-based layout from the outlook header and controls to return the section to block flow for the upcoming styling iteration.
+- **Realigned** `#wx-outlook-controls` so the controls set anchors to the right edge per the revised layout direction.
+- **Adjusted** `#wx-outlook-attribution` to stack on mobile while restoring flex alignment from the small breakpoint upward, including the requested source paragraph spacing tweak.
+- **Stacked** `#wx-location-form` inputs on mobile by defaulting the layout to a column flex direction and restoring the row alignment from the small breakpoint.
+
 ### Astronomical Timezone Alignment Fix
 - **Refactored** sun and moon time calculations to derive instants in the forecast location's timezone instead of the server locale.
 - **Adjusted** solar time corrections to leverage real timezone offsets, eliminating multi-hour sunrise/sunset skew on the results page.

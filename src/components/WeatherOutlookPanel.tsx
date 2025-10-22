@@ -304,8 +304,8 @@ export default function WeatherOutlookPanel({
 
   return (
     <div className="card p-6" id="wx-outlook-card">
-      <div className="flex flex-col gap-4 xl:gap-6" id="wx-outlook-header">
-        <div className="flex flex-col gap-1" id="wx-outlook-heading">
+      <div className="wx-outlook-header" id="wx-outlook-header">
+        <div className="wx-outlook-heading" id="wx-outlook-heading">
           <h2
             className="text-xl sm:text-2xl font-semibold text-primary"
             id="wx-outlook-title"
@@ -321,15 +321,15 @@ export default function WeatherOutlookPanel({
         </div>
 
         <div
-          className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 text-xs"
+          className="wx-outlook-controls text-xs"
           id="wx-outlook-controls"
         >
           <div
-            className="flex flex-col sm:flex-row gap-2"
+            className="wx-outlook-toggles"
             id="wx-outlook-toggles"
           >
-            <div className="flex gap-1" id="wx-outlook-temp-toggle">
-              <span className="text-xs text-muted mr-2 self-center">Temp:</span>
+            <div className="wx-outlook-toggle-row" id="wx-outlook-temp-toggle">
+              <span className="text-xs text-muted mr-2">Temp:</span>
               <button
                 className={`btn btn-sm ${
                   useFahrenheit ? "btn-secondary" : "btn-primary"
@@ -349,8 +349,8 @@ export default function WeatherOutlookPanel({
                 °F
               </button>
             </div>
-            <div className="flex gap-1" id="wx-outlook-wind-toggle">
-              <span className="text-xs text-muted mr-2 self-center">Wind:</span>
+            <div className="wx-outlook-toggle-row" id="wx-outlook-wind-toggle">
+              <span className="text-xs text-muted mr-2">Wind:</span>
               <button
                 className={`btn btn-sm ${
                   useMph ? "btn-secondary" : "btn-primary"
@@ -374,24 +374,24 @@ export default function WeatherOutlookPanel({
         </div>
 
         <div
-          className="flex flex-col gap-1 text-xs text-muted sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between"
+          className="wx-outlook-attribution text-xs text-muted"
           id="wx-outlook-attribution"
         >
           <p
-            className="font-medium text-muted sm:text-right sm:flex-1"
+            className="font-medium text-muted sm:text-right"
             id="wx-outlook-source"
           >
             {attributionDetails.sourceLine}
           </p>
           {attributionDetails.officeLine && (
             <p
-              className="text-muted sm:text-right sm:flex-1"
+              className="text-muted sm:text-right"
               id="wx-outlook-office"
             >
               {attributionDetails.officeLine}
             </p>
           )}
-          <p className="text-muted sm:text-right sm:flex-1" id="wx-outlook-issued">
+          <p className="text-muted sm:text-right" id="wx-outlook-issued">
             Issued: {issuedDisplay}
           </p>
         </div>
