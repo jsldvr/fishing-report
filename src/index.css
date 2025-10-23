@@ -388,10 +388,10 @@ body {
   margin: 0;
 }
 
-#wx-outlook-controls {
-  display: block;
-  width: 100%;
-  text-align: right;
+div#wx-outlook-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
 }
 
 #wx-outlook-controls > * + * {
@@ -429,11 +429,6 @@ body {
     margin-top: 0;
     margin-left: 1.5rem;
   }
-}
-
-#wx-outlook-temp-toggle,
-#wx-outlook-wind-toggle {
-  display: block;
 }
 
 #wx-outlook-temp-toggle span,
