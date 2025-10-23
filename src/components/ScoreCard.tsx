@@ -135,7 +135,23 @@ export default function ScoreCard({
             className="forecast-card__metric-header"
             id={`${cardId}-metric-moon-header`}
           >
-            <span>🌙 Moon ({forecast.moon.phaseName})</span>
+            <div
+              className="forecast-card__metric-label"
+              id={`${cardId}-metric-moon-label`}
+            >
+              <span
+                className="forecast-card__metric-title"
+                id={`${cardId}-metric-moon-title`}
+              >
+                🌙 Moon ({forecast.moon.phaseName})
+              </span>
+              <span
+                className="forecast-card__metric-help"
+                id={`${cardId}-metric-moon-help`}
+              >
+                Lunar phase impact on fish activity; higher is better.
+              </span>
+            </div>
             <span className="forecast-card__metric-value">
               {forecast.components.moon}
             </span>
@@ -160,7 +176,23 @@ export default function ScoreCard({
             className="forecast-card__metric-header"
             id={`${cardId}-metric-weather-header`}
           >
-            <span>Weather</span>
+            <div
+              className="forecast-card__metric-label"
+              id={`${cardId}-metric-weather-label`}
+            >
+              <span
+                className="forecast-card__metric-title"
+                id={`${cardId}-metric-weather-title`}
+              >
+                Weather
+              </span>
+              <span
+                className="forecast-card__metric-help"
+                id={`${cardId}-metric-weather-help`}
+              >
+                Considers temp, wind, precip, and clouds for bite conditions.
+              </span>
+            </div>
             <span className="forecast-card__metric-value">
               {forecast.components.weather}
             </span>

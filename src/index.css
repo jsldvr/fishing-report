@@ -311,12 +311,17 @@ body {
 }
 
 #wx-location-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   align-items: stretch;
 }
 
 @media (min-width: 640px) {
   #wx-location-form {
+    flex-direction: row;
     align-items: center;
+    gap: 0.75rem;
   }
 }
 
@@ -346,23 +351,26 @@ body {
 }
 
 #wx-outlook-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: block;
 }
 
-@media (min-width: 768px) {
-  #wx-outlook-header {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 2rem;
+#wx-outlook-header > * + * {
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 1280px) {
+  #wx-outlook-header > * + * {
+    margin-top: 2rem;
   }
 }
 
 #wx-outlook-heading {
-  flex: 1;
+  display: block;
   min-width: 0;
+}
+
+#wx-outlook-heading > * + * {
+  margin-top: 0.25rem;
 }
 
 #wx-outlook-title {
@@ -380,56 +388,105 @@ body {
   margin: 0;
 }
 
-#wx-outlook-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: flex-start;
+#wx-outlook-controls {
+  display: block;
   width: 100%;
+  text-align: right;
 }
 
-@media (min-width: 1024px) {
-  #wx-outlook-meta {
-    align-items: flex-end;
+#wx-outlook-controls > * + * {
+  margin-top: 1rem;
+}
+
+@media (min-width: 1280px) {
+  #wx-outlook-controls {
     width: auto;
-    min-width: 240px;
+    text-align: right;
   }
 }
 
 #wx-outlook-toggles {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: block;
   width: 100%;
+}
+
+#wx-outlook-toggles > * + * {
+  margin-top: 0.75rem;
 }
 
 @media (min-width: 640px) {
   #wx-outlook-toggles {
-    flex-direction: row;
-    gap: 1rem;
+    display: inline-block;
+    width: auto;
+  }
+
+  #wx-outlook-toggles > * {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  #wx-outlook-toggles > * + * {
+    margin-top: 0;
+    margin-left: 1.5rem;
   }
 }
 
 #wx-outlook-temp-toggle,
 #wx-outlook-wind-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: flex-start;
+  display: block;
 }
 
-@media (min-width: 1024px) {
+#wx-outlook-temp-toggle span,
+#wx-outlook-wind-toggle span {
+  display: inline-block;
+  margin: 0 0.5rem 0.25rem 0;
+}
+
+#wx-outlook-temp-toggle .btn,
+#wx-outlook-wind-toggle .btn {
+  margin-right: 0.5rem;
+}
+
+#wx-outlook-temp-toggle .btn:last-of-type,
+#wx-outlook-wind-toggle .btn:last-of-type {
+  margin-right: 0;
+}
+
+@media (min-width: 1280px) {
   #wx-outlook-temp-toggle,
   #wx-outlook-wind-toggle {
-    justify-content: flex-end;
+    text-align: right;
   }
 }
 
 #wx-outlook-attribution {
   width: 100%;
+  margin-top: 1.5rem;
+  display: block;
 }
 
-@media (min-width: 1024px) {
+#wx-outlook-attribution p {
+  margin: 0;
+}
+
+#wx-outlook-attribution p + p {
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  #wx-outlook-attribution {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #wx-outlook-attribution p + p {
+    margin-top: 0.25rem;
+  }
+}
+
+@media (min-width: 1280px) {
   #wx-outlook-attribution {
     text-align: right;
   }
@@ -439,14 +496,13 @@ body {
   font-weight: 600;
   font-size: 0.75rem;
   color: var(--text-secondary);
-  text-align: left;
   margin: 0;
+  margin-top: 0.25rem;
 }
 
 #wx-outlook-issued {
   font-size: 0.75rem;
   color: var(--text-tertiary);
-  text-align: left;
   margin: 0;
 }
 
@@ -1457,6 +1513,22 @@ body {
   font-size: 0.875rem;
   color: var(--text-primary);
   font-weight: 500;
+}
+
+.forecast-card__metric-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.forecast-card__metric-title {
+  font-weight: 600;
+}
+
+.forecast-card__metric-help {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.2;
 }
 
 .forecast-card__metric-value {

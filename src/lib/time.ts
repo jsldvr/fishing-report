@@ -106,13 +106,39 @@ export interface SolunarTimes {
   dayRating: number; // 0-4 scale
 }
 
+function getTimezoneOffsetMinutes(date: Date, timezone: string): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    timeZoneName: "shortOffset",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+
+  const tzName =
+    formatter.formatToParts(date).find((part) => part.type === "timeZoneName")
+      ?.value || "UTC";
+
+  const match = tzName.match(/([+-])(\d{2})(?::?(\d{2}))?/);
+  if (!match) {
+    return 0;
+  }
+
+  const sign = match[1] === "-" ? -1 : 1;
+  const hours = parseInt(match[2], 10) || 0;
+  const minutes = match[3] ? parseInt(match[3], 10) : 0;
+
+  return sign * (hours * 60 + minutes);
+}
+
 /**
  * Calculate sunrise and sunset times using simplified algorithm
  */
 function calculateSunTimes(
   date: Date,
   lat: number,
-  lon: number
+  lon: number,
+  timezone: string
 ): { sunrise: Date; sunset: Date; solarNoon: Date } {
   const julianDay = date.getTime() / 86400000 + 2440587.5;
   const n = julianDay - 2451545.0;
@@ -130,83 +156,53 @@ function calculateSunTimes(
     (Math.sin((-0.833 * Math.PI) / 180) - Math.sin(latRad) * Math.sin(delta)) /
     (Math.cos(latRad) * Math.cos(delta));
 
+  const timezoneOffsetMinutes = getTimezoneOffsetMinutes(date, timezone);
+  const baseUtcMs = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
+  );
+  const toUtcDate = (minutesFromMidnight: number) => {
+    const zoned = new Date(baseUtcMs);
+    zoned.setUTCMinutes(minutesFromMidnight - timezoneOffsetMinutes);
+    return zoned;
+  };
+
   // Handle polar day/night
   if (cosH > 1) {
     // No sunrise (polar night)
     return {
-      sunrise: new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        0,
-        0
-      ),
-      sunset: new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        0,
-        0
-      ),
-      solarNoon: new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        12,
-        0
-      ),
+      sunrise: toUtcDate(0),
+      sunset: toUtcDate(0),
+      solarNoon: toUtcDate(720),
     };
   }
   if (cosH < -1) {
     // No sunset (polar day)
     return {
-      sunrise: new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        0,
-        0
-      ),
-      sunset: new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        23,
-        59
-      ),
-      solarNoon: new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        12,
-        0
-      ),
+      sunrise: toUtcDate(0),
+      sunset: toUtcDate(23 * 60 + 59),
+      solarNoon: toUtcDate(720),
     };
   }
 
   const H = (Math.acos(cosH) * 180) / Math.PI;
 
   // Time correction for longitude
-  const timeCorrection = (lon - Math.round(lon / 15) * 15) * 4; // minutes
+  const timezoneHours = timezoneOffsetMinutes / 60;
+  const standardMeridian = timezoneHours * 15;
+  const timeCorrection = (lon - standardMeridian) * 4; // minutes
 
   // Solar noon
   const solarNoonMinutes = 720 - timeCorrection;
-  const solarNoon = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  );
-  solarNoon.setMinutes(solarNoonMinutes);
+  const solarNoon = toUtcDate(solarNoonMinutes);
 
   // Sunrise and sunset
   const sunriseMinutes = solarNoonMinutes - H * 4;
   const sunsetMinutes = solarNoonMinutes + H * 4;
 
-  const sunrise = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  sunrise.setMinutes(sunriseMinutes);
-
-  const sunset = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  sunset.setMinutes(sunsetMinutes);
+  const sunrise = toUtcDate(sunriseMinutes);
+  const sunset = toUtcDate(sunsetMinutes);
 
   return { sunrise, sunset, solarNoon };
 }
@@ -217,7 +213,8 @@ function calculateSunTimes(
 function calculateMoonTimes(
   date: Date,
   lat: number,
-  lon: number
+  lon: number,
+  timezone: string
 ): { moonrise: Date; moonset: Date } {
   // Simplified moon position calculation
   const julianDay = date.getTime() / 86400000 + 2440587.5;
@@ -245,24 +242,22 @@ function calculateMoonTimes(
   const cosH = -Math.tan(latRad) * Math.tan(delta);
 
   // Default times if moon doesn't rise/set
-  let moonrise = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    6,
-    0
+  const timezoneOffsetMinutes = getTimezoneOffsetMinutes(date, timezone);
+  const baseUtcMs = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
   );
-  let moonset = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    18,
-    0
-  );
+  let moonrise = new Date(baseUtcMs);
+  moonrise.setUTCMinutes(360 - timezoneOffsetMinutes);
+  let moonset = new Date(baseUtcMs);
+  moonset.setUTCMinutes(1080 - timezoneOffsetMinutes);
 
   if (cosH >= -1 && cosH <= 1) {
     const H = (Math.acos(cosH) * 180) / Math.PI;
-    const timeCorrection = (lon - Math.round(lon / 15) * 15) * 4;
+    const timezoneHours = timezoneOffsetMinutes / 60;
+    const standardMeridian = timezoneHours * 15;
+    const timeCorrection = (lon - standardMeridian) * 4;
 
     // Rough moon transit time (varies by ~50 minutes per day)
     const moonTransit = 12 + ((n * 0.82) % 24); // Approximate
@@ -270,11 +265,11 @@ function calculateMoonTimes(
     const moonriseMinutes = (moonTransit - H / 15) * 60 - timeCorrection;
     const moonsetMinutes = (moonTransit + H / 15) * 60 - timeCorrection;
 
-    moonrise = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    moonrise.setMinutes(moonriseMinutes);
+    moonrise = new Date(baseUtcMs);
+    moonrise.setUTCMinutes(moonriseMinutes - timezoneOffsetMinutes);
 
-    moonset = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    moonset.setMinutes(moonsetMinutes);
+    moonset = new Date(baseUtcMs);
+    moonset.setUTCMinutes(moonsetMinutes - timezoneOffsetMinutes);
   }
 
   return { moonrise, moonset };
@@ -287,10 +282,11 @@ function calculateSolunarTimes(
   date: Date,
   lat: number,
   lon: number,
-  moonPhase: number
+  moonPhase: number,
+  timezone: string
 ): SolunarTimes {
-  const { solarNoon } = calculateSunTimes(date, lat, lon);
-  const { moonrise, moonset } = calculateMoonTimes(date, lat, lon);
+  const { solarNoon } = calculateSunTimes(date, lat, lon, timezone);
+  const { moonrise, moonset } = calculateMoonTimes(date, lat, lon, timezone);
 
   // Calculate moon overhead and underfoot times
   const moonOverhead = new Date(
@@ -360,11 +356,11 @@ export function getAstronomicalTimes(
   lon: number,
   timezone?: string
 ): AstronomicalTimes {
-  const date = new Date(dateISO + "T12:00:00");
+  const date = new Date(dateISO + "T12:00:00Z");
   const tz = timezone || getTimezoneFromCoords(lat, lon);
 
-  const { sunrise, sunset, solarNoon } = calculateSunTimes(date, lat, lon);
-  const { moonrise, moonset } = calculateMoonTimes(date, lat, lon);
+  const { sunrise, sunset, solarNoon } = calculateSunTimes(date, lat, lon, tz);
+  const { moonrise, moonset } = calculateMoonTimes(date, lat, lon, tz);
 
   // Format times in local timezone
   const formatTime = (d: Date) => {
@@ -395,10 +391,10 @@ export function getSolunarTimes(
   moonPhase: number,
   timezone?: string
 ): SolunarTimes {
-  const date = new Date(dateISO + "T12:00:00");
+  const date = new Date(dateISO + "T12:00:00Z");
   const tz = timezone || getTimezoneFromCoords(lat, lon);
 
-  const solunar = calculateSolunarTimes(date, lat, lon, moonPhase);
+  const solunar = calculateSolunarTimes(date, lat, lon, moonPhase, tz);
 
   // Convert times to local timezone
   const formatTime = (isoString: string) => {

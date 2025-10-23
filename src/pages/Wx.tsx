@@ -1,37 +1,278 @@
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useCallback } from "react";
 import WeatherOutlookPanel from "../components/WeatherOutlookPanel";
+import { validateNorthAmericaCoords } from "../lib/time";
+
+const DEFAULT_LAT = 40.7128;
+const DEFAULT_LON = -74.006;
 
 export default function Wx() {
-  const [locationInput, setLocationInput] = useState("");
-  const [lat, setLat] = useState(40.7128);
-  const [lon, setLon] = useState(-74.006);
+  const [locationInput, setLocationInput] = useState(
+    `${DEFAULT_LAT.toFixed(4)}, ${DEFAULT_LON.toFixed(4)}`
+  );
+  const [lat, setLat] = useState(DEFAULT_LAT);
+  const [lon, setLon] = useState(DEFAULT_LON);
   const [inputError, setInputError] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
+  const formatCoords = useCallback(
+    (latitude: number, longitude: number) =>
+      `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+    []
+  );
+
+  const updateCoordinates = useCallback(
+    (latitude: number, longitude: number) => {
+      setLat(latitude);
+      setLon(longitude);
+      setLocationInput(formatCoords(latitude, longitude));
+    },
+    [formatCoords]
+  );
+
+  const applyCoordinates = useCallback(
+    (latitude: number, longitude: number) => {
+      if (!validateNorthAmericaCoords(latitude, longitude)) {
+        setInputError(
+          "Coordinates must be within North America (Lat 14°-83°N, Lon -180° to -50°W)."
+        );
+        return false;
+      }
+
+      updateCoordinates(latitude, longitude);
+      setInputError(null);
+      return true;
+    },
+    [updateCoordinates]
+  );
+
+  const tryIpLocation = useCallback(
+    async (): Promise<boolean> => {
+      const services = [
+        "https://ipapi.co/json/",
+        "https://ip-api.com/json/",
+        "https://ipinfo.io/json",
+      ];
+
+      for (const service of services) {
+        try {
+          const response = await fetch(service);
+          if (!response.ok) continue;
+
+          const data = await response.json();
+          let latitude: number | null = null;
+          let longitude: number | null = null;
+
+          if (service.includes("ipapi.co")) {
+            latitude = parseFloat(data.latitude);
+            longitude = parseFloat(data.longitude);
+          } else if (service.includes("ip-api.com")) {
+            latitude = parseFloat(data.lat);
+            longitude = parseFloat(data.lon);
+          } else if (service.includes("ipinfo.io")) {
+            const [latStr, lonStr] = (data.loc || "").split(",");
+            latitude = parseFloat(latStr);
+            longitude = parseFloat(lonStr);
+          }
+
+          if (
+            latitude !== null &&
+            longitude !== null &&
+            !Number.isNaN(latitude) &&
+            !Number.isNaN(longitude) &&
+            validateNorthAmericaCoords(latitude, longitude)
+          ) {
+            updateCoordinates(latitude, longitude);
+            setInputError(null);
+            setIsGettingLocation(false);
+            return true;
+          }
+        } catch (error) {
+          console.warn(`IP service ${service} failed:`, error);
+        }
+      }
+
+      return false;
+    },
+    [updateCoordinates]
+  );
+
+  const attemptSmartLocation = useCallback(
+    (silent = false) => {
+      if (!("geolocation" in navigator)) {
+        if (!silent) {
+          setInputError("Geolocation not supported by this browser.");
+        }
+        setIsGettingLocation(false);
+        updateCoordinates(DEFAULT_LAT, DEFAULT_LON);
+        return;
+      }
+
+      if (!silent) {
+        setIsGettingLocation(true);
+      } else {
+        setIsGettingLocation(false);
+      }
+
+      const finalizeError = (message: string) => {
+        if (!silent) {
+          setInputError(message);
+        }
+        setIsGettingLocation(false);
+        if (silent) {
+          updateCoordinates(DEFAULT_LAT, DEFAULT_LON);
+        }
+      };
+
+      const handleSuccess = (position: GeolocationPosition) => {
+        const { latitude, longitude } = position.coords;
+        if (validateNorthAmericaCoords(latitude, longitude)) {
+          updateCoordinates(latitude, longitude);
+          setInputError(null);
+          setIsGettingLocation(false);
+        } else {
+          finalizeError(
+            "Current location is outside North America. Enter coordinates manually."
+          );
+        }
+      };
+
+      const handlePermissionDenied = () => {
+        tryIpLocation()
+          .then((success) => {
+            if (!success) {
+              finalizeError(
+                "Location permission denied and IP lookup failed. Enter coordinates manually."
+              );
+            }
+          })
+          .catch(() => {
+            finalizeError(
+              "Location permission denied and IP lookup failed. Enter coordinates manually."
+            );
+          });
+      };
+
+      const tryLastResort = () => {
+        navigator.geolocation.getCurrentPosition(
+          handleSuccess,
+          (error) => {
+            console.error("All geolocation attempts failed:", error);
+
+            if (error.code === error.PERMISSION_DENIED) {
+              handlePermissionDenied();
+              return;
+            }
+
+            let message = "Unable to get your location. ";
+            switch (error.code) {
+              case error.POSITION_UNAVAILABLE:
+                message +=
+                  "Location services are unavailable. Trying alternate method...";
+                break;
+              case error.TIMEOUT:
+                message +=
+                  "Location services timed out. Trying alternate method...";
+                break;
+              default:
+                message += "Trying alternate method...";
+                break;
+            }
+
+            tryIpLocation()
+              .then((success) => {
+                if (!success) {
+                  finalizeError(
+                    message.replace(
+                      "Trying alternate method...",
+                      "Please enter coordinates manually."
+                    )
+                  );
+                }
+              })
+              .catch(() => {
+                finalizeError(
+                  message.replace(
+                    "Trying alternate method...",
+                    "Please enter coordinates manually."
+                  )
+                );
+              });
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 1000,
+            maximumAge: Infinity,
+          }
+        );
+      };
+
+      const tryWatchPosition = () => {
+        let watchId: number;
+        let hasResolved = false;
+
+        const fallbackTimer = setTimeout(() => {
+          if (!hasResolved) {
+            navigator.geolocation.clearWatch(watchId);
+            tryLastResort();
+          }
+        }, 5000);
+
+        watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            if (!hasResolved) {
+              hasResolved = true;
+              clearTimeout(fallbackTimer);
+              navigator.geolocation.clearWatch(watchId);
+              handleSuccess(position);
+            }
+          },
+          (error) => {
+            if (!hasResolved) {
+              hasResolved = true;
+              clearTimeout(fallbackTimer);
+              navigator.geolocation.clearWatch(watchId);
+              if (error.code === error.PERMISSION_DENIED) {
+                handlePermissionDenied();
+              } else {
+                tryLastResort();
+              }
+            }
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 2000,
+            maximumAge: 3600000,
+          }
+        );
+      };
+
+      const tryQuickLocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          handleSuccess,
+          (error) => {
+            if (error.code === error.PERMISSION_DENIED) {
+              handlePermissionDenied();
+              return;
+            }
+            tryWatchPosition();
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 3000,
+            maximumAge: 1800000,
+          }
+        );
+      };
+
+      tryQuickLocation();
+    },
+    [tryIpLocation, updateCoordinates]
+  );
+
   // Auto-detect user location on page load (non-intrusive)
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLat(latitude);
-          setLon(longitude);
-          setLocationInput(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-        },
-        () => {
-          // Silently fail - user may have denied permission or location unavailable
-          setLocationInput("40.7128, -74.0060"); // Default to NYC
-        },
-        {
-          timeout: 3000,
-          enableHighAccuracy: false, // Less battery drain, faster response
-          maximumAge: 600000, // Accept cached position up to 10 minutes old
-        }
-      );
-    } else {
-      setLocationInput("40.7128, -74.0060"); // Default to NYC
-    }
-  }, []);
+    attemptSmartLocation(true);
+  }, [attemptSmartLocation]);
 
   const parseLocationInput = (input: string) => {
     // Try to parse coordinates from various formats
@@ -45,10 +286,7 @@ export default function Wx() {
       if (
         Number.isFinite(parsedLat) &&
         Number.isFinite(parsedLon) &&
-        parsedLat >= -90 &&
-        parsedLat <= 90 &&
-        parsedLon >= -180 &&
-        parsedLon <= 180
+        validateNorthAmericaCoords(parsedLat, parsedLon)
       ) {
         return { lat: parsedLat, lon: parsedLon };
       }
@@ -61,53 +299,18 @@ export default function Wx() {
 
     const coords = parseLocationInput(locationInput);
     if (!coords) {
-      setInputError("Enter valid coordinates (e.g., 40.7128, -74.0060)");
+      setInputError(
+        "Enter valid North American coordinates (e.g., 40.7128, -74.0060)."
+      );
       return;
     }
 
-    setInputError(null);
-    setLat(coords.lat);
-    setLon(coords.lon);
+    applyCoordinates(coords.lat, coords.lon);
   };
 
-  const handleUseCurrentLocation = async () => {
-    if (!("geolocation" in navigator)) {
-      setInputError("Geolocation not supported by this browser");
-      return;
-    }
-
-    setIsGettingLocation(true);
+  const handleUseCurrentLocation = () => {
     setInputError(null);
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLat(latitude);
-        setLon(longitude);
-        setLocationInput(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-        setIsGettingLocation(false);
-      },
-      (error) => {
-        let message = "Unable to get current location";
-        if (error.code === error.PERMISSION_DENIED) {
-          message =
-            "Location access denied. Click the location icon in your browser's address bar to enable, then try again.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          message =
-            "Location information unavailable. Please enter coordinates manually.";
-        } else if (error.code === error.TIMEOUT) {
-          message =
-            "Location request timed out. Check your connection and try again.";
-        }
-        setInputError(message);
-        setIsGettingLocation(false);
-      },
-      {
-        timeout: 15000,
-        enableHighAccuracy: false, // Less strict for better compatibility
-        maximumAge: 300000, // Accept cached position up to 5 minutes old
-      }
-    );
+    attemptSmartLocation(false);
   };
 
   return (

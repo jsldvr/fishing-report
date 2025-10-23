@@ -71,6 +71,46 @@ export default function WeatherOutlookPanel({
       : `Lat/Lon • ${coordText}`;
   }, [lat, lon, locationLabel]);
 
+  const attributionDetails = useMemo(() => {
+    if (!outlook) {
+      return {
+        sourceLine: "Awaiting data source",
+        officeLine: null as string | null,
+      };
+    }
+
+    let officeLine: string | null = null;
+
+    if (outlook.source === "NWS" && outlook.office) {
+      const officeName = outlook.office.name?.trim();
+      const officeLocation = [outlook.office.city, outlook.office.state]
+        .filter(Boolean)
+        .join(", ");
+      const officeId = outlook.office.id?.toUpperCase();
+
+      const detailSegments = Array.from(
+        new Set(
+          [officeName, officeLocation].filter((segment): segment is string =>
+            Boolean(segment)
+          )
+        )
+      );
+
+      if (officeId) {
+        detailSegments.push(`Office ${officeId}`);
+      }
+
+      if (detailSegments.length > 0) {
+        officeLine = `Forecast Office: ${detailSegments.join(" • ")}`;
+      }
+    }
+
+    return {
+      sourceLine: outlook.attribution,
+      officeLine,
+    };
+  }, [outlook]);
+
   const handleRetry = () => {
     setRefreshCounter((value) => value + 1);
   };
@@ -264,11 +304,8 @@ export default function WeatherOutlookPanel({
 
   return (
     <div className="card p-6" id="wx-outlook-card">
-      <div
-        className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
-        id="wx-outlook-header"
-      >
-        <div className="flex flex-col gap-1" id="wx-outlook-heading">
+      <div className="wx-outlook-header" id="wx-outlook-header">
+        <div className="wx-outlook-heading" id="wx-outlook-heading">
           <h2
             className="text-xl sm:text-2xl font-semibold text-primary"
             id="wx-outlook-title"
@@ -283,13 +320,16 @@ export default function WeatherOutlookPanel({
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 text-xs" id="wx-outlook-meta">
+        <div
+          className="wx-outlook-controls text-xs"
+          id="wx-outlook-controls"
+        >
           <div
-            className="flex flex-col sm:flex-row gap-2"
+            className="wx-outlook-toggles"
             id="wx-outlook-toggles"
           >
-            <div className="flex gap-1" id="wx-outlook-temp-toggle">
-              <span className="text-xs text-muted mr-2 self-center">Temp:</span>
+            <div className="wx-outlook-toggle-row" id="wx-outlook-temp-toggle">
+              <span className="text-xs text-muted mr-2">Temp:</span>
               <button
                 className={`btn btn-sm ${
                   useFahrenheit ? "btn-secondary" : "btn-primary"
@@ -309,8 +349,8 @@ export default function WeatherOutlookPanel({
                 °F
               </button>
             </div>
-            <div className="flex gap-1" id="wx-outlook-wind-toggle">
-              <span className="text-xs text-muted mr-2 self-center">Wind:</span>
+            <div className="wx-outlook-toggle-row" id="wx-outlook-wind-toggle">
+              <span className="text-xs text-muted mr-2">Wind:</span>
               <button
                 className={`btn btn-sm ${
                   useMph ? "btn-secondary" : "btn-primary"
@@ -331,17 +371,29 @@ export default function WeatherOutlookPanel({
               </button>
             </div>
           </div>
-          <div
-            className="flex flex-col gap-1 text-right"
-            id="wx-outlook-attribution"
+        </div>
+
+        <div
+          className="wx-outlook-attribution text-xs text-muted"
+          id="wx-outlook-attribution"
+        >
+          <p
+            className="font-medium text-muted sm:text-right"
+            id="wx-outlook-source"
           >
-            <p className="font-medium text-muted" id="wx-outlook-source">
-              {outlook?.attribution ?? "Awaiting data source"}
+            {attributionDetails.sourceLine}
+          </p>
+          {attributionDetails.officeLine && (
+            <p
+              className="text-muted sm:text-right"
+              id="wx-outlook-office"
+            >
+              {attributionDetails.officeLine}
             </p>
-            <p className="text-muted" id="wx-outlook-issued">
-              Issued: {issuedDisplay}
-            </p>
-          </div>
+          )}
+          <p className="text-muted sm:text-right" id="wx-outlook-issued">
+            Issued: {issuedDisplay}
+          </p>
         </div>
       </div>
 

@@ -18,6 +18,11 @@ export interface WeatherOutlookResult {
   source: WeatherOutlookSource;
   issuedAt: string;
   attribution: string;
+  office?: {
+    id?: string;
+    name?: string;
+    city?: string;
+    state?: string;
+  };
   days: WeatherOutlookDay[];
 }
-

@@ -59,6 +59,43 @@ async function fetchNwsOutlook(
     throw new Error("NWS forecast URL unavailable for these coordinates");
   }
 
+  const officeUrl = pointData.properties?.forecastOffice;
+  const officeMatch = officeUrl?.match(/\/offices\/([A-Z0-9]+)/i);
+  const officeId = officeMatch?.[1];
+  let officeName: string | undefined;
+  let officeCity: string | undefined;
+  let officeState: string | undefined;
+
+  if (officeUrl) {
+    try {
+      const officeResponse = await fetch(officeUrl, { headers, signal });
+      if (officeResponse.ok) {
+        const officeData = (await officeResponse.json()) as NWSOfficeResponse;
+        officeName = officeData.name?.trim() || undefined;
+        officeCity =
+          officeData.address?.addressLocality?.trim() || undefined;
+        officeState =
+          officeData.address?.addressRegion?.trim() || undefined;
+      }
+    } catch (officeError) {
+      console.warn("Unable to load NWS office metadata:", officeError);
+    }
+  }
+
+  const relativeCity =
+    pointData.properties?.relativeLocation?.properties?.city?.trim() ||
+    undefined;
+  const relativeState =
+    pointData.properties?.relativeLocation?.properties?.state?.trim() ||
+    undefined;
+
+  if (!officeCity && relativeCity) {
+    officeCity = relativeCity;
+  }
+  if (!officeState && relativeState) {
+    officeState = relativeState;
+  }
+
   const forecastResponse = await fetch(forecastUrl, { headers, signal });
   if (!forecastResponse.ok) {
     throw new Error(
@@ -166,6 +203,15 @@ async function fetchNwsOutlook(
     source: "NWS",
     issuedAt,
     attribution: "Data: National Weather Service",
+    office:
+      officeId || officeName || officeCity || officeState
+        ? {
+            id: officeId,
+            name: officeName,
+            city: officeCity,
+            state: officeState,
+          }
+        : undefined,
     days,
   };
 }
@@ -377,6 +423,13 @@ function capitalizeSentence(text: string): string {
 interface NWSPointResponse {
   properties: {
     forecast?: string;
+    forecastOffice?: string;
+    relativeLocation?: {
+      properties?: {
+        city?: string;
+        state?: string;
+      };
+    };
   };
 }
 
@@ -390,9 +443,17 @@ interface NWSForecastResponse {
       temperatureUnit: "F" | "C";
       probabilityOfPrecipitation?: { value: number | null };
       windSpeed: string;
-      windDirection: string;
-      shortForecast: string;
-    }>;
+    windDirection: string;
+    shortForecast: string;
+  }>;
+  };
+}
+
+interface NWSOfficeResponse {
+  name?: string;
+  address?: {
+    addressLocality?: string;
+    addressRegion?: string;
   };
 }
 
