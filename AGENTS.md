@@ -35,5 +35,6 @@
 ## 6. Security and Privacy
 - No PII in logs. Secrets only via environment manager.
 
-
+## 7. AGENTS files
+- All AGENTS-related docs go in the `AGENTS/` directory.
 
