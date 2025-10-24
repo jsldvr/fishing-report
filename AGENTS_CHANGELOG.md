@@ -1,6 +1,13 @@
 # Changelog
 
 ## 2025-10-24
+### WX Page Simplification
+- **Removed** interactive weather functionality from WX page (`#wx-location-card` and `#wx-outlook-card`)
+- **Simplified** WX page to static resource page only
+- **Eliminated** all location detection, coordinate input, and weather forecast components
+- **Preserved** static weather resource links and preparedness guides
+
+### Playwright E2E Testing Setup
 ### Playwright E2E Testing Setup
 - **Added** Playwright test framework with comprehensive browser support (Chromium, Firefox, WebKit)
 - **Configured** automatic dev server startup for E2E tests using Vite preview mode
