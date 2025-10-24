@@ -75,7 +75,7 @@ export default function ScoreCard({
   };
 
   return (
-    <div className="card forecast-card" id={cardId}>
+    <div className="card forecast-card" id={cardId} data-testid="score-card">
       <div className="forecast-card__header" id={`${cardId}-header`}>
         <div className="forecast-card__title" id={`${cardId}-title`}>
           <h3 className="text-xl font-semibold forecast-card__heading">
@@ -126,10 +126,7 @@ export default function ScoreCard({
         </div>
       </div>
 
-      <div
-        className="forecast-card__section"
-        id={`${cardId}-score-breakdown`}
-      >
+      <div className="forecast-card__section" id={`${cardId}-score-breakdown`}>
         <div className="forecast-card__metric" id={`${cardId}-metric-moon`}>
           <div
             className="forecast-card__metric-header"
@@ -168,10 +165,7 @@ export default function ScoreCard({
           </div>
         </div>
 
-        <div
-          className="forecast-card__metric"
-          id={`${cardId}-metric-weather`}
-        >
+        <div className="forecast-card__metric" id={`${cardId}-metric-weather`}>
           <div
             className="forecast-card__metric-header"
             id={`${cardId}-metric-weather-header`}
@@ -410,13 +404,19 @@ export default function ScoreCard({
               )}`}
               id={`${cardId}-safety-panel`}
             >
-              <div className="flex items-center gap-2 mb-2" id={`${cardId}-safety-header`}>
+              <div
+                className="flex items-center gap-2 mb-2"
+                id={`${cardId}-safety-header`}
+              >
                 <span className="text-xl">{getSafetyIcon(safety.rating)}</span>
                 <h3 className="font-semibold text-lg">
                   Fishing Safety: {safety.rating}
                 </h3>
               </div>
-              <div className="text-sm opacity-75 mb-2" id={`${cardId}-safety-source`}>
+              <div
+                className="text-sm opacity-75 mb-2"
+                id={`${cardId}-safety-source`}
+              >
                 Data source:{" "}
                 {forecast.weather.source === "NWS"
                   ? "National Weather Service"

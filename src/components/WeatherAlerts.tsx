@@ -27,11 +27,14 @@ export default function WeatherAlerts({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`} data-testid="weather-alerts">
       {/* Active Weather Alerts */}
       {alerts.length > 0 ? (
         <div className="space-y-2" id="weather-alerts-list">
-          <h3 className="font-semibold text-lg flex items-center gap-2" id="weather-alerts-title">
+          <h3
+            className="font-semibold text-lg flex items-center gap-2"
+            id="weather-alerts-title"
+          >
             <span>📢</span>
             Active Weather Alerts
           </h3>
@@ -88,7 +91,10 @@ export default function WeatherAlerts({
           ))}
         </div>
       ) : (
-        <div className="p-4 rounded-lg border border-dashed border-gray-300 bg-gray-50" id="weather-alerts-empty">
+        <div
+          className="p-4 rounded-lg border border-dashed border-gray-300 bg-gray-50"
+          id="weather-alerts-empty"
+        >
           <p className="text-sm text-gray-600" id="weather-alerts-empty-text">
             Alerts will appear here if any are issued for this location.
           </p>

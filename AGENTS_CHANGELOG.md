@@ -1,5 +1,33 @@
 # Changelog
 
+## 2025-10-24
+### Playwright E2E Testing Setup
+- **Added** Playwright test framework with comprehensive browser support (Chromium, Firefox, WebKit)
+- **Configured** automatic dev server startup for E2E tests using Vite preview mode
+- **Created** fishing-forecast.spec.ts with 10 tests covering core application functionality:
+  - Homepage title and content validation
+  - Location input form testing (text input and coordinate inputs)
+  - Feature cards display verification
+  - Navigation flow from home to results page
+  - Coordinate geocoding functionality
+  - Mobile responsive viewport testing
+  - Form validation and button states
+- **Enhanced** components with data-testid attributes for reliable test targeting:
+  - `data-testid="weather-alerts"` on WeatherAlerts component
+  - `data-testid="marine-conditions"` on MarineConditions component  
+  - `data-testid="score-card"` on ScoreCard component
+- **Installed** VS Code extensions for improved testing workflow:
+  - Playwright Test for VSCode (already installed)
+  - Playwright Test Runner for individual test execution
+- **Added** comprehensive test scripts in package.json:
+  - `test:e2e` - Run all E2E tests
+  - `test:e2e:ui` - Interactive UI mode
+  - `test:e2e:debug` - Debug mode with step-through
+  - `test:e2e:headed` - Headed mode for visual debugging
+  - `test:codegen` - Record interactions to generate test code
+- **Created** PLAYWRIGHT_SETUP.md documentation with testing patterns and troubleshooting guide
+- **Verified** all 10 tests pass across Chromium browser with 23.7s execution time
+
 ## 2025-10-19
 ### WX Outlook Header Flex Cleanup
 - **Removed** flex-based layout from the outlook header and controls to return the section to block flow for the upcoming styling iteration.
