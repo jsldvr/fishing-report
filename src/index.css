@@ -2073,6 +2073,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: var(--bg-surface);
 }
 
+/* Disclaimer styling overrides */
+#wx-disclaimer {
+  background: transparent !important;
+}
+
+#guide-disclaimer {
+  background: transparent !important;
+}
+
 /* Score Status Classes */
 .score-excellent {
   background: linear-gradient(
