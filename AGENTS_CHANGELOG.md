@@ -1,6 +1,11 @@
 # Changelog
 
 ## 2025-10-24
+### React Router Future Flags
+- **Added** React Router v7 future flags to eliminate deprecation warnings
+- **Configured** `v7_startTransition: true` for React.startTransition wrapping
+- **Configured** `v7_relativeSplatPath: true` for relative route resolution
+
 ### WX Page Simplification
 - **Removed** interactive weather functionality from WX page (`#wx-location-card` and `#wx-outlook-card`)
 - **Simplified** WX page to static resource page only
