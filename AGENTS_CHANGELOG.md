@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-25
+### Playwright Removal
+- **Removed** Playwright dependencies and all E2E testing infrastructure
+- **Deleted** playwright.config.ts, e2e/ directory, and playwright-report/ directory
+- **Removed** Playwright GitHub Actions workflow (.github/workflows/playwright.yml)
+- **Removed** all Playwright-related npm scripts (test:e2e, test:e2e:ui, test:e2e:debug, test:e2e:headed, test:codegen)
+- **Updated** AGENTS.md policy to remove Playwright testing requirements
+- **Cleaned** node_modules and package-lock.json to remove Playwright packages
+
 ## 2025-10-24
 ### React Router Future Flags
 - **Added** React Router v7 future flags to eliminate deprecation warnings
