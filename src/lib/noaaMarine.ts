@@ -106,65 +106,73 @@ async function findNearestStation(
   lat: number,
   lon: number
 ): Promise<NoaaStationMetadata | null> {
-  const MAX_DISTANCE_KM = 100;
-  for (const delta of BOUNDING_BOX_DELTAS) {
-    const bbox = buildBoundingBox(lat, lon, delta);
-    const url = new URL(NOAA_METADATA_ENDPOINT);
-    url.searchParams.set("type", "tidepredictions");
-    url.searchParams.set("bbox", bbox.join(","));
-    url.searchParams.set("units", "metric");
+  // Station types to search for, in order of preference
+  // Great Lakes/inland stations typically have waterlevels, meteorology, wind, temp
+  // Coastal stations have tidepredictions
+  const stationTypes = [
+    "waterlevels",
+    "meteorology",
+    "wind",
+    "watertemperature",
+    "tidepredictions",
+  ];
 
-    try {
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        continue;
-      }
+  for (const stationType of stationTypes) {
+    for (const delta of BOUNDING_BOX_DELTAS) {
+      const bbox = buildBoundingBox(lat, lon, delta);
+      const url = new URL(NOAA_METADATA_ENDPOINT);
+      url.searchParams.set("type", stationType);
+      url.searchParams.set("bbox", bbox.join(","));
+      url.searchParams.set("units", "metric");
 
-      const data = (await response.json()) as {
-        stations?: Array<{
-          id: string;
-          name: string;
-          lat: number;
-          lng: number;
-          state?: string;
-        }>;
-      };
-
-      const stations = data.stations || [];
-      if (stations.length === 0) {
-        continue;
-      }
-
-      const enriched = stations
-        .map((station) => {
-          const distanceKm = haversineDistanceKm(
-            lat,
-            lon,
-            station.lat,
-            station.lng
-          );
-
-          return {
-            id: station.id,
-            name: station.name,
-            lat: station.lat,
-            lon: station.lng,
-            state: station.state,
-            distanceKm,
-          };
-        })
-        .sort((a, b) => a.distanceKm - b.distanceKm);
-
-      if (enriched.length > 0) {
-        if (enriched[0].distanceKm <= MAX_DISTANCE_KM) {
-          return enriched[0];
-        } else {
-          // Nearest station is too far to be relevant
-          return null;
+      try {
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+          continue;
         }
+
+        const data = (await response.json()) as {
+          stations?: Array<{
+            id: string;
+            name: string;
+            lat: number;
+            lng: number;
+            state?: string;
+          }>;
+        };
+
+        const stations = data.stations || [];
+        if (stations.length === 0) {
+          continue;
+        }
+
+        const enriched = stations
+          .map((station) => {
+            const distanceKm = haversineDistanceKm(
+              lat,
+              lon,
+              station.lat,
+              station.lng
+            );
+
+            return {
+              id: station.id,
+              name: station.name,
+              lat: station.lat,
+              lon: station.lng,
+              state: station.state,
+              distanceKm,
+            };
+          })
+          .sort((a, b) => a.distanceKm - b.distanceKm);
+
+        if (enriched.length > 0) {
+          // Return the nearest station found for this station type
+          return enriched[0];
+        }
+      } catch (error) {
+        console.warn("NOAA station metadata lookup failed:", error);
       }
-    } catch (error) {
-      console.warn("NOAA station metadata lookup failed:", error);
     }
   }
 

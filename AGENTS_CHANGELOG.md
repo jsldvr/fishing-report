@@ -1,6 +1,20 @@
 # Changelog
 
 ## 2025-10-25
+### NOAA Marine Station Selection Fix
+- **Fixed** bug where inland locations (e.g., Milton, WI) returned distant coastal stations (e.g., Quantico, VA at 1000+ km)
+- **Root Cause:** Algorithm only searched for `tidepredictions` stations, excluding Great Lakes/inland stations
+- **Changed** `findNearestStation` to search multiple station types in priority order:
+  1. `waterlevels` - Great Lakes, rivers, coastal water levels
+  2. `meteorology` - Widespread weather stations
+  3. `wind` - Wind monitoring (Great Lakes friendly)
+  4. `watertemperature` - Water temperature monitoring
+  5. `tidepredictions` - Coastal tide predictions (fallback only)
+- **Added** comprehensive test suite (`tests/noaaFix.test.ts`, `tests/noaaMarine.test.ts`) demonstrating issue and fix
+- **Created** `src/lib/noaaStationTypes.ts` documenting NOAA CO-OPS station types and selection strategy
+- **Result:** Inland locations now find appropriate regional stations (~90km) instead of distant coastal stations
+
+## 2025-10-25
 ### Playwright Removal
 - **Removed** Playwright dependencies and all E2E testing infrastructure
 - **Deleted** playwright.config.ts, e2e/ directory, and playwright-report/ directory
