@@ -1,6 +1,14 @@
 # Changelog
 
 ## 2025-10-25
+### Release Workflow Enhancement
+- **Changed** automatic release trigger from push to release branches to PR merge into main
+- **Added** condition that release only triggers when PR is merged (not just closed)
+- **Added** validation that source branch starts with `release/` prefix
+- **Enhanced** branch version extraction to use PR head ref instead of current branch
+- **Result** More controlled release process - releases only happen on successful merges to main
+
+## 2025-10-25
 ### NOAA Marine Station Selection Fix
 - **Fixed** bug where inland locations (e.g., Milton, WI) returned distant coastal stations (e.g., Quantico, VA at 1000+ km)
 - **Root Cause:** Algorithm only searched for `tidepredictions` stations, excluding Great Lakes/inland stations
