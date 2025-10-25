@@ -1,0 +1,63 @@
+name: Validate Release Version
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-version:
+    runs-on: ubuntu-latest
+    # Only run for release/* and fix/* branches
+    if: startsWith(github.event.pull_request.head.ref, 'release/') || startsWith(github.event.pull_request.head.ref, 'fix/')
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate version consistency
+        run: |
+          # Extract version from branch name
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+
+          if [[ $BRANCH_NAME == release/* ]]; then
+            BRANCH_VERSION="${BRANCH_NAME#release/}"
+          elif [[ $BRANCH_NAME == fix/* ]]; then
+            BRANCH_VERSION="${BRANCH_NAME#fix/}"
+          else
+            echo "Unexpected branch pattern: $BRANCH_NAME"
+            exit 1
+          fi
+
+          if [ -z "$BRANCH_VERSION" ]; then
+            echo "Could not determine version from branch name: $BRANCH_NAME"
+            exit 1
+          fi
+
+          # Read package.json version
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          echo "Branch version: $BRANCH_VERSION"
+          echo "Package version: $PACKAGE_VERSION"
+
+          if [ "$BRANCH_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "❌ Version mismatch!"
+            echo "Branch version ($BRANCH_VERSION) does not match package.json version ($PACKAGE_VERSION)"
+            echo ""
+            echo "To fix this:"
+            echo "1. Update package.json version to match branch: npm version $BRANCH_VERSION --no-git-tag-version"
+            echo "2. Or rename branch to match package.json: git branch -m $BRANCH_NAME release/$PACKAGE_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version validation passed: $BRANCH_VERSION"
