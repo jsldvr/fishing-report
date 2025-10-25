@@ -21,11 +21,6 @@
 ## 4. Testing Requirements
 - Unit: ≥80% line coverage for changed files; run in CI.
 - Integration: component tests for new FE functionality.
-- E2E: Playwright is the single source of truth.
-  - New UI flows require at least one E2E path test.
-  - Run E2E against Chromium, WebKit, and Firefox in CI.
-  - Flaky tests quarantined within 24h or fixed before release.
-- Visual regression: enable per critical pages with Playwright snapshots.
 - Accessibility: axe-core checks must pass; no new WCAG 2.2 AA violations.
 - Performance: Lighthouse CI. No new regressions; LCP ≤2.5s on test env.
 
