@@ -59,10 +59,11 @@ export async function fetchNoaaMarineConditions(
         supports("wind")
           ? fetchLatestWindSample(station.id)
           : Promise.resolve<
-              (NoaaNumericSample & {
-                directionDeg?: number;
-                directionText?: string;
-              }) | null
+              | (NoaaNumericSample & {
+                  directionDeg?: number;
+                  directionText?: string;
+                })
+              | null
             >(null),
         supports("water_temperature")
           ? fetchLatestNumericSample(station.id, "water_temperature", "v")
@@ -105,6 +106,7 @@ async function findNearestStation(
   lat: number,
   lon: number
 ): Promise<NoaaStationMetadata | null> {
+  const MAX_DISTANCE_KM = 100;
   for (const delta of BOUNDING_BOX_DELTAS) {
     const bbox = buildBoundingBox(lat, lon, delta);
     const url = new URL(NOAA_METADATA_ENDPOINT);
@@ -154,7 +156,12 @@ async function findNearestStation(
         .sort((a, b) => a.distanceKm - b.distanceKm);
 
       if (enriched.length > 0) {
-        return enriched[0];
+        if (enriched[0].distanceKm <= MAX_DISTANCE_KM) {
+          return enriched[0];
+        } else {
+          // Nearest station is too far to be relevant
+          return null;
+        }
       }
     } catch (error) {
       console.warn("NOAA station metadata lookup failed:", error);
@@ -382,9 +389,7 @@ function haversineDistanceKm(
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -395,9 +400,7 @@ function toIsoDate(dateString: string | undefined): string | null {
   }
 
   const normalized = dateString.replace(" ", "T");
-  const isoCandidate = normalized.endsWith("Z")
-    ? normalized
-    : `${normalized}Z`;
+  const isoCandidate = normalized.endsWith("Z") ? normalized : `${normalized}Z`;
 
   const date = new Date(isoCandidate);
   if (Number.isNaN(date.getTime())) {
