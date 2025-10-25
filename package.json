@@ -1,6 +1,6 @@
 {
   "name": "fishing-report",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Production-ready React + TypeScript fishing forecast app",
   "type": "module",
   "scripts": {

@@ -1,6 +1,15 @@
 # Changelog
 
 ## 2025-10-25
+### Pre-Merge Version Validation & Package Fix
+- **Added** new workflow `validate-release.yml` for pre-merge version validation
+- **Added** support for both `release/*` and `fix/*` branch patterns
+- **Added** detailed error messages with fix instructions for version mismatches
+- **Fixed** package.json version updated from 1.2.2 to 1.2.3 to match release branch
+- **Enhanced** PR validation runs on open, sync, and reopen events
+- **Result** Prevents merging PRs with version mismatches, catches issues before merge
+
+## 2025-10-25
 ### Release Workflow Enhancement
 - **Changed** automatic release trigger from push to release branches to PR merge into main
 - **Added** condition that release only triggers when PR is merged (not just closed)
