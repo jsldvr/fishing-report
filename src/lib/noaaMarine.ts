@@ -59,10 +59,11 @@ export async function fetchNoaaMarineConditions(
         supports("wind")
           ? fetchLatestWindSample(station.id)
           : Promise.resolve<
-              (NoaaNumericSample & {
-                directionDeg?: number;
-                directionText?: string;
-              }) | null
+              | (NoaaNumericSample & {
+                  directionDeg?: number;
+                  directionText?: string;
+                })
+              | null
             >(null),
         supports("water_temperature")
           ? fetchLatestNumericSample(station.id, "water_temperature", "v")
@@ -105,59 +106,73 @@ async function findNearestStation(
   lat: number,
   lon: number
 ): Promise<NoaaStationMetadata | null> {
-  for (const delta of BOUNDING_BOX_DELTAS) {
-    const bbox = buildBoundingBox(lat, lon, delta);
-    const url = new URL(NOAA_METADATA_ENDPOINT);
-    url.searchParams.set("type", "tidepredictions");
-    url.searchParams.set("bbox", bbox.join(","));
-    url.searchParams.set("units", "metric");
+  // Station types to search for, in order of preference
+  // Great Lakes/inland stations typically have waterlevels, meteorology, wind, temp
+  // Coastal stations have tidepredictions
+  const stationTypes = [
+    "waterlevels",
+    "meteorology",
+    "wind",
+    "watertemperature",
+    "tidepredictions",
+  ];
 
-    try {
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        continue;
+  for (const stationType of stationTypes) {
+    for (const delta of BOUNDING_BOX_DELTAS) {
+      const bbox = buildBoundingBox(lat, lon, delta);
+      const url = new URL(NOAA_METADATA_ENDPOINT);
+      url.searchParams.set("type", stationType);
+      url.searchParams.set("bbox", bbox.join(","));
+      url.searchParams.set("units", "metric");
+
+      try {
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = (await response.json()) as {
+          stations?: Array<{
+            id: string;
+            name: string;
+            lat: number;
+            lng: number;
+            state?: string;
+          }>;
+        };
+
+        const stations = data.stations || [];
+        if (stations.length === 0) {
+          continue;
+        }
+
+        const enriched = stations
+          .map((station) => {
+            const distanceKm = haversineDistanceKm(
+              lat,
+              lon,
+              station.lat,
+              station.lng
+            );
+
+            return {
+              id: station.id,
+              name: station.name,
+              lat: station.lat,
+              lon: station.lng,
+              state: station.state,
+              distanceKm,
+            };
+          })
+          .sort((a, b) => a.distanceKm - b.distanceKm);
+
+        if (enriched.length > 0) {
+          // Return the nearest station found for this station type
+          return enriched[0];
+        }
+      } catch (error) {
+        console.warn("NOAA station metadata lookup failed:", error);
       }
-
-      const data = (await response.json()) as {
-        stations?: Array<{
-          id: string;
-          name: string;
-          lat: number;
-          lng: number;
-          state?: string;
-        }>;
-      };
-
-      const stations = data.stations || [];
-      if (stations.length === 0) {
-        continue;
-      }
-
-      const enriched = stations
-        .map((station) => {
-          const distanceKm = haversineDistanceKm(
-            lat,
-            lon,
-            station.lat,
-            station.lng
-          );
-
-          return {
-            id: station.id,
-            name: station.name,
-            lat: station.lat,
-            lon: station.lng,
-            state: station.state,
-            distanceKm,
-          };
-        })
-        .sort((a, b) => a.distanceKm - b.distanceKm);
-
-      if (enriched.length > 0) {
-        return enriched[0];
-      }
-    } catch (error) {
-      console.warn("NOAA station metadata lookup failed:", error);
     }
   }
 
@@ -382,9 +397,7 @@ function haversineDistanceKm(
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -395,9 +408,7 @@ function toIsoDate(dateString: string | undefined): string | null {
   }
 
   const normalized = dateString.replace(" ", "T");
-  const isoCandidate = normalized.endsWith("Z")
-    ? normalized
-    : `${normalized}Z`;
+  const isoCandidate = normalized.endsWith("Z") ? normalized : `${normalized}Z`;
 
   const date = new Date(isoCandidate);
   if (Number.isNaN(date.getTime())) {
