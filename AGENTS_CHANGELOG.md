@@ -2,8 +2,9 @@
 
 ## 2025-10-29
 
-### NWS Office Card Styling Standardization
+### NWS Office Card Content and Styling Updates
 
+- **Updated** card title from "Your Local NWS Office" to "Local NWS Office" for more concise labeling
 - **Converted** NWSOfficeInfo component from custom blue theme to standard `.card` styling
 - **Replaced** `bg-blue-50 rounded-lg border border-blue-200` with `card p-6` class
 - **Updated** all text colors from blue theme (`text-blue-900`, `text-blue-700`, etc.) to semantic colors (`text-primary`, `text-secondary`)
