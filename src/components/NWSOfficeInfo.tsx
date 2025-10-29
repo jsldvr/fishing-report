@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import type { LocalWeatherOfficeInfo } from "../types/forecast.js";
 
 interface NWSOfficeInfoProps {
@@ -11,21 +12,54 @@ export default function NWSOfficeInfo({
   className = "",
   id,
 }: NWSOfficeInfoProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleAccordion = useCallback(() => {
+    setIsOpen(!isOpen);
+  }, [isOpen]);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggleAccordion();
+      }
+    },
+    [toggleAccordion]
+  );
   const { office, distance, servingArea } = localOffice;
+  const contentId = id ? `${id}-content` : "nws-office-content";
 
   return (
     <div className={`card p-6 ${className}`} id={id}>
       <h3
-        className="font-semibold text-lg mb-2 flex items-center gap-2"
+        className="font-semibold text-lg flex items-center gap-2 mission-timeline-toggle"
         id={id ? `${id}-title` : "nws-office-title"}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+        data-open={isOpen}
+        onClick={toggleAccordion}
+        onKeyDown={handleKeyDown}
       >
         <span>🏢</span>
         Local NWS Office
+        <span
+          className="mission-toggle-indicator"
+          id={id ? `${id}-toggle-indicator` : "nws-office-toggle-indicator"}
+          aria-hidden="true"
+          data-open={isOpen}
+        >
+          ▾
+        </span>
       </h3>
 
       <div
-        className="space-y-2 text-sm"
-        id={id ? `${id}-content` : "nws-office-content"}
+        className="space-y-2 text-sm mission-timeline-content"
+        id={contentId}
+        data-open={isOpen}
+        aria-hidden={!isOpen}
       >
         <div id={id ? `${id}-basic-info` : "nws-office-basic-info"}>
           <p

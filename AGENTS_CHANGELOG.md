@@ -2,6 +2,16 @@
 
 ## 2025-10-29
 
+### NWS Office Card Accordion Implementation
+
+- **Converted** Local NWS Office card to accordion functionality, closed by default
+- **Added** React state management with `useState` for accordion toggle state
+- **Implemented** click and keyboard (Enter/Space) handlers for accessibility
+- **Applied** existing `mission-timeline-toggle` and `mission-timeline-content` CSS classes for consistent styling
+- **Enhanced** with proper ARIA attributes (`aria-expanded`, `aria-controls`, `aria-hidden`) for screen reader support
+- **Added** visual toggle indicator (▾) that rotates when accordion opens/closes
+- **Result** Improved UX with collapsible details, consistent with Mission Timeline pattern, better information hierarchy
+
 ### NWS Office Card Content and Styling Updates
 
 - **Updated** card title from "Your Local NWS Office" to "Local NWS Office" for more concise labeling
