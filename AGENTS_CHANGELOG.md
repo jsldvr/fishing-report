@@ -10,6 +10,9 @@
 - **Applied** existing `mission-timeline-toggle` and `mission-timeline-content` CSS classes for consistent styling
 - **Enhanced** with proper ARIA attributes (`aria-expanded`, `aria-controls`, `aria-hidden`) for screen reader support
 - **Added** visual toggle indicator (▾) that rotates when accordion opens/closes
+- **Enhanced** title to show office name on desktop: "Local NWS Office {officeName}" (hidden on mobile with `hidden sm:inline`)
+- **Refined** title formatting by removing dash separator for cleaner appearance
+- **Added** responsive utility classes `.hidden`, `.inline`, and `.sm:inline` for mobile-responsive content display
 - **Result** Improved UX with collapsible details, consistent with Mission Timeline pattern, better information hierarchy
 
 ### NWS Office Card Content and Styling Updates

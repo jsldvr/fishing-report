@@ -2126,6 +2126,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
 /* ===========================================
    RESPONSIVE BREAKPOINTS
    =========================================== */
+
+/* Display Utilities */
+.hidden {
+  display: none;
+}
+.inline {
+  display: inline;
+}
+
 @media (min-width: 640px) {
   .sm\:px-6 {
     padding-left: 1.5rem;
@@ -2137,6 +2146,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
   .sm\:text-base {
     font-size: 1rem;
     line-height: 1.5rem;
+  }
+  .sm\:inline {
+    display: inline;
   }
 }
 

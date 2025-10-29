@@ -45,6 +45,9 @@ export default function NWSOfficeInfo({
       >
         <span>🏢</span>
         Local NWS Office
+        <span className="hidden sm:inline text-secondary font-normal">
+          {office.name}
+        </span>
         <span
           className="mission-toggle-indicator"
           id={id ? `${id}-toggle-indicator` : "nws-office-toggle-indicator"}
