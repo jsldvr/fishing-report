@@ -3,32 +3,64 @@ import type { LocalWeatherOfficeInfo } from "../types/forecast.js";
 interface NWSOfficeInfoProps {
   localOffice: LocalWeatherOfficeInfo;
   className?: string;
+  id?: string;
 }
 
 export default function NWSOfficeInfo({
   localOffice,
   className = "",
+  id,
 }: NWSOfficeInfoProps) {
   const { office, distance, servingArea } = localOffice;
 
   return (
     <div
       className={`p-4 bg-blue-50 rounded-lg border border-blue-200 ${className}`}
+      id={id}
     >
-      <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+      <h3
+        className="font-semibold text-lg mb-2 flex items-center gap-2"
+        id={id ? `${id}-title` : "nws-office-title"}
+      >
         <span>🏢</span>
         Your Local NWS Office
       </h3>
 
-      <div className="space-y-2 text-sm">
-        <div>
-          <p className="font-medium text-blue-900">{office.name}</p>
-          <p className="text-blue-700">Office ID: {office.id}</p>
+      <div
+        className="space-y-2 text-sm"
+        id={id ? `${id}-content` : "nws-office-content"}
+      >
+        <div id={id ? `${id}-basic-info` : "nws-office-basic-info"}>
+          <p
+            className="font-medium text-blue-900"
+            id={id ? `${id}-name` : "nws-office-name"}
+          >
+            {office.name}
+          </p>
+          <p
+            className="text-blue-700"
+            id={id ? `${id}-office-id` : "nws-office-office-id"}
+          >
+            Office ID: {office.id}
+          </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="text-blue-600">📍 {distance.toFixed(0)}km away</span>
-          <span className="text-blue-600">🗺️ Serving: {servingArea}</span>
+        <div
+          className="flex items-center gap-4"
+          id={id ? `${id}-location-info` : "nws-office-location-info"}
+        >
+          <span
+            className="text-blue-600"
+            id={id ? `${id}-distance` : "nws-office-distance"}
+          >
+            📍 {distance.toFixed(0)}km away
+          </span>
+          <span
+            className="text-blue-600"
+            id={id ? `${id}-serving-area` : "nws-office-serving-area"}
+          >
+            🗺️ Serving: {servingArea}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 pt-2 border-t border-blue-200">

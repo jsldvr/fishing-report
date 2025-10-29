@@ -3,7 +3,6 @@ import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
 import WeatherDebugInfo from "./WeatherDebugInfo";
 import MarineConditions from "./MarineConditions";
-import NWSOfficeInfo from "./NWSOfficeInfo";
 
 interface ScoreCardProps {
   forecast: ForecastScore;
@@ -485,9 +484,6 @@ export default function ScoreCard({
           >
             <WeatherDebugInfo weather={forecast.weather} className="mb-4" />
             <WeatherAlerts weather={forecast.weather} className="mb-4" />
-            {forecast.weather.localOffice && (
-              <NWSOfficeInfo localOffice={forecast.weather.localOffice} />
-            )}
           </div>
         )}
       </div>

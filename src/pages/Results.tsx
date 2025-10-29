@@ -11,6 +11,7 @@ import {
   getTimezoneFromCoords,
 } from "../lib/time";
 import ScoreCard from "../components/ScoreCard";
+import NWSOfficeInfo from "../components/NWSOfficeInfo";
 
 export default function Results() {
   const [searchParams] = useSearchParams();
@@ -229,18 +230,30 @@ export default function Results() {
 
       {/* Summary */}
       {forecasts.length > 0 && (
-        <div className="grid gap-6 sm:grid-cols-2 mb-8">
-          <div className="card p-6">
-            <h3 className="text-lg font-semibold mb-2">Overall Outlook</h3>
-            <div className="text-3xl font-bold text-blue-600 mb-2">
+        <div className="grid gap-6 sm:grid-cols-2 mb-8" id="results-summary">
+          <div className="card p-6" id="overall-outlook-card">
+            <h3
+              className="text-lg font-semibold mb-2"
+              id="overall-outlook-title"
+            >
+              Overall Outlook
+            </h3>
+            <div
+              className="text-3xl font-bold text-blue-600 mb-2"
+              id="overall-outlook-score"
+            >
               {averageScore}
             </div>
-            <p className="text-sm text-gray-600">Average bite score</p>
+            <p className="text-sm text-gray-600" id="overall-outlook-label">
+              Average bite score
+            </p>
           </div>
 
-          <div className="card p-6">
-            <h3 className="text-lg font-semibold mb-2">Best Day</h3>
-            <div className="text-lg font-medium mb-1">
+          <div className="card p-6" id="best-day-card">
+            <h3 className="text-lg font-semibold mb-2" id="best-day-title">
+              Best Day
+            </h3>
+            <div className="text-lg font-medium mb-1" id="best-day-date">
               {new Date(bestDay.date + "T12:00:00").toLocaleDateString(
                 "en-US",
                 {
@@ -250,12 +263,28 @@ export default function Results() {
                 }
               )}
             </div>
-            <div className="text-2xl font-bold text-green-600">
+            <div
+              className="text-2xl font-bold text-green-600"
+              id="best-day-score"
+            >
               {bestDay.biteScore0100}
             </div>
           </div>
         </div>
       )}
+
+      {/* NWS Office Information */}
+      {forecasts.length > 0 &&
+        forecasts[0]?.weather?.source === "NWS" &&
+        forecasts[0]?.weather?.localOffice && (
+          <div className="mb-8" id="nws-office-section">
+            <NWSOfficeInfo
+              localOffice={forecasts[0].weather.localOffice}
+              className="max-w-none"
+              id="nws-office-card"
+            />
+          </div>
+        )}
 
       {/* Daily Forecasts */}
       <div className="grid gap-6 lg:grid-cols-2">
