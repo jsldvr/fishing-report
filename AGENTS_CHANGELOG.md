@@ -2,6 +2,14 @@
 
 ## 2025-10-29
 
+### NWS Office Card Styling Standardization
+
+- **Converted** NWSOfficeInfo component from custom blue theme to standard `.card` styling
+- **Replaced** `bg-blue-50 rounded-lg border border-blue-200` with `card p-6` class
+- **Updated** all text colors from blue theme (`text-blue-900`, `text-blue-700`, etc.) to semantic colors (`text-primary`, `text-secondary`)
+- **Standardized** border colors to use CSS custom properties (`var(--border-primary)`)
+- **Result** Consistent visual design across all cards, better theme compatibility, cleaner maintenance
+
 ### Results Page Summary Cards ID Selectors
 
 - **Added** comprehensive id selectors to all summary cards in Results page
