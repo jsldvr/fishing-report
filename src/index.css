@@ -2018,6 +2018,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   justify-content: center;
   font-size: 1.25rem;
   box-shadow: var(--shadow-tactical);
+  color: var(--text-primary);
 }
 
 .theme-toggle:hover {
