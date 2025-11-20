@@ -53,6 +53,14 @@ export default function MarineConditions({
     return `${speedKph.toFixed(1)} km/h`;
   };
 
+  const formatDistance = (km: number): string => {
+    if (useMph) {
+      const miles = km * 0.621371;
+      return `${miles.toFixed(1)} mi`;
+    }
+    return `${km} km`;
+  };
+
   const formatTime = (iso: string): string => {
     try {
       return new Intl.DateTimeFormat(undefined, {
@@ -92,7 +100,7 @@ export default function MarineConditions({
         <p className="text-sm text-gray-600 mb-3" id={`${idBase}-station`}>
           Nearest NOAA station: {marine.stationName || marine.stationId}
           {marine.stationDistanceKm !== undefined
-            ? ` (${marine.stationDistanceKm} km away)`
+            ? ` (${formatDistance(marine.stationDistanceKm)} away)`
             : ""}
         </p>
       )}

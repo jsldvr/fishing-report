@@ -24,6 +24,10 @@ export default function ScoreCard({
 
   const tempF = Math.round((forecast.weather.tempC * 9) / 5 + 32);
   const windMph = Math.round((forecast.weather.windKph / 1.609) * 10) / 10;
+  const precipIn = Math.round((forecast.weather.precipMm / 25.4) * 100) / 100;
+  const pressureInHg = forecast.weather.pressureHpa
+    ? Math.round((forecast.weather.pressureHpa * 0.02953) * 100) / 100
+    : undefined;
   const safety = forecast.weather.safety;
   const cardId = `forecast-card-${forecast.date.replace(/[^0-9A-Za-z]/g, "")}`;
   const hasWeatherAlerts = forecast.weather.safety.activeAlerts.length > 0;
@@ -286,19 +290,27 @@ export default function ScoreCard({
             >
               <p>
                 Temp:{" "}
-                {useFahrenheit ? `${tempF}°F` : `${forecast.weather.tempC}°C`}
-              </p>
-              <p>
-                Wind:{" "}
-                {useMph ? `${windMph} mph` : `${forecast.weather.windKph} km/h`}
-              </p>
-              <p>Rain: {forecast.weather.precipMm}mm</p>
-              <p>Clouds: {forecast.weather.cloudPct}%</p>
-              {forecast.weather.pressureHpa && (
+              {useFahrenheit ? `${tempF}°F` : `${forecast.weather.tempC}°C`}
+            </p>
+            <p>
+              Wind:{" "}
+              {useMph ? `${windMph} mph` : `${forecast.weather.windKph} km/h`}
+            </p>
+            <p>
+              Rain:{" "}
+              {useFahrenheit
+                ? `${precipIn} in`
+                : `${forecast.weather.precipMm} mm`}
+            </p>
+            <p>Clouds: {forecast.weather.cloudPct}%</p>
+            {forecast.weather.pressureHpa &&
+              (useFahrenheit ? (
+                <p>Pressure: {pressureInHg} inHg</p>
+              ) : (
                 <p>Pressure: {forecast.weather.pressureHpa} hPa</p>
-              )}
-            </div>
+              ))}
           </div>
+        </div>
         </div>
 
         {forecast.astronomical && forecast.solunar && (
