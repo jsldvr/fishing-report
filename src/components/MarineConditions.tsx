@@ -1,4 +1,5 @@
 import type { MarineWeatherData } from "../types/forecast.js";
+import Icon from "./Icon";
 
 interface MarineConditionsProps {
   marine: MarineWeatherData;
@@ -65,8 +66,12 @@ export default function MarineConditions({
       id={`${idBase}-container`}
       data-testid="marine-conditions"
     >
-      <h4 className="font-semibold text-gray-700 mb-3" id={`${idBase}-title`}>
-        🌊 Coastal Conditions
+      <h4
+        className="font-semibold text-gray-700 mb-3 inline-flex items-center gap-2"
+        id={`${idBase}-title`}
+      >
+        <Icon name="water" />
+        Coastal Conditions
       </h4>
 
       {hasStation && (
@@ -159,7 +164,7 @@ export default function MarineConditions({
                   className="text-gray-600"
                   id={`${idBase}-tide-${index}-time`}
                 >
-                  {formatTime(event.timeIso)} · {event.heightMeters.toFixed(2)}{" "}
+                  {formatTime(event.timeIso)} | {event.heightMeters.toFixed(2)}{" "}
                   m
                 </span>
               </li>

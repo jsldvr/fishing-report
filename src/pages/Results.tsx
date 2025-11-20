@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import type { ForecastScore, DayInputs } from "../types/forecast";
 import { fetchEnhancedWeather } from "../lib/enhancedWeather";
@@ -12,6 +12,7 @@ import {
 } from "../lib/time";
 import ScoreCard from "../components/ScoreCard";
 import NWSOfficeInfo from "../components/NWSOfficeInfo";
+import Icon from "../components/Icon";
 
 export default function Results() {
   const [searchParams] = useSearchParams();
@@ -30,30 +31,7 @@ export default function Results() {
   const days = parseInt(searchParams.get("days") || "0", 10);
   const locationName = searchParams.get("name") || "";
 
-  useEffect(() => {
-    // Validate parameters
-    if (!lat || !lon || !startDate || !days) {
-      setError("Missing required parameters");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!validateNorthAmericaCoords(lat, lon)) {
-      setError("Location is outside North America");
-      setIsLoading(false);
-      return;
-    }
-
-    if (days < 1 || days > 7) {
-      setError("Days must be between 1 and 7");
-      setIsLoading(false);
-      return;
-    }
-
-    generateForecasts();
-  }, [lat, lon, startDate, days]);
-
-  const generateForecasts = async () => {
+  const generateForecasts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -105,7 +83,30 @@ export default function Results() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [lat, lon, startDate, days]);
+
+  useEffect(() => {
+    // Validate parameters
+    if (!lat || !lon || !startDate || !days) {
+      setError("Missing required parameters");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!validateNorthAmericaCoords(lat, lon)) {
+      setError("Location is outside North America");
+      setIsLoading(false);
+      return;
+    }
+
+    if (days < 1 || days > 7) {
+      setError("Days must be between 1 and 7");
+      setIsLoading(false);
+      return;
+    }
+
+    generateForecasts();
+  }, [lat, lon, startDate, days, generateForecasts]);
 
   const handleBackToHome = () => {
     navigate("/");
@@ -147,7 +148,9 @@ export default function Results() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="card p-6 text-center">
-          <div className="text-4xl mb-4">⚠️</div>
+          <div className="text-4xl mb-4">
+            <Icon name="warning" className="text-4xl" />
+          </div>
           <h2 className="text-xl font-semibold mb-2 text-red-600">Error</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button className="btn btn-primary" onClick={handleBackToHome}>

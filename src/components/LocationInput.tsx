@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { validateNorthAmericaCoords } from "../lib/time";
+import Icon from "./Icon";
 
 interface LocationInputProps {
   onLocationChange: (lat: number, lon: number, name?: string) => void;
@@ -121,10 +122,10 @@ export default function LocationInput({
       // If all strategies fail, show helpful message
       alert(
         `Location "${locationName}" not found. Try:\n` +
-          `• Common city format: "Oklahoma City, OK"\n` +
-          `• Coordinates: "35.3383, -97.4867"\n` +
-          `• Use the coordinate fields below\n` +
-          `• Try the "Use Current Location" button`
+          `- Common city format: "Oklahoma City, OK"\n` +
+          `- Coordinates: "35.3383, -97.4867"\n` +
+          `- Use the coordinate fields below\n` +
+          `- Try the "Use Current Location" button`
       );
     } catch (error) {
       console.error("Geocoding error:", error);
@@ -193,18 +194,9 @@ export default function LocationInput({
 
     // Second attempt: Use watchPosition for continuous updates
     const tryWatchPosition = () => {
-      let watchId: number;
       let hasSucceeded = false;
 
-      // Set a fallback timeout
-      const fallbackTimer = setTimeout(() => {
-        if (!hasSucceeded) {
-          navigator.geolocation.clearWatch(watchId);
-          tryLastResort();
-        }
-      }, 5000); // 5 second fallback
-
-      watchId = navigator.geolocation.watchPosition(
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
           if (!hasSucceeded) {
             hasSucceeded = true;
@@ -228,6 +220,14 @@ export default function LocationInput({
           maximumAge: 3600000, // 1 hour - very old cached data is fine
         }
       );
+
+      // Set a fallback timeout
+      const fallbackTimer = setTimeout(() => {
+        if (!hasSucceeded) {
+          navigator.geolocation.clearWatch(watchId);
+          tryLastResort();
+        }
+      }, 5000); // 5 second fallback
     };
 
     // Final attempt: Aggressive cached location
@@ -369,8 +369,9 @@ export default function LocationInput({
 
   return (
     <div className="card p-6">
-      <h2 className="text-xl font-semibold mb-4 text-primary">
-        🎯 Target Coordinates
+      <h2 className="text-xl font-semibold mb-4 text-primary flex items-center gap-2">
+        <Icon name="target" />
+        Target Coordinates
       </h2>
 
       <div className="grid gap-4">
@@ -397,7 +398,14 @@ export default function LocationInput({
               onClick={handleGeocodeLocation}
               disabled={!locationName.trim() || isGeocoding}
             >
-              {isGeocoding ? <span className="spinner"></span> : "🔍 Recon"}
+              {isGeocoding ? (
+                <span className="spinner"></span>
+              ) : (
+                <>
+                  <Icon name="search" className="mr-2" />
+                  Recon
+                </>
+              )}
             </button>
           </div>
           <p className="text-xs text-muted mt-1">
@@ -459,13 +467,17 @@ export default function LocationInput({
               Acquiring Position...
             </>
           ) : (
-            <>📍 GPS Lock</>
+            <>
+              <Icon name="locationTarget" className="mr-2" />
+              GPS Lock
+            </>
           )}
         </button>
 
         {!isValid && (
           <p className="text-sm text-error mt-2">
-            ⚠️ Invalid coordinates. AO must be within North America (Lat:
+            <Icon name="warning" className="mr-2" />
+            Invalid coordinates. AO must be within North America (Lat:
             14-83°N, Lon: -180 to -50°W)
           </p>
         )}

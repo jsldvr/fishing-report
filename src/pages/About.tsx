@@ -1,3 +1,5 @@
+import Icon from "../components/Icon";
+
 export default function About() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -15,8 +17,9 @@ export default function About() {
           <h2 className="text-xl font-semibold mb-4">How It Works</h2>
           <div className="space-y-6">
             <div className="space-y-3">
-              <h3 className="font-medium text-gray-900 mb-2">
-                🌙 Lunar Phase Analysis
+              <h3 className="font-medium text-gray-900 mb-2 inline-flex items-center gap-2">
+                <Icon name="moon" />
+                Lunar Phase Analysis
               </h3>
               <p className="text-gray-600 leading-relaxed">
                 Based on solunar theory, which suggests that fish are more
@@ -32,8 +35,9 @@ export default function About() {
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-medium text-gray-900 mb-2">
-                🌤️ Weather Conditions
+              <h3 className="font-medium text-gray-900 mb-2 inline-flex items-center gap-2">
+                <Icon name="weather" />
+                Weather Conditions
               </h3>
               <p className="text-gray-600 leading-relaxed">
                 Real-time weather data from Open-Meteo API, focusing on daytime
@@ -45,8 +49,9 @@ export default function About() {
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-medium text-gray-900 mb-2">
-                📊 Scoring Algorithm
+              <h3 className="font-medium text-gray-900 mb-2 inline-flex items-center gap-2">
+                <Icon name="chart" />
+                Scoring Algorithm
               </h3>
               <p className="text-gray-600 leading-relaxed">
                 Final bite scores (0-100) combine lunar and weather factors.

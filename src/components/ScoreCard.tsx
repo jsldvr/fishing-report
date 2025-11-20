@@ -3,6 +3,7 @@ import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
 import WeatherDebugInfo from "./WeatherDebugInfo";
 import MarineConditions from "./MarineConditions";
+import Icon, { type IconName } from "./Icon";
 
 interface ScoreCardProps {
   forecast: ForecastScore;
@@ -33,10 +34,10 @@ export default function ScoreCard({
     return "bg-red-100 text-red-800";
   };
 
-  const getScoreEmoji = (score: number) => {
-    if (score >= 75) return "🎣";
-    if (score >= 50) return "🐟";
-    return "💤";
+  const getScoreIconName = (score: number): IconName => {
+    if (score >= 75) return "fish";
+    if (score >= 50) return "fishFins";
+    return "sleep";
   };
 
   const getSafetyStyles = (rating: SafetyAssessment["rating"]) => {
@@ -56,20 +57,22 @@ export default function ScoreCard({
     }
   };
 
-  const getSafetyIcon = (rating: SafetyAssessment["rating"]) => {
+  const getSafetyIconName = (
+    rating: SafetyAssessment["rating"]
+  ): IconName => {
     switch (rating) {
       case "EXCELLENT":
-        return "🎣";
+        return "fish";
       case "GOOD":
-        return "✅";
+        return "check";
       case "FAIR":
-        return "⚠️";
+        return "warning";
       case "POOR":
-        return "🚫";
+        return "ban";
       case "DANGEROUS":
-        return "⛔";
+        return "xmark";
       default:
-        return "❓";
+        return "question";
     }
   };
 
@@ -111,9 +114,10 @@ export default function ScoreCard({
             )}`}
             id={`${cardId}-score-chip`}
           >
-            <span className="mr-2">
-              {getScoreEmoji(forecast.biteScore0100)}
-            </span>
+            <Icon
+              name={getScoreIconName(forecast.biteScore0100)}
+              className="mr-2"
+            />
             {forecast.biteScore0100}
           </div>
           <p
@@ -136,10 +140,11 @@ export default function ScoreCard({
               id={`${cardId}-metric-moon-label`}
             >
               <span
-                className="forecast-card__metric-title"
+                className="forecast-card__metric-title inline-flex items-center gap-2"
                 id={`${cardId}-metric-moon-title`}
               >
-                🌙 Moon ({forecast.moon.phaseName})
+                <Icon name="moon" />
+                Moon ({forecast.moon.phaseName})
               </span>
               <span
                 className="forecast-card__metric-help"
@@ -211,7 +216,10 @@ export default function ScoreCard({
               className="forecast-card__metric-header"
               id={`${cardId}-metric-almanac-header`}
             >
-              <span>📖 Almanac</span>
+              <span className="inline-flex items-center gap-2">
+                <Icon name="book" />
+                Almanac
+              </span>
               <span className="forecast-card__metric-value">
                 {forecast.components.almanac}
               </span>
@@ -240,10 +248,11 @@ export default function ScoreCard({
             id={`${cardId}-moon-overview`}
           >
             <h4
-              className="forecast-card__section-title"
+              className="forecast-card__section-title inline-flex items-center gap-2"
               id={`${cardId}-moon-heading`}
             >
-              🌙 Moon
+              <Icon name="moon" />
+              Moon
             </h4>
             <div
               className="forecast-card__info-list"
@@ -308,10 +317,11 @@ export default function ScoreCard({
                 id={`${cardId}-sun-times`}
               >
                 <h4
-                  className="forecast-card__section-title"
+                  className="forecast-card__section-title inline-flex items-center gap-2"
                   id={`${cardId}-sun-heading`}
                 >
-                  ☀️ Sun Times
+                  <Icon name="sun" />
+                  Sun Times
                 </h4>
                 <div
                   className="forecast-card__info-list"
@@ -327,10 +337,11 @@ export default function ScoreCard({
                 id={`${cardId}-solunar`}
               >
                 <h4
-                  className="forecast-card__section-title"
+                  className="forecast-card__section-title inline-flex items-center gap-2"
                   id={`${cardId}-solunar-heading`}
                 >
-                  🎣 Solunar Rating
+                  <Icon name="fish" />
+                  Solunar Rating
                   <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {forecast.solunar.dayRating}/4
                   </span>
@@ -343,7 +354,10 @@ export default function ScoreCard({
                     className="flex justify-between"
                     id={`${cardId}-solunar-major-heading`}
                   >
-                    <span className="font-medium">⭐ Major Periods</span>
+                    <span className="font-medium inline-flex items-center gap-2">
+                      <Icon name="star" />
+                      Major Periods
+                    </span>
                     <span className="text-xs forecast-card__metric-hint">
                       2h each
                     </span>
@@ -361,7 +375,10 @@ export default function ScoreCard({
                     className="flex justify-between mt-2"
                     id={`${cardId}-solunar-minor-heading`}
                   >
-                    <span className="font-medium">• Minor Periods</span>
+                    <span className="font-medium inline-flex items-center gap-2">
+                      <Icon name="bullet" />
+                      Minor Periods
+                    </span>
                     <span className="text-xs forecast-card__metric-hint">
                       1h each
                     </span>
@@ -407,7 +424,10 @@ export default function ScoreCard({
                 className="flex items-center gap-2 mb-2"
                 id={`${cardId}-safety-header`}
               >
-                <span className="text-xl">{getSafetyIcon(safety.rating)}</span>
+                <Icon
+                  name={getSafetyIconName(safety.rating)}
+                  className="text-xl"
+                />
                 <h3 className="font-semibold text-lg">
                   Fishing Safety: {safety.rating}
                 </h3>
@@ -436,7 +456,7 @@ export default function ScoreCard({
                         id={`${cardId}-safety-risk-${index}`}
                         key={index}
                       >
-                        <span className="text-red-500">•</span>
+                        <Icon name="bullet" className="text-red-500" />
                         {factor}
                       </li>
                     ))}
@@ -453,7 +473,7 @@ export default function ScoreCard({
                         id={`${cardId}-safety-rec-${index}`}
                         key={index}
                       >
-                        <span className="text-blue-500">•</span>
+                        <Icon name="bullet" className="text-blue-500" />
                         {rec}
                       </li>
                     ))}

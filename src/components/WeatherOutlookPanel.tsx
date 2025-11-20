@@ -67,8 +67,8 @@ export default function WeatherOutlookPanel({
   const coordinateLabel = useMemo(() => {
     const coordText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     return locationLabel
-      ? `${locationLabel} • ${coordText}`
-      : `Lat/Lon • ${coordText}`;
+      ? `${locationLabel} | ${coordText}`
+      : `Lat/Lon | ${coordText}`;
   }, [lat, lon, locationLabel]);
 
   const attributionDetails = useMemo(() => {
@@ -101,7 +101,7 @@ export default function WeatherOutlookPanel({
       }
 
       if (detailSegments.length > 0) {
-        officeLine = `Forecast Office: ${detailSegments.join(" • ")}`;
+        officeLine = `Forecast Office: ${detailSegments.join(" | ")}`;
       }
     }
 
@@ -286,7 +286,7 @@ export default function WeatherOutlookPanel({
                 className="text-xs text-gray-600"
                 id={`wx-outlook-day-precip-${day.date}`}
               >
-                Chance: {renderPrecipProbability(day.precipProbabilityPct)} •
+                Chance: {renderPrecipProbability(day.precipProbabilityPct)} |
                 Total: {renderPrecipAmount(day.precipMm)}
               </div>
               <div

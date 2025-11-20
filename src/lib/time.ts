@@ -1,4 +1,4 @@
-// @ts-ignore: No types available for tz-lookup
+// @ts-expect-error: No types available for tz-lookup
 import tzlookup from "tz-lookup";
 
 /**

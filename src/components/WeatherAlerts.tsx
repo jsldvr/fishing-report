@@ -1,4 +1,5 @@
 import type { EnhancedWeatherData } from "../types/forecast.js";
+import Icon, { type IconName } from "./Icon";
 
 interface WeatherAlertsProps {
   weather: EnhancedWeatherData;
@@ -11,18 +12,18 @@ export default function WeatherAlerts({
 }: WeatherAlertsProps) {
   const alerts = weather.safety.activeAlerts || [];
 
-  const getAlertIcon = (severity: string): string => {
+  const getAlertIcon = (severity: string): IconName => {
     switch (severity) {
       case "Extreme":
-        return "🚨";
+        return "warning";
       case "Severe":
-        return "⚡";
+        return "bolt";
       case "Moderate":
-        return "⚠️";
+        return "alert";
       case "Minor":
-        return "ℹ️";
+        return "info";
       default:
-        return "📢";
+        return "alert";
     }
   };
 
@@ -35,7 +36,7 @@ export default function WeatherAlerts({
             className="font-semibold text-lg flex items-center gap-2"
             id="weather-alerts-title"
           >
-            <span>📢</span>
+            <Icon name="alert" />
             Active Weather Alerts
           </h3>
           {alerts.map((alert, index) => (
@@ -48,7 +49,10 @@ export default function WeatherAlerts({
               }`}
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{getAlertIcon(alert.severity)}</span>
+                <Icon
+                  name={getAlertIcon(alert.severity)}
+                  className="text-lg"
+                />
                 <h4 className="font-medium">{alert.headline}</h4>
               </div>
 

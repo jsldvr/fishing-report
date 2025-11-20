@@ -1,5 +1,29 @@
 # Changelog
 
+## 2025-11-19 v1.3.0
+
+### Version Bump to 1.3.0
+
+- **Updated** package.json and package-lock.json to version 1.3.0
+- **Verified** status bar in App.tsx displays new version via package.json import
+
+## 2025-11-19
+
+### Font Awesome Icon Replacement
+
+- **Created** reusable `Icon` component wired to the bundled free Font Awesome sets (solid + regular) so UI elements can reference semantic icon names instead of inline glyphs
+- **Replaced** every emoji/glyph UI marker (navigation, cards, alerts, debug panels, forms, etc.) with `<Icon />` usage, ensuring BEM-friendly markup and accessible fallbacks
+- **Scrubbed** data strings (e.g., enhanced weather recommendations and alert prompts) to remove emoji prefixes so component-level icons handle all presentation
+- **Updated** supporting copy (LocationInput instructions, outlook separators, tide cards) to stick to ASCII separators, preventing stray glyphs outside Font Awesome
+- **Validated** the refactor with `npm run lint` to confirm TypeScript and lint rules still pass
+
+## 2025-11-19
+
+### Icon Library Install
+
+- **Added** Font Awesome React packages (`@fortawesome/react-fontawesome`, `@fortawesome/fontawesome-svg-core`, `@fortawesome/free-solid-svg-icons`, `@fortawesome/free-regular-svg-icons`, `@fortawesome/free-brands-svg-icons`) to provide a large, open-source icon set without relying on external CDNs
+- **Prepared** codebase to replace existing icons with bundled assets for cross-browser compatibility
+
 ## 2025-10-29
 
 ### NWS Office Card Accordion Implementation

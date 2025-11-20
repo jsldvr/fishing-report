@@ -10,6 +10,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CookieConsent from "./pages/CookieConsent";
 import ComplianceStatement from "./pages/ComplianceStatement";
+import Icon from "./components/Icon";
 
 const APP_VERSION = (packageJson as { version: string }).version;
 
@@ -78,7 +79,7 @@ function App() {
         aria-label="Toggle theme"
         title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
       >
-        {theme === "light" ? "🌙" : "☀️"}
+        <Icon name={theme === "light" ? "moon" : "sun"} />
       </button>
 
       <header className="header">
@@ -86,7 +87,9 @@ function App() {
           <div className="header-content">
             {/* Mission Logo & Title */}
             <div className="header-brand">
-              <div className="brand-icon">🎣</div>
+              <div className="brand-icon">
+                <Icon name="fish" />
+              </div>
               <div className="brand-text">
                 <h1 className="brand-title">TACTICAL FISHING INTEL</h1>
                 <span className="brand-subtitle">
@@ -105,7 +108,9 @@ function App() {
                   data-section="intel"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🏠</span>
+                  <span className="nav-icon">
+                    <Icon name="home" />
+                  </span>
                   <span className="nav-text">INTEL</span>
                 </a>
                 <a
@@ -115,7 +120,9 @@ function App() {
                   data-section="weather"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🌦</span>
+                  <span className="nav-icon">
+                    <Icon name="weather" />
+                  </span>
                   <span className="nav-text">WX</span>
                 </a>
                 <a
@@ -125,7 +132,9 @@ function App() {
                   data-section="guide"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🧭</span>
+                  <span className="nav-icon">
+                    <Icon name="compass" />
+                  </span>
                   <span className="nav-text">GUIDE</span>
                 </a>
                 <a
@@ -135,7 +144,9 @@ function App() {
                   data-section="mission"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">📋</span>
+                  <span className="nav-icon">
+                    <Icon name="clipboard" />
+                  </span>
                   <span className="nav-text">MISSION</span>
                 </a>
               </div>
@@ -195,7 +206,9 @@ function App() {
                   id="mobile-nav-home"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🏠</span>
+                  <span className="nav-icon">
+                    <Icon name="home" />
+                  </span>
                   <span className="nav-text">INTEL HUB</span>
                   <span className="nav-description">Mission Control</span>
                 </a>
@@ -205,7 +218,9 @@ function App() {
                   id="mobile-nav-wx"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🌦</span>
+                  <span className="nav-icon">
+                    <Icon name="weather" />
+                  </span>
                   <span className="nav-text">WX LINKS</span>
                   <span className="nav-description">Weather Resources</span>
                 </a>
@@ -215,7 +230,9 @@ function App() {
                   id="mobile-nav-guide"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">🧭</span>
+                  <span className="nav-icon">
+                    <Icon name="compass" />
+                  </span>
                   <span className="nav-text">GUIDE</span>
                   <span className="nav-description">Survival Tips</span>
                 </a>
@@ -225,7 +242,9 @@ function App() {
                   id="mobile-nav-about"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">📋</span>
+                  <span className="nav-icon">
+                    <Icon name="clipboard" />
+                  </span>
                   <span className="nav-text">MISSION BRIEF</span>
                   <span className="nav-description">System Info</span>
                 </a>
