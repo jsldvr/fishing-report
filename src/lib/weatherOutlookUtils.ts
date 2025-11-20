@@ -43,7 +43,7 @@ export function formatDateLabel(date: string, referenceIso?: string): string {
     day: "numeric",
   });
 
-  return `${weekday} • ${monthDay}`;
+  return `${weekday} | ${monthDay}`;
 }
 
 export function toFixedNumber(value: number, digits: number): number {

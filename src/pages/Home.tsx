@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import LocationInput from "../components/LocationInput";
 import DateRangePicker from "../components/DateRangePicker";
+import Icon from "../components/Icon";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export default function Home() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-primary mb-4">
-          🎣 Tactical Fishing Intel
+          Tactical Fishing Intel
         </h1>
         <p className="text-lg text-secondary mb-2">
           Military-grade precision for North American fishing operations
@@ -78,19 +79,23 @@ export default function Home() {
           onClick={handleGenerateForecast}
           disabled={!isValid}
         >
-          🎯 Execute Mission Brief
+          <Icon name="target" className="mr-2" />
+          Execute Mission Brief
         </button>
 
         {!isValid && (
           <p className="text-sm text-muted mt-2">
-            ⚠️ Coordinates and operational window required for intel generation
+            <Icon name="warning" className="mr-2" />
+            Coordinates and operational window required for intel generation
           </p>
         )}
       </div>
 
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="card p-6 text-center">
-          <div className="text-3xl mb-3">🌙</div>
+          <div className="text-3xl mb-3">
+            <Icon name="moon" className="text-3xl" />
+          </div>
           <h3 className="font-semibold mb-2 text-primary">Lunar Intel</h3>
           <p className="text-sm text-secondary">
             Solunar theory deployment: moon phase tracking and illumination
@@ -99,7 +104,9 @@ export default function Home() {
         </div>
 
         <div className="card p-6 text-center">
-          <div className="text-3xl mb-3">⛈️</div>
+          <div className="text-3xl mb-3">
+            <Icon name="storm" className="text-3xl" />
+          </div>
           <h3 className="font-semibold mb-2 text-primary">Weather Recon</h3>
           <p className="text-sm text-secondary">
             Live meteorological surveillance: temperature, wind vectors,
@@ -108,7 +115,9 @@ export default function Home() {
         </div>
 
         <div className="card p-6 text-center">
-          <div className="text-3xl mb-3">🎯</div>
+          <div className="text-3xl mb-3">
+            <Icon name="target" className="text-3xl" />
+          </div>
           <h3 className="font-semibold mb-2 text-primary">Tactical Analysis</h3>
           <p className="text-sm text-secondary">
             Multi-factor algorithmic assessment providing precision strike

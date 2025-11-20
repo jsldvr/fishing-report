@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import type { LocalWeatherOfficeInfo } from "../types/forecast.js";
+import Icon from "./Icon";
 
 interface NWSOfficeInfoProps {
   localOffice: LocalWeatherOfficeInfo;
@@ -43,7 +44,7 @@ export default function NWSOfficeInfo({
         onClick={toggleAccordion}
         onKeyDown={handleKeyDown}
       >
-        <span>🏢</span>
+        <Icon name="building" />
         Local NWS Office
         <span className="hidden sm:inline text-secondary font-normal">
           {office.name}
@@ -54,7 +55,7 @@ export default function NWSOfficeInfo({
           aria-hidden="true"
           data-open={isOpen}
         >
-          ▾
+          <Icon name="caret" />
         </span>
       </h3>
 
@@ -87,13 +88,19 @@ export default function NWSOfficeInfo({
             className="text-secondary"
             id={id ? `${id}-distance` : "nws-office-distance"}
           >
-            📍 {distance.toFixed(0)}km away
+            <span className="inline-flex items-center gap-1">
+              <Icon name="mapPin" />
+              {distance.toFixed(0)}km away
+            </span>
           </span>
           <span
             className="text-secondary"
             id={id ? `${id}-serving-area` : "nws-office-serving-area"}
           >
-            🗺️ Serving: {servingArea}
+            <span className="inline-flex items-center gap-1">
+              <Icon name="map" />
+              Serving: {servingArea}
+            </span>
           </span>
         </div>
 
@@ -113,10 +120,13 @@ export default function NWSOfficeInfo({
 
           <div>
             <p className="text-xs font-medium text-primary">Contact:</p>
-            <p className="text-xs text-secondary">
-              📞 {office.telephone}
-              <br />
-              📧 {office.email}
+            <p className="text-xs text-secondary flex items-center gap-2">
+              <Icon name="phone" />
+              {office.telephone}
+            </p>
+            <p className="text-xs text-secondary flex items-center gap-2">
+              <Icon name="envelope" />
+              {office.email}
             </p>
           </div>
         </div>

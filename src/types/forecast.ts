@@ -68,6 +68,14 @@ export interface NWSAlert {
   areas: string[];
 }
 
+export type SpcOutlookRisk =
+  | "HIGH"
+  | "MDT"
+  | "ENH"
+  | "SLGT"
+  | "MRGL"
+  | "TSTM";
+
 export interface TideEvent {
   timeIso: string;
   heightMeters: number;
@@ -96,6 +104,7 @@ export interface SafetyAssessment {
   activeAlerts: NWSAlert[];
   recommendations: string[];
   riskFactors: string[];
+  spcOutlook?: { risk: SpcOutlookRisk; day: number };
 }
 
 export interface EnhancedWeatherData extends WeatherData {

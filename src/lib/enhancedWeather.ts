@@ -149,37 +149,37 @@ export function getOptimalFishingTimes(weather: EnhancedWeatherData): string[] {
 
   // Barometric pressure recommendations
   if (weather.barometricTrend === "FALLING") {
-    recommendations.push("🎣 Excellent - Fish often bite before storms");
+    recommendations.push("Excellent - Fish often bite before storms");
   } else if (weather.barometricTrend === "RISING") {
-    recommendations.push("⬆️ Good - Stable conditions after weather systems");
+    recommendations.push("Good - Stable conditions after weather systems");
   }
 
   // Marine conditions
   if (weather.marine?.waveHeight !== undefined) {
     const waves = weather.marine.waveHeight;
     if (waves <= 0.5) {
-      recommendations.push("🌊 Calm seas - Perfect for small boats");
+      recommendations.push("Calm seas - Perfect for small boats");
     } else if (waves <= 1.5) {
-      recommendations.push("🌊 Light chop - Good for experienced anglers");
+      recommendations.push("Light chop - Good for experienced anglers");
     } else if (waves <= 2.5) {
-      recommendations.push("⚠️ Moderate seas - Use caution");
+      recommendations.push("Moderate seas - Use caution");
     } else {
-      recommendations.push("🚫 Rough seas - Consider shore fishing");
+      recommendations.push("Rough seas - Consider shore fishing");
     }
   }
 
   // Wind recommendations
   if (weather.windKph <= 15) {
-    recommendations.push("💨 Light winds - Ideal conditions");
+    recommendations.push("Light winds - Ideal conditions");
   } else if (weather.windKph <= 25) {
-    recommendations.push("💨 Moderate winds - Use heavier tackle");
+    recommendations.push("Moderate winds - Use heavier tackle");
   } else {
-    recommendations.push("💨 Strong winds - Seek sheltered areas");
+    recommendations.push("Strong winds - Seek sheltered areas");
   }
 
   // Temperature recommendations
   if (weather.tempC >= 15 && weather.tempC <= 22) {
-    recommendations.push("🌡️ Perfect temperature for active fish");
+    recommendations.push("Perfect temperature for active fish");
   }
 
   return recommendations.length > 0

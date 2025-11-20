@@ -1,4 +1,5 @@
 import type { EnhancedWeatherData } from "../types/forecast.js";
+import Icon from "./Icon";
 
 interface WeatherDebugInfoProps {
   weather: EnhancedWeatherData;
@@ -18,7 +19,10 @@ export default function WeatherDebugInfo({
     <div
       className={`p-3 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 text-xs ${className}`}
     >
-      <h4 className="font-bold text-gray-700 mb-2">🔧 Debug Info (Dev Only)</h4>
+      <h4 className="font-bold text-gray-700 mb-2 inline-flex items-center gap-2">
+        <Icon name="wrench" />
+        Debug Info (Dev Only)
+      </h4>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -66,7 +70,10 @@ export default function WeatherDebugInfo({
       {weather.source === "NWS" && (
         <div className="mt-2 p-2 bg-blue-50 rounded">
           <p className="text-blue-700">
-            <strong>🎯 NWS Integration Active</strong>
+            <strong className="inline-flex items-center gap-2">
+              <Icon name="target" />
+              NWS Integration Active
+            </strong>
           </p>
           <p className="text-blue-600">
             Enhanced weather scoring and safety features enabled
@@ -77,11 +84,17 @@ export default function WeatherDebugInfo({
       {weather.safety.activeAlerts.length > 0 && (
         <div className="mt-2 p-2 bg-yellow-50 rounded">
           <p className="text-yellow-700">
-            <strong>⚠️ Weather Alerts:</strong>
+            <strong className="inline-flex items-center gap-2">
+              <Icon name="warning" />
+              Weather Alerts:
+            </strong>
           </p>
           {weather.safety.activeAlerts.slice(0, 2).map((alert, i) => (
             <p key={i} className="text-yellow-600 truncate">
-              • {alert.event}
+              <span className="inline-flex items-center gap-2">
+                <Icon name="bullet" />
+                {alert.event}
+              </span>
             </p>
           ))}
         </div>
@@ -91,7 +104,10 @@ export default function WeatherDebugInfo({
         Object.values(weather.marine).some((v) => v !== undefined) && (
           <div className="mt-2 p-2 bg-cyan-50 rounded">
             <p className="text-cyan-700">
-              <strong>🌊 Marine Data Available</strong>
+              <strong className="inline-flex items-center gap-2">
+                <Icon name="water" />
+                Marine Data Available
+              </strong>
             </p>
             <div className="text-cyan-600 grid grid-cols-2 gap-1">
               {weather.marine.waveHeight !== undefined && (
