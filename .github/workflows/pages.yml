@@ -50,6 +50,8 @@ jobs:
         
       - name: Build application
         run: npm run build
+        env:
+          VITE_BASE_PATH: /fishing-report/
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
