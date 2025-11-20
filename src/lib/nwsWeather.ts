@@ -401,6 +401,11 @@ export class NWSWeatherService {
         ),
       };
 
+      // Only include marine if it has displayable data
+      const hasMarineData =
+        marine.waveHeight !== undefined ||
+        marine.waterTemperature !== undefined;
+
       // Assess safety
       const safety = this.assessSafety(alerts, {
         tempC: temp || 20,
@@ -422,7 +427,7 @@ export class NWSWeatherService {
         precipMm: (precipitation || 0) / 100, // probability to mm (simplified)
         cloudPct: cloudCover || 50,
         pressureHpa: pressure ? pressure / 100 : undefined, // Pa to hPa
-        marine,
+        ...(hasMarineData && { marine }),
         safety,
         barometricTrend,
         source: "NWS",

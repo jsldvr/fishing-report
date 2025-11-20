@@ -2,7 +2,7 @@ import type { ForecastScore, SafetyAssessment } from "../types/forecast";
 import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
 import WeatherDebugInfo from "./WeatherDebugInfo";
-import MarineConditions from "./MarineConditions";
+import MarineConditions, { hasMarineDisplayData } from "./MarineConditions";
 import Icon, { type IconName } from "./Icon";
 
 interface ScoreCardProps {
@@ -482,13 +482,13 @@ export default function ScoreCard({
           </div>
         )}
 
-        {forecast.weather.marine && (
+        {hasMarineDisplayData(forecast.weather.marine) && (
           <div
             className="forecast-card__section forecast-card__section--divider"
             id={`${cardId}-marine`}
           >
             <MarineConditions
-              marine={forecast.weather.marine}
+              marine={forecast.weather.marine!}
               dateIso={forecast.date}
               useMph={useMph}
             />

@@ -7,6 +7,20 @@ interface MarineConditionsProps {
   useMph: boolean;
 }
 
+export function hasMarineDisplayData(
+  marine: MarineWeatherData | undefined
+): boolean {
+  if (!marine) return false;
+  const hasStation = Boolean(marine.stationId) || Boolean(marine.stationName);
+  const hasTides =
+    Array.isArray(marine.tideEvents) && marine.tideEvents.length > 0;
+  const hasMetrics =
+    marine.waveHeight !== undefined ||
+    marine.waterTemperature !== undefined ||
+    marine.windSpeedKph !== undefined;
+  return hasStation || hasTides || hasMetrics;
+}
+
 export default function MarineConditions({
   marine,
   dateIso,

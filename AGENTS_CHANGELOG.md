@@ -7,6 +7,14 @@
 - **Updated** package.json and package-lock.json to version 1.3.0
 - **Verified** status bar in App.tsx displays new version via package.json import
 
+### Marine Section Visibility Fix
+
+- **Added** `hasMarineDisplayData` helper in `MarineConditions.tsx` to check for station, tide, or metric data before rendering
+- **Modified** `ScoreCard.tsx` to conditionally render marine section only when displayable data exists, preventing empty wrappers
+- **Updated** `nwsWeather.ts` to omit marine object from weather data when no wave or temperature data is available, reducing payload for inland locations
+- **Added** comprehensive Vitest+RTL tests for ScoreCard marine rendering and helper logic, ensuring no empty sections appear
+- **Result** Cleaner UI for inland forecasts; marine content only shows when relevant data is present
+
 ## 2025-11-19
 
 ### Font Awesome Icon Replacement
