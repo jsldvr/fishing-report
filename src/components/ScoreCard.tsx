@@ -415,7 +415,7 @@ export default function ScoreCard({
             id={`${cardId}-safety`}
           >
             <div
-              className={`p-4 rounded-lg border-2 ${getSafetyStyles(
+              className={`rounded-lg border-2 ${getSafetyStyles(
                 safety.rating
               )}`}
               id={`${cardId}-safety-panel`}
