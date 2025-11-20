@@ -57,9 +57,7 @@ export default function ScoreCard({
     }
   };
 
-  const getSafetyIconName = (
-    rating: SafetyAssessment["rating"]
-  ): IconName => {
+  const getSafetyIconName = (rating: SafetyAssessment["rating"]): IconName => {
     switch (rating) {
       case "EXCELLENT":
         return "fish";

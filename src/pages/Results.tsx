@@ -162,7 +162,7 @@ export default function Results() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex mb-6 results-header" id="results-header">
         <div className="results-header-title" id="results-header-title">
