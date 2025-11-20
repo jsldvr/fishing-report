@@ -15,6 +15,12 @@
 - **Added** comprehensive Vitest+RTL tests for ScoreCard marine rendering and helper logic, ensuring no empty sections appear
 - **Result** Cleaner UI for inland forecasts; marine content only shows when relevant data is present
 
+### Weather Alerts Visibility Fix
+
+- **Modified** `WeatherAlerts.tsx` to return `null` when `activeAlerts` is empty, preventing empty alerts wrapper from rendering
+- **Added** Vitest+RTL tests in `WeatherAlerts.test.tsx` to assert no rendering when no alerts, and proper display when alerts exist
+- **Result** Cleaner UI when no weather alerts are active; alerts block only appears when relevant
+
 ## 2025-11-19
 
 ### Font Awesome Icon Replacement
