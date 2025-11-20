@@ -8,7 +8,9 @@ import type {
   EnhancedWeatherData,
   WeatherData,
   DayInputs,
+  SpcOutlookRisk,
 } from "../types/forecast.js";
+import { fetchSpcOutlook } from "./spcOutlook.js";
 
 interface NWSPointResponse {
   properties: {
@@ -343,14 +345,15 @@ export class NWSWeatherService {
       // Extract zone ID from the full URL
       const zoneId = pointMetadata.forecastZone.split("/").pop() || "";
 
-      // Get gridpoint data, alerts, and office info in parallel
-      const [gridData, alerts, localOffice] = await Promise.all([
+      // Get gridpoint data, alerts, outlook, and office info in parallel
+      const [gridData, alerts, spcOutlook, localOffice] = await Promise.all([
         this.getGridpointData(
           pointMetadata.gridId,
           pointMetadata.gridX,
           pointMetadata.gridY
         ),
         this.getActiveAlerts(zoneId),
+        fetchSpcOutlook(day.lat, day.lon),
         this.getLocalOfficeInfo(pointMetadata.forecastOffice, day.lat, day.lon),
       ]);
 
@@ -407,13 +410,17 @@ export class NWSWeatherService {
         marine.waterTemperature !== undefined;
 
       // Assess safety
-      const safety = this.assessSafety(alerts, {
-        tempC: temp || 20,
-        windKph: (windSpeed || 10) * 3.6,
-        precipMm: (precipitation || 0) / 100,
-        cloudPct: cloudCover || 50,
-        pressureHpa: pressure ? pressure / 100 : undefined,
-      });
+      const safety = this.assessSafety(
+        alerts,
+        {
+          tempC: temp || 20,
+          windKph: (windSpeed || 10) * 3.6,
+          precipMm: (precipitation || 0) / 100,
+          cloudPct: cloudCover || 50,
+          pressureHpa: pressure ? pressure / 100 : undefined,
+        },
+        spcOutlook ? { spcOutlook } : undefined
+      );
 
       // Calculate barometric trend (simplified)
       const barometricTrend = this.calculateBarometricTrend(
@@ -441,30 +448,60 @@ export class NWSWeatherService {
 
   public assessSafety(
     alerts: NWSAlert[],
-    weather: WeatherData
+    weather: WeatherData,
+    options?: { spcOutlook?: { risk: SpcOutlookRisk; day: number } }
   ): SafetyAssessment {
     const riskFactors: string[] = [];
     const recommendations: string[] = [];
+
+    const ratingScale: SafetyAssessment["rating"][] = [
+      "EXCELLENT",
+      "GOOD",
+      "FAIR",
+      "POOR",
+      "DANGEROUS",
+    ];
+    const applyFloor = (
+      current: SafetyAssessment["rating"],
+      target: SafetyAssessment["rating"]
+    ): SafetyAssessment["rating"] => {
+      const currentIdx = ratingScale.indexOf(current);
+      const targetIdx = ratingScale.indexOf(target);
+      if (currentIdx === -1 || targetIdx === -1) return target;
+      return ratingScale[Math.max(currentIdx, targetIdx)];
+    };
 
     // Check alerts for dangerous conditions
     const severeAlerts = alerts.filter(
       (alert) => alert.severity === "Severe" || alert.severity === "Extreme"
     );
-
     const moderateAlerts = alerts.filter(
       (alert) => alert.severity === "Moderate"
     );
-
     const minorAlerts = alerts.filter((alert) => alert.severity === "Minor");
 
-    // Broaden hazard matching
-    const hazardKeywords = [
+    const convectiveKeywords = [
+      "outlook",
+      "watch",
+      "severe",
+      "hail",
+      "supercell",
+      "meso",
+      "tstorm",
       "thunderstorm",
+      "tornado",
+      "damaging wind",
+      "straight-line",
+      "downburst",
+      "microburst",
+      "derecho",
+    ];
+
+    const hazardKeywords = [
       "wind",
       "marine",
       "small craft",
       "gale",
-      "tornado",
       "snow",
       "winter",
       "ice",
@@ -482,33 +519,22 @@ export class NWSWeatherService {
       "special weather statement",
     ];
 
+    const convectiveAlerts = alerts.filter((alert) =>
+      convectiveKeywords.some((keyword) =>
+        alert.event.toLowerCase().includes(keyword)
+      )
+    );
     const hazardousAlerts = alerts.filter((alert) =>
       hazardKeywords.some((keyword) =>
         alert.event.toLowerCase().includes(keyword)
       )
     );
 
-    // Severe convective hazard matching
-    const severeConvectiveKeywords = [
-      "outlook",
-      "watch",
-      "severe",
-      "hail",
-      "supercell",
-      "meso",
-      "tstorm",
-      "thunderstorm",
-      "tornado",
-      "damaging wind",
-      "straight-line",
-      "downburst",
-      "microburst",
-    ];
-
-    const severeConvectiveAlerts = alerts.filter((alert) =>
-      severeConvectiveKeywords.some((keyword) =>
-        alert.event.toLowerCase().includes(keyword)
-      )
+    const highUrgencyAlerts = alerts.filter(
+      (alert) => alert.urgency === "Immediate" || alert.urgency === "Expected"
+    );
+    const highCertaintyAlerts = alerts.filter(
+      (alert) => alert.certainty === "Observed" || alert.certainty === "Likely"
     );
 
     // Weather-based risk assessment
@@ -525,76 +551,76 @@ export class NWSWeatherService {
     // Determine overall rating
     let rating: SafetyAssessment["rating"] = "EXCELLENT";
 
+    // SPC Outlook handling
+    if (options?.spcOutlook) {
+      const spcFloorByRisk: Record<SpcOutlookRisk, SafetyAssessment["rating"]> =
+        {
+          HIGH: "DANGEROUS",
+          MDT: "DANGEROUS",
+          ENH: "POOR",
+          SLGT: "FAIR",
+          MRGL: "FAIR",
+          TSTM: "GOOD",
+        };
+      const outlookFloor = spcFloorByRisk[options.spcOutlook.risk] ?? "GOOD";
+      rating = applyFloor(rating, outlookFloor);
+      riskFactors.push(
+        `SPC Day ${options.spcOutlook.day} outlook: ${options.spcOutlook.risk}`
+      );
+      recommendations.push("Monitor conditions due to SPC severe weather outlook");
+    }
+
     // Severe/Extreme alerts always DANGEROUS
     if (severeAlerts.length > 0) {
-      rating = "DANGEROUS";
+      rating = applyFloor(rating, "DANGEROUS");
       recommendations.push("DO NOT FISH - Severe weather expected");
     }
 
     // Moderate alerts downgrade to at most FAIR
-    else if (moderateAlerts.length > 0) {
-      rating = "FAIR";
+    if (moderateAlerts.length > 0) {
+      rating = applyFloor(rating, "FAIR");
       recommendations.push("Exercise caution due to weather alerts");
     }
 
-    // Minor alerts downgrade to at most GOOD, but severe-convective overrides to FAIR
-    else if (minorAlerts.length > 0) {
-      rating = "GOOD";
+    // Minor alerts downgrade to at most GOOD
+    if (minorAlerts.length > 0) {
+      rating = applyFloor(rating, "GOOD");
       recommendations.push("Monitor weather conditions");
     }
 
-    // Severe convective alerts downgrade below GOOD
-    if (severeConvectiveAlerts.length > 0) {
-      if (rating === "EXCELLENT") {
-        rating = "FAIR";
-      } else if (rating === "GOOD") {
-        rating = "FAIR";
-      }
-      recommendations.push(
-        "Severe convective weather hazards present - exercise extreme caution"
-      );
+    // Convective hazards: floor FAIR, bump to POOR if high urgency/certainty or severity above Minor
+    if (convectiveAlerts.length > 0) {
+      const convectiveFloor =
+        highUrgencyAlerts.length > 0 ||
+        highCertaintyAlerts.length > 0 ||
+        convectiveAlerts.some((a) => a.severity !== "Minor")
+          ? "POOR"
+          : "FAIR";
+      rating = applyFloor(rating, convectiveFloor);
+      recommendations.push("Severe convective weather possible");
     }
 
-    // Hazardous alerts (non-severe convective) downgrade further if EXCELLENT
-    if (hazardousAlerts.length > 0 && rating === "EXCELLENT") {
-      rating = "GOOD";
+    // Other hazard keywords: nudge to at least FAIR
+    if (hazardousAlerts.length > 0) {
+      rating = applyFloor(rating, "FAIR");
       recommendations.push("Hazardous weather conditions present");
     }
 
-    // Nudge down for high urgency/certainty or elevated weather conditions
-    const highUrgencyAlerts = alerts.filter(
-      (alert) => alert.urgency === "Immediate" || alert.urgency === "Expected"
-    );
-    const highCertaintyAlerts = alerts.filter(
-      (alert) => alert.certainty === "Observed" || alert.certainty === "Likely"
-    );
-
-    const hasHighPriority =
-      highUrgencyAlerts.length > 0 || highCertaintyAlerts.length > 0;
-    const hasElevatedWeather = weather.windKph > 30 || weather.precipMm > 5; // Lower thresholds for nudging
-
-    if (hasHighPriority || hasElevatedWeather) {
-      if (rating === "EXCELLENT") {
-        rating = "GOOD";
-      } else if (rating === "GOOD") {
-        rating = "FAIR";
-      } else if (
-        rating === "FAIR" &&
-        (severeConvectiveAlerts.length > 0 || hasElevatedWeather)
-      ) {
-        rating = "POOR";
-      }
-      recommendations.push(
-        "High urgency/certainty or elevated weather conditions"
-      );
+    // Nudge down for high urgency/certainty if still high
+    if (
+      (highUrgencyAlerts.length > 0 || highCertaintyAlerts.length > 0) &&
+      rating === "EXCELLENT"
+    ) {
+      rating = "GOOD";
+      recommendations.push("High urgency/certainty weather alerts");
     }
 
     // Add alert-based risk factors and recommendations
     alerts.forEach((alert) => {
-      const isSevereConvective = severeConvectiveKeywords.some((keyword) =>
+      const isConvective = convectiveKeywords.some((keyword) =>
         alert.event.toLowerCase().includes(keyword)
       );
-      if (isSevereConvective) {
+      if (isConvective) {
         riskFactors.push(`Severe convective hazard: ${alert.event}`);
       } else {
         riskFactors.push(`${alert.severity} ${alert.event}: ${alert.headline}`);
@@ -616,6 +642,7 @@ export class NWSWeatherService {
       activeAlerts: alerts,
       recommendations,
       riskFactors,
+      spcOutlook: options?.spcOutlook,
     };
   }
 

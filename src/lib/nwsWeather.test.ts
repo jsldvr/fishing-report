@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { NWSWeatherService } from "./nwsWeather";
-import type { NWSAlert, WeatherData } from "../types/forecast";
+import type { NWSAlert, WeatherData, SpcOutlookRisk } from "../types/forecast";
 
 const service = new NWSWeatherService();
 
@@ -142,5 +142,24 @@ describe("NWSWeatherService - assessSafety", () => {
     ];
     const result = service.assessSafety(alerts, baseWeather);
     expect(result.rating).toBe("GOOD");
+  });
+
+  it("downgrades based on SPC outlook risk", () => {
+    const outlooks: Array<{ risk: SpcOutlookRisk; expected: string }> = [
+      { risk: "MRGL", expected: "FAIR" },
+      { risk: "SLGT", expected: "FAIR" },
+      { risk: "ENH", expected: "POOR" },
+      { risk: "MDT", expected: "DANGEROUS" },
+    ];
+
+    outlooks.forEach(({ risk, expected }) => {
+      const result = service.assessSafety([], baseWeather, {
+        spcOutlook: { risk, day: 1 },
+      });
+      expect(result.rating).toBe(expected);
+      expect(result.riskFactors).toContain(
+        `SPC Day 1 outlook: ${risk}`
+      );
+    });
   });
 });

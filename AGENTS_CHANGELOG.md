@@ -40,6 +40,13 @@
 - **Added** comprehensive tests for HWO, severe watches, tornado watches, and regression guards for non-severe alerts
 - **Result** Prevents GOOD/EXCELLENT ratings for Hazardous Weather Outlooks and severe watches, ensuring safer fishing recommendations
 
+### SPC Outlook Integration
+
+- **Added** `spcOutlook.ts` client to query SPC Day 1 convective outlooks and map risks to fishing safety downgrades
+- **Extended** `assessSafety` to accept SPC outlook data, lowering ratings for MRGL/SLGT/ENH/MDT/HIGH categories and recording outlook context
+- **Updated** safety tests to cover SPC outlook-driven downgrades
+- **Result** Fishing safety now reflects SPC severe weather outlooks even when no local NWS alerts are issued
+
 ## 2025-11-19
 
 ### Font Awesome Icon Replacement
