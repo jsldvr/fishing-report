@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, type KeyboardEvent } from "react";
 import { getCurrentDateISO, addDaysToDate } from "../lib/time";
+import Icon from "./Icon";
 
 interface DateRangePickerProps {
   onDateRangeChange: (startDate: string, days: number) => void;
@@ -49,14 +50,17 @@ export default function DateRangePicker({
         onClick={toggleTimeline}
         onKeyDown={handleTimelineKeyDown}
       >
-        ⏱️ Mission Timeline
+        <span className="inline-flex items-center gap-2">
+          <Icon name="stopwatch" />
+          Mission Timeline
+        </span>
         <span
           className="mission-toggle-indicator"
           id="mission-toggle-indicator"
           aria-hidden="true"
           data-open={isTimelineOpen}
         >
-          ▾
+          <Icon name="caret" />
         </span>
       </h2>
 
@@ -113,10 +117,15 @@ export default function DateRangePicker({
         <div className="bg-accent p-3 rounded-lg border border-primary">
           <p className="text-sm text-secondary">
             <strong className="text-primary">Mission Window:</strong>{" "}
-            {startDate} → {endDate}
+            {startDate}
+            <Icon name="arrowRight" className="mx-2" />
+            {endDate}
           </p>
           <p className="text-xs text-muted mt-1">
-            📅 {days} day operational period with tactical assessment intervals
+            <span className="inline-flex items-center gap-2">
+              <Icon name="calendar" />
+              {days} day operational period with tactical assessment intervals
+            </span>
           </p>
         </div>
       </div>

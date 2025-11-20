@@ -1,5 +1,75 @@
 # Changelog
 
+## 2025-11-19 v1.3.0
+
+### Version Bump to 1.3.0
+
+- **Updated** package.json and package-lock.json to version 1.3.0
+- **Verified** status bar in App.tsx displays new version via package.json import
+
+### Marine Section Visibility Fix
+
+- **Added** `hasMarineDisplayData` helper in `MarineConditions.tsx` to check for station, tide, or metric data before rendering
+- **Modified** `ScoreCard.tsx` to conditionally render marine section only when displayable data exists, preventing empty wrappers
+- **Updated** `nwsWeather.ts` to omit marine object from weather data when no wave or temperature data is available, reducing payload for inland locations
+- **Added** comprehensive Vitest+RTL tests for ScoreCard marine rendering and helper logic, ensuring no empty sections appear
+- **Result** Cleaner UI for inland forecasts; marine content only shows when relevant data is present
+
+### Weather Alerts Visibility Fix
+
+- **Modified** `WeatherAlerts.tsx` to return `null` when `activeAlerts` is empty, preventing empty alerts wrapper from rendering
+- **Added** Vitest+RTL tests in `WeatherAlerts.test.tsx` to assert no rendering when no alerts, and proper display when alerts exist
+- **Result** Cleaner UI when no weather alerts are active; alerts block only appears when relevant
+
+### Fishing Safety Alert Enhancement
+
+- **Enhanced** `assessSafety` in `nwsWeather.ts` to account for all NWS alerts, including Moderate/Minor severity and broadened hazards (winter/snow/fog/flood/smoke/etc.)
+- **Implemented** severity-based downgrades: Moderate → FAIR, Minor → GOOD, Severe/Extreme → DANGEROUS
+- **Added** hazard keyword downgrades only for EXCELLENT ratings to GOOD
+- **Implemented** urgency/certainty nudging only for EXCELLENT ratings to GOOD
+- **Updated** recommendations and riskFactors to include alert details and instructions
+- **Made** `assessSafety` public and added comprehensive Vitest tests in `nwsWeather.test.ts` covering various alert scenarios
+- **Result** More accurate fishing safety ratings that consider all active weather alerts, preventing EXCELLENT ratings when hazards are present
+
+### Fishing Safety Severe Convective Enhancement
+
+- **Expanded** hazard handling in `assessSafety` to include severe-convective keywords (outlook, watch, severe, hail, supercell, meso, tstorm, thunderstorm, tornado, damaging wind, straight-line, downburst, microburst)
+- **Implemented** stricter downgrades: severe-convective alerts force rating to at least FAIR, with POOR for high urgency/certainty or elevated weather conditions
+- **Updated** Minor alerts to FAIR when severe-convective, Moderate alerts remain FAIR but can downgrade to POOR under severe conditions
+- **Enhanced** riskFactors to highlight severe convective hazards separately
+- **Added** comprehensive tests for HWO, severe watches, tornado watches, and regression guards for non-severe alerts
+- **Result** Prevents GOOD/EXCELLENT ratings for Hazardous Weather Outlooks and severe watches, ensuring safer fishing recommendations
+
+### SPC Outlook Integration
+
+- **Added** `spcOutlook.ts` client to query SPC Day 1 convective outlooks and map risks to fishing safety downgrades
+- **Extended** `assessSafety` to accept SPC outlook data, lowering ratings for MRGL/SLGT/ENH/MDT/HIGH categories and recording outlook context
+- **Updated** safety tests to cover SPC outlook-driven downgrades
+- **Result** Fishing safety now reflects SPC severe weather outlooks even when no local NWS alerts are issued
+
+### Results Page Cleanup
+
+- **Removed** the dev-only `WeatherDebugInfo` section from forecast cards and only render the NWS alerts block when alerts exist
+- **Added** ScoreCard tests to assert alert section visibility when active alerts are present or absent
+- **Result** Cleaner results UI without developer debug panels, no empty NWS sections
+
+## 2025-11-19
+
+### Font Awesome Icon Replacement
+
+- **Created** reusable `Icon` component wired to the bundled free Font Awesome sets (solid + regular) so UI elements can reference semantic icon names instead of inline glyphs
+- **Replaced** every emoji/glyph UI marker (navigation, cards, alerts, debug panels, forms, etc.) with `<Icon />` usage, ensuring BEM-friendly markup and accessible fallbacks
+- **Scrubbed** data strings (e.g., enhanced weather recommendations and alert prompts) to remove emoji prefixes so component-level icons handle all presentation
+- **Updated** supporting copy (LocationInput instructions, outlook separators, tide cards) to stick to ASCII separators, preventing stray glyphs outside Font Awesome
+- **Validated** the refactor with `npm run lint` to confirm TypeScript and lint rules still pass
+
+## 2025-11-19
+
+### Icon Library Install
+
+- **Added** Font Awesome React packages (`@fortawesome/react-fontawesome`, `@fortawesome/fontawesome-svg-core`, `@fortawesome/free-solid-svg-icons`, `@fortawesome/free-regular-svg-icons`, `@fortawesome/free-brands-svg-icons`) to provide a large, open-source icon set without relying on external CDNs
+- **Prepared** codebase to replace existing icons with bundled assets for cross-browser compatibility
+
 ## 2025-10-29
 
 ### NWS Office Card Accordion Implementation

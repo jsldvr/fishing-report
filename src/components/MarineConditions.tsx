@@ -1,9 +1,24 @@
 import type { MarineWeatherData } from "../types/forecast.js";
+import Icon from "./Icon";
 
 interface MarineConditionsProps {
   marine: MarineWeatherData;
   dateIso: string;
   useMph: boolean;
+}
+
+export function hasMarineDisplayData(
+  marine: MarineWeatherData | undefined
+): boolean {
+  if (!marine) return false;
+  const hasStation = Boolean(marine.stationId) || Boolean(marine.stationName);
+  const hasTides =
+    Array.isArray(marine.tideEvents) && marine.tideEvents.length > 0;
+  const hasMetrics =
+    marine.waveHeight !== undefined ||
+    marine.waterTemperature !== undefined ||
+    marine.windSpeedKph !== undefined;
+  return hasStation || hasTides || hasMetrics;
 }
 
 export default function MarineConditions({
@@ -38,6 +53,14 @@ export default function MarineConditions({
     return `${speedKph.toFixed(1)} km/h`;
   };
 
+  const formatDistance = (km: number): string => {
+    if (useMph) {
+      const miles = km * 0.621371;
+      return `${miles.toFixed(1)} mi`;
+    }
+    return `${km} km`;
+  };
+
   const formatTime = (iso: string): string => {
     try {
       return new Intl.DateTimeFormat(undefined, {
@@ -65,15 +88,19 @@ export default function MarineConditions({
       id={`${idBase}-container`}
       data-testid="marine-conditions"
     >
-      <h4 className="font-semibold text-gray-700 mb-3" id={`${idBase}-title`}>
-        🌊 Coastal Conditions
+      <h4
+        className="font-semibold text-gray-700 mb-3 inline-flex items-center gap-2"
+        id={`${idBase}-title`}
+      >
+        <Icon name="water" />
+        Coastal Conditions
       </h4>
 
       {hasStation && (
         <p className="text-sm text-gray-600 mb-3" id={`${idBase}-station`}>
           Nearest NOAA station: {marine.stationName || marine.stationId}
           {marine.stationDistanceKm !== undefined
-            ? ` (${marine.stationDistanceKm} km away)`
+            ? ` (${formatDistance(marine.stationDistanceKm)} away)`
             : ""}
         </p>
       )}
@@ -159,7 +186,7 @@ export default function MarineConditions({
                   className="text-gray-600"
                   id={`${idBase}-tide-${index}-time`}
                 >
-                  {formatTime(event.timeIso)} · {event.heightMeters.toFixed(2)}{" "}
+                  {formatTime(event.timeIso)} | {event.heightMeters.toFixed(2)}{" "}
                   m
                 </span>
               </li>
