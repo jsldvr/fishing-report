@@ -1,7 +1,6 @@
 import type { ForecastScore, SafetyAssessment } from "../types/forecast";
 import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
-import WeatherDebugInfo from "./WeatherDebugInfo";
 import MarineConditions, { hasMarineDisplayData } from "./MarineConditions";
 import Icon, { type IconName } from "./Icon";
 
@@ -27,6 +26,7 @@ export default function ScoreCard({
   const windMph = Math.round((forecast.weather.windKph / 1.609) * 10) / 10;
   const safety = forecast.weather.safety;
   const cardId = `forecast-card-${forecast.date.replace(/[^0-9A-Za-z]/g, "")}`;
+  const hasWeatherAlerts = forecast.weather.safety.activeAlerts.length > 0;
 
   const getScoreColor = (score: number) => {
     if (score >= 75) return "bg-green-100 text-green-800";
@@ -495,12 +495,11 @@ export default function ScoreCard({
           </div>
         )}
 
-        {forecast.weather.source === "NWS" && (
+        {forecast.weather.source === "NWS" && hasWeatherAlerts && (
           <div
             className="forecast-card__section forecast-card__section--divider"
             id={`${cardId}-nws`}
           >
-            <WeatherDebugInfo weather={forecast.weather} className="mb-4" />
             <WeatherAlerts weather={forecast.weather} className="mb-4" />
           </div>
         )}

@@ -47,6 +47,12 @@
 - **Updated** safety tests to cover SPC outlook-driven downgrades
 - **Result** Fishing safety now reflects SPC severe weather outlooks even when no local NWS alerts are issued
 
+### Results Page Cleanup
+
+- **Removed** the dev-only `WeatherDebugInfo` section from forecast cards and only render the NWS alerts block when alerts exist
+- **Added** ScoreCard tests to assert alert section visibility when active alerts are present or absent
+- **Result** Cleaner results UI without developer debug panels, no empty NWS sections
+
 ## 2025-11-19
 
 ### Font Awesome Icon Replacement

@@ -51,6 +51,42 @@ const mockForecastWithEmptyMarine: ForecastScore = {
   },
 };
 
+const mockForecastWithAlerts: ForecastScore = {
+  ...mockForecastWithMarine,
+  weather: {
+    ...mockForecastWithMarine.weather,
+    source: "NWS",
+    safety: {
+      ...mockForecastWithMarine.weather.safety,
+      activeAlerts: [
+        {
+          id: "test-alert",
+          headline: "Test Alert",
+          event: "Severe Thunderstorm Watch",
+          severity: "Moderate",
+          urgency: "Expected",
+          certainty: "Likely",
+          description: "Test description",
+          instruction: "Take shelter",
+          areas: ["Test Area"],
+        },
+      ],
+    },
+  },
+};
+
+const mockForecastWithoutAlerts: ForecastScore = {
+  ...mockForecastWithMarine,
+  weather: {
+    ...mockForecastWithMarine.weather,
+    source: "NWS",
+    safety: {
+      ...mockForecastWithMarine.weather.safety,
+      activeAlerts: [],
+    },
+  },
+};
+
 describe("ScoreCard", () => {
   it("renders marine section when marine data is present", () => {
     render(<ScoreCard forecast={mockForecastWithMarine} lat={40} lon={-74} />);
@@ -72,6 +108,20 @@ describe("ScoreCard", () => {
     );
 
     expect(screen.queryByTestId("marine-conditions")).not.toBeInTheDocument();
+  });
+
+  it("renders alerts section when NWS alerts exist", () => {
+    render(<ScoreCard forecast={mockForecastWithAlerts} lat={40} lon={-74} />);
+
+    expect(screen.getByTestId("weather-alerts")).toBeInTheDocument();
+  });
+
+  it("does not render alerts section when NWS has no alerts", () => {
+    render(
+      <ScoreCard forecast={mockForecastWithoutAlerts} lat={40} lon={-74} />
+    );
+
+    expect(screen.queryByTestId("weather-alerts")).not.toBeInTheDocument();
   });
 });
 
