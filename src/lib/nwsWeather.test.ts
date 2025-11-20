@@ -92,4 +92,55 @@ describe("NWSWeatherService - assessSafety", () => {
     const result = service.assessSafety(alerts, baseWeather);
     expect(result.recommendations).toContain("Test instruction");
   });
+
+  it("downgrades Minor alert with severe convective hazard to FAIR", () => {
+    const alerts = [
+      {
+        ...baseAlert,
+        severity: "Minor" as const,
+        event: "Severe Thunderstorm Watch",
+      },
+    ];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("downgrades Moderate alert with tornado watch to FAIR", () => {
+    const alerts = [{ ...baseAlert, event: "Tornado Watch" }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("downgrades Minor alert with hazardous weather outlook to FAIR", () => {
+    const alerts = [
+      {
+        ...baseAlert,
+        severity: "Minor" as const,
+        event: "Hazardous Weather Outlook",
+      },
+    ];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("downgrades to POOR for severe convective with high urgency", () => {
+    const alerts = [
+      {
+        ...baseAlert,
+        severity: "Minor" as const,
+        event: "Severe Thunderstorm Watch",
+        urgency: "Immediate" as const,
+      },
+    ];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("POOR");
+  });
+
+  it("keeps GOOD for non-severe Minor alert", () => {
+    const alerts = [
+      { ...baseAlert, severity: "Minor" as const, event: "Test Event" },
+    ];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("GOOD");
+  });
 });

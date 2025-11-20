@@ -31,6 +31,15 @@
 - **Made** `assessSafety` public and added comprehensive Vitest tests in `nwsWeather.test.ts` covering various alert scenarios
 - **Result** More accurate fishing safety ratings that consider all active weather alerts, preventing EXCELLENT ratings when hazards are present
 
+### Fishing Safety Severe Convective Enhancement
+
+- **Expanded** hazard handling in `assessSafety` to include severe-convective keywords (outlook, watch, severe, hail, supercell, meso, tstorm, thunderstorm, tornado, damaging wind, straight-line, downburst, microburst)
+- **Implemented** stricter downgrades: severe-convective alerts force rating to at least FAIR, with POOR for high urgency/certainty or elevated weather conditions
+- **Updated** Minor alerts to FAIR when severe-convective, Moderate alerts remain FAIR but can downgrade to POOR under severe conditions
+- **Enhanced** riskFactors to highlight severe convective hazards separately
+- **Added** comprehensive tests for HWO, severe watches, tornado watches, and regression guards for non-severe alerts
+- **Result** Prevents GOOD/EXCELLENT ratings for Hazardous Weather Outlooks and severe watches, ensuring safer fishing recommendations
+
 ## 2025-11-19
 
 ### Font Awesome Icon Replacement

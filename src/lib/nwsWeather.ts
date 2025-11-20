@@ -488,6 +488,29 @@ export class NWSWeatherService {
       )
     );
 
+    // Severe convective hazard matching
+    const severeConvectiveKeywords = [
+      "outlook",
+      "watch",
+      "severe",
+      "hail",
+      "supercell",
+      "meso",
+      "tstorm",
+      "thunderstorm",
+      "tornado",
+      "damaging wind",
+      "straight-line",
+      "downburst",
+      "microburst",
+    ];
+
+    const severeConvectiveAlerts = alerts.filter((alert) =>
+      severeConvectiveKeywords.some((keyword) =>
+        alert.event.toLowerCase().includes(keyword)
+      )
+    );
+
     // Weather-based risk assessment
     if (weather.windKph > 40) {
       riskFactors.push("High winds (>40 km/h)");
@@ -510,23 +533,35 @@ export class NWSWeatherService {
 
     // Moderate alerts downgrade to at most FAIR
     else if (moderateAlerts.length > 0) {
-      if (rating === "EXCELLENT") rating = "FAIR";
+      rating = "FAIR";
       recommendations.push("Exercise caution due to weather alerts");
     }
 
-    // Minor alerts downgrade to at most GOOD
+    // Minor alerts downgrade to at most GOOD, but severe-convective overrides to FAIR
     else if (minorAlerts.length > 0) {
-      if (rating === "EXCELLENT") rating = "GOOD";
+      rating = "GOOD";
       recommendations.push("Monitor weather conditions");
     }
 
-    // Hazardous alerts (broadened keywords) downgrade further
+    // Severe convective alerts downgrade below GOOD
+    if (severeConvectiveAlerts.length > 0) {
+      if (rating === "EXCELLENT") {
+        rating = "FAIR";
+      } else if (rating === "GOOD") {
+        rating = "FAIR";
+      }
+      recommendations.push(
+        "Severe convective weather hazards present - exercise extreme caution"
+      );
+    }
+
+    // Hazardous alerts (non-severe convective) downgrade further if EXCELLENT
     if (hazardousAlerts.length > 0 && rating === "EXCELLENT") {
       rating = "GOOD";
       recommendations.push("Hazardous weather conditions present");
     }
 
-    // Nudge down for high urgency/certainty
+    // Nudge down for high urgency/certainty or elevated weather conditions
     const highUrgencyAlerts = alerts.filter(
       (alert) => alert.urgency === "Immediate" || alert.urgency === "Expected"
     );
@@ -534,17 +569,36 @@ export class NWSWeatherService {
       (alert) => alert.certainty === "Observed" || alert.certainty === "Likely"
     );
 
-    if (
-      (highUrgencyAlerts.length > 0 || highCertaintyAlerts.length > 0) &&
-      rating === "EXCELLENT"
-    ) {
-      rating = "GOOD";
-      recommendations.push("High urgency/certainty weather alerts");
+    const hasHighPriority =
+      highUrgencyAlerts.length > 0 || highCertaintyAlerts.length > 0;
+    const hasElevatedWeather = weather.windKph > 30 || weather.precipMm > 5; // Lower thresholds for nudging
+
+    if (hasHighPriority || hasElevatedWeather) {
+      if (rating === "EXCELLENT") {
+        rating = "GOOD";
+      } else if (rating === "GOOD") {
+        rating = "FAIR";
+      } else if (
+        rating === "FAIR" &&
+        (severeConvectiveAlerts.length > 0 || hasElevatedWeather)
+      ) {
+        rating = "POOR";
+      }
+      recommendations.push(
+        "High urgency/certainty or elevated weather conditions"
+      );
     }
 
     // Add alert-based risk factors and recommendations
     alerts.forEach((alert) => {
-      riskFactors.push(`${alert.severity} ${alert.event}: ${alert.headline}`);
+      const isSevereConvective = severeConvectiveKeywords.some((keyword) =>
+        alert.event.toLowerCase().includes(keyword)
+      );
+      if (isSevereConvective) {
+        riskFactors.push(`Severe convective hazard: ${alert.event}`);
+      } else {
+        riskFactors.push(`${alert.severity} ${alert.event}: ${alert.headline}`);
+      }
       if (alert.instruction) {
         recommendations.push(alert.instruction);
       }
