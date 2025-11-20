@@ -1,0 +1,95 @@
+import { describe, it, expect } from "vitest";
+import { NWSWeatherService } from "./nwsWeather";
+import type { NWSAlert, WeatherData } from "../types/forecast";
+
+const service = new NWSWeatherService();
+
+const baseWeather: WeatherData = {
+  tempC: 20,
+  windKph: 10,
+  precipMm: 0,
+  cloudPct: 50,
+  pressureHpa: 1013,
+};
+
+const baseAlert: NWSAlert = {
+  id: "test-alert",
+  headline: "Test Alert",
+  event: "Test Event",
+  severity: "Moderate",
+  urgency: "Future",
+  certainty: "Possible",
+  description: "Test description",
+  instruction: "Test instruction",
+  areas: ["Test Area"],
+};
+
+describe("NWSWeatherService - assessSafety", () => {
+  it("returns EXCELLENT with no alerts and safe weather", () => {
+    const result = service.assessSafety([], baseWeather);
+    expect(result.rating).toBe("EXCELLENT");
+    expect(result.activeAlerts).toEqual([]);
+  });
+
+  it("downgrades to FAIR for Moderate severity alert", () => {
+    const alerts = [{ ...baseAlert, severity: "Moderate" as const }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+    expect(result.activeAlerts).toEqual(alerts);
+    expect(result.riskFactors).toContain("Moderate Test Event: Test Alert");
+  });
+
+  it("downgrades to GOOD for Minor severity alert", () => {
+    const alerts = [{ ...baseAlert, severity: "Minor" as const }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("GOOD");
+  });
+
+  it("returns DANGEROUS for Severe alert", () => {
+    const alerts = [{ ...baseAlert, severity: "Severe" as const }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("DANGEROUS");
+  });
+
+  it("downgrades for Special Weather Statement", () => {
+    const alerts = [{ ...baseAlert, event: "Special Weather Statement" }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("downgrades for winter/snow alerts", () => {
+    const alerts = [{ ...baseAlert, event: "Winter Storm Warning" }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("downgrades for fog alerts", () => {
+    const alerts = [{ ...baseAlert, event: "Dense Fog Advisory" }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("downgrades for flood alerts", () => {
+    const alerts = [{ ...baseAlert, event: "Flash Flood Warning" }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("nudges down for high urgency", () => {
+    const alerts = [{ ...baseAlert, urgency: "Immediate" as const }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("nudges down for high certainty", () => {
+    const alerts = [{ ...baseAlert, certainty: "Observed" as const }];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.rating).toBe("FAIR");
+  });
+
+  it("includes alert instructions in recommendations", () => {
+    const alerts = [baseAlert];
+    const result = service.assessSafety(alerts, baseWeather);
+    expect(result.recommendations).toContain("Test instruction");
+  });
+});

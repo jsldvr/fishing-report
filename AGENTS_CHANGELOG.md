@@ -21,6 +21,16 @@
 - **Added** Vitest+RTL tests in `WeatherAlerts.test.tsx` to assert no rendering when no alerts, and proper display when alerts exist
 - **Result** Cleaner UI when no weather alerts are active; alerts block only appears when relevant
 
+### Fishing Safety Alert Enhancement
+
+- **Enhanced** `assessSafety` in `nwsWeather.ts` to account for all NWS alerts, including Moderate/Minor severity and broadened hazards (winter/snow/fog/flood/smoke/etc.)
+- **Implemented** severity-based downgrades: Moderate → FAIR, Minor → GOOD, Severe/Extreme → DANGEROUS
+- **Added** hazard keyword downgrades only for EXCELLENT ratings to GOOD
+- **Implemented** urgency/certainty nudging only for EXCELLENT ratings to GOOD
+- **Updated** recommendations and riskFactors to include alert details and instructions
+- **Made** `assessSafety` public and added comprehensive Vitest tests in `nwsWeather.test.ts` covering various alert scenarios
+- **Result** More accurate fishing safety ratings that consider all active weather alerts, preventing EXCELLENT ratings when hazards are present
+
 ## 2025-11-19
 
 ### Font Awesome Icon Replacement

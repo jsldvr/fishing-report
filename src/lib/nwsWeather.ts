@@ -439,7 +439,7 @@ export class NWSWeatherService {
     }
   }
 
-  private assessSafety(
+  public assessSafety(
     alerts: NWSAlert[],
     weather: WeatherData
   ): SafetyAssessment {
@@ -451,14 +451,41 @@ export class NWSWeatherService {
       (alert) => alert.severity === "Severe" || alert.severity === "Extreme"
     );
 
-    const fishingRelatedAlerts = alerts.filter(
-      (alert) =>
-        alert.event.toLowerCase().includes("thunderstorm") ||
-        alert.event.toLowerCase().includes("wind") ||
-        alert.event.toLowerCase().includes("marine") ||
-        alert.event.toLowerCase().includes("small craft") ||
-        alert.event.toLowerCase().includes("gale") ||
-        alert.event.toLowerCase().includes("tornado")
+    const moderateAlerts = alerts.filter(
+      (alert) => alert.severity === "Moderate"
+    );
+
+    const minorAlerts = alerts.filter((alert) => alert.severity === "Minor");
+
+    // Broaden hazard matching
+    const hazardKeywords = [
+      "thunderstorm",
+      "wind",
+      "marine",
+      "small craft",
+      "gale",
+      "tornado",
+      "snow",
+      "winter",
+      "ice",
+      "freezing",
+      "blizzard",
+      "whiteout",
+      "flood",
+      "flash flood",
+      "fog",
+      "visibility",
+      "smoke",
+      "ash",
+      "cold",
+      "heat",
+      "special weather statement",
+    ];
+
+    const hazardousAlerts = alerts.filter((alert) =>
+      hazardKeywords.some((keyword) =>
+        alert.event.toLowerCase().includes(keyword)
+      )
     );
 
     // Weather-based risk assessment
@@ -475,15 +502,58 @@ export class NWSWeatherService {
     // Determine overall rating
     let rating: SafetyAssessment["rating"] = "EXCELLENT";
 
+    // Severe/Extreme alerts always DANGEROUS
     if (severeAlerts.length > 0) {
       rating = "DANGEROUS";
       recommendations.push("DO NOT FISH - Severe weather expected");
-    } else if (fishingRelatedAlerts.length > 0) {
-      rating = weather.windKph > 30 ? "POOR" : "FAIR";
-      recommendations.push("Exercise extreme caution");
-    } else if (riskFactors.length > 2) {
+    }
+
+    // Moderate alerts downgrade to at most FAIR
+    else if (moderateAlerts.length > 0) {
+      if (rating === "EXCELLENT") rating = "FAIR";
+      recommendations.push("Exercise caution due to weather alerts");
+    }
+
+    // Minor alerts downgrade to at most GOOD
+    else if (minorAlerts.length > 0) {
+      if (rating === "EXCELLENT") rating = "GOOD";
+      recommendations.push("Monitor weather conditions");
+    }
+
+    // Hazardous alerts (broadened keywords) downgrade further
+    if (hazardousAlerts.length > 0 && rating === "EXCELLENT") {
+      rating = "GOOD";
+      recommendations.push("Hazardous weather conditions present");
+    }
+
+    // Nudge down for high urgency/certainty
+    const highUrgencyAlerts = alerts.filter(
+      (alert) => alert.urgency === "Immediate" || alert.urgency === "Expected"
+    );
+    const highCertaintyAlerts = alerts.filter(
+      (alert) => alert.certainty === "Observed" || alert.certainty === "Likely"
+    );
+
+    if (
+      (highUrgencyAlerts.length > 0 || highCertaintyAlerts.length > 0) &&
+      rating === "EXCELLENT"
+    ) {
+      rating = "GOOD";
+      recommendations.push("High urgency/certainty weather alerts");
+    }
+
+    // Add alert-based risk factors and recommendations
+    alerts.forEach((alert) => {
+      riskFactors.push(`${alert.severity} ${alert.event}: ${alert.headline}`);
+      if (alert.instruction) {
+        recommendations.push(alert.instruction);
+      }
+    });
+
+    // Weather-based downgrades
+    if (riskFactors.length > 2 && rating === "EXCELLENT") {
       rating = "FAIR";
-    } else if (riskFactors.length > 0) {
+    } else if (riskFactors.length > 0 && rating === "EXCELLENT") {
       rating = "GOOD";
     }
 
