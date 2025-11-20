@@ -306,8 +306,9 @@ export default function Results() {
       {/* Footer */}
       <div className="mt-8 text-center text-sm text-gray-500">
         <p>
-          Data sources: Open-Meteo weather API, astronomical calculations for
-          lunar phase
+          Data sources: NWS grid/alerts, SPC convective outlooks, NOAA tides &
+          marine, Open-Meteo fallback, astronomical calculations for lunar
+          phase
         </p>
         <p className="mt-1">
           Forecasts are for entertainment purposes and should not be the sole
