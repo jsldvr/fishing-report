@@ -29,6 +29,11 @@ interface NoaaNumericSample {
 
 const BOUNDING_BOX_DELTAS = [0.3, 0.6, 1.0, 1.5, 2.5];
 const MAX_MARINE_STATION_DISTANCE_KM = 50;
+const DATAGETTER_PRODUCTS = new Set<string>([
+  "predictions",
+  "wind",
+  "water_temperature",
+]);
 
 const stationProductsCache = new Map<string, Set<string>>();
 
@@ -508,14 +513,31 @@ function shouldAttemptProduct(
     return true;
   }
 
-  // If metadata is inconclusive, attempt once and rely on runtime errors
-  // to mark the product unsupported.
-  return knownProducts.size === 0;
+  if (knownProducts.size === 0) {
+    return true;
+  }
+
+  // Station metadata is not a strict datagetter schema; if no recognized
+  // datagetter ids are present, treat it as inconclusive and attempt once.
+  const hasRecognizedDatagetterProduct = [...knownProducts].some((known) =>
+    DATAGETTER_PRODUCTS.has(known)
+  );
+  if (!hasRecognizedDatagetterProduct) {
+    return true;
+  }
+
+  return false;
 }
 
 function normalizeProductId(raw: string): string {
-  return raw
+  const normalized = raw
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+
+  if (normalized === "tide_predictions" || normalized === "high_low") {
+    return "predictions";
+  }
+
+  return normalized;
 }

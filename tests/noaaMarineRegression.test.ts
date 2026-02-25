@@ -254,4 +254,70 @@ describe("NOAA marine regression", () => {
 
     expect(waveheightCalls).toHaveLength(0);
   });
+
+  it("treats NOAA catalog-style product names as predictions support", async () => {
+    const southPadre: DayInputs = {
+      date: "2026-02-25",
+      lat: 26.1037,
+      lon: -97.1647,
+    };
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/mdapi/prod/webapi/stations.json")) {
+        return makeJsonResponse({
+          stations: [
+            {
+              id: "8779748",
+              name: "South Padre Island CG Station",
+              lat: 26.0731,
+              lng: -97.1675,
+              state: "TX",
+            },
+          ],
+        });
+      }
+
+      if (url.includes("/mdapi/prod/webapi/stations/8779748.json")) {
+        return makeJsonResponse({
+          station: {
+            products: [{ name: "Tide Predictions" }, { name: "Meteorological" }],
+          },
+        });
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=predictions")
+      ) {
+        return makeJsonResponse({
+          predictions: [{ t: "2026-02-25 08:10", v: "0.72", type: "H" }],
+        });
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=wind")
+      ) {
+        return makeJsonResponse({ error: { message: "not supported" } }, 400);
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=water_temperature")
+      ) {
+        return makeJsonResponse({ error: { message: "not supported" } }, 400);
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { fetchNoaaMarineConditions } = await import("../src/lib/noaaMarine");
+    const marine = await fetchNoaaMarineConditions(southPadre);
+
+    expect(marine?.tideEvents?.length).toBe(1);
+  });
 });
