@@ -28,6 +28,7 @@ interface NoaaNumericSample {
 }
 
 const BOUNDING_BOX_DELTAS = [0.3, 0.6, 1.0, 1.5, 2.5];
+const MAX_MARINE_STATION_DISTANCE_KM = 50;
 
 const stationProductsCache = new Map<string, Set<string>>();
 
@@ -41,6 +42,9 @@ export async function fetchNoaaMarineConditions(
   try {
     const station = await findNearestStation(day.lat, day.lon);
     if (!station) {
+      return null;
+    }
+    if (station.distanceKm > MAX_MARINE_STATION_DISTANCE_KM) {
       return null;
     }
 
@@ -201,6 +205,9 @@ async function fetchTidePredictions(
 
     const response = await fetch(url.toString());
     if (!response.ok) {
+      if (response.status === 400 || response.status === 404) {
+        markProductUnsupported(stationId, "predictions");
+      }
       return [];
     }
 
@@ -429,7 +436,7 @@ async function getStationProducts(stationId: string): Promise<Set<string>> {
 
     const response = await fetch(url.toString());
     if (!response.ok) {
-      const fallback = new Set<string>([normalizeProductId("predictions")]);
+      const fallback = new Set<string>();
       stationProductsCache.set(stationId, fallback);
       return fallback;
     }
@@ -444,7 +451,6 @@ async function getStationProducts(stationId: string): Promise<Set<string>> {
     };
 
     const products = new Set<string>();
-    products.add(normalizeProductId("predictions"));
 
     const productList = data.station?.products;
     if (Array.isArray(productList)) {
@@ -460,7 +466,7 @@ async function getStationProducts(stationId: string): Promise<Set<string>> {
     return products;
   } catch (error) {
     console.warn("NOAA station product lookup failed:", error);
-    const fallback = new Set<string>([normalizeProductId("predictions")]);
+    const fallback = new Set<string>();
     stationProductsCache.set(stationId, fallback);
     return fallback;
   }
