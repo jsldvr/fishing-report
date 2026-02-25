@@ -173,4 +173,85 @@ describe("NOAA marine regression", () => {
     expect(marine?.tideEvents?.length).toBe(2);
     expect(marine?.tideEvents?.[0].type).toBe("HIGH");
   });
+
+  it("does not call unsupported NOAA waveheight product for South Padre station", async () => {
+    const southPadre: DayInputs = {
+      date: "2026-02-25",
+      lat: 26.1037,
+      lon: -97.1647,
+    };
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/mdapi/prod/webapi/stations.json")) {
+        return makeJsonResponse({
+          stations: [
+            {
+              id: "8779748",
+              name: "South Padre Island CG Station",
+              lat: 26.0731,
+              lng: -97.1675,
+              state: "TX",
+            },
+          ],
+        });
+      }
+
+      if (url.includes("/mdapi/prod/webapi/stations/8779748.json")) {
+        return makeJsonResponse({
+          station: {
+            products: [{ id: "predictions", name: "predictions" }],
+          },
+        });
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=predictions")
+      ) {
+        return makeJsonResponse({
+          predictions: [{ t: "2026-02-25 08:10", v: "0.72", type: "H" }],
+        });
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=wind")
+      ) {
+        return makeJsonResponse({
+          data: [{ t: "2026-02-25 08:00", s: "5.2", d: "130", dr: "SE" }],
+        });
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=water_temperature")
+      ) {
+        return makeJsonResponse({
+          data: [{ t: "2026-02-25 08:00", v: "21.4" }],
+        });
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { fetchNoaaMarineConditions } = await import("../src/lib/noaaMarine");
+    const marine = await fetchNoaaMarineConditions(southPadre);
+
+    expect(marine?.stationId).toBe("8779748");
+    expect(marine?.tideEvents?.length).toBe(1);
+
+    const waveheightCalls = fetchMock.mock.calls
+      .map(([url]) => String(url))
+      .filter(
+        (url) =>
+          url.includes("/api/prod/datagetter") &&
+          url.includes("product=waveheight")
+      );
+
+    expect(waveheightCalls).toHaveLength(0);
+  });
 });

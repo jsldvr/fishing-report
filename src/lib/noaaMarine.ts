@@ -52,14 +52,11 @@ export async function fetchNoaaMarineConditions(
     const supports = (productId: string) =>
       shouldAttemptProduct(station.id, productId, productInfo);
 
-    const [tideEvents, waveSample, windSample, waterTempSample] =
+    const [tideEvents, windSample, waterTempSample] =
       await Promise.all([
         supports("predictions")
           ? fetchTidePredictions(station.id, day.date)
           : Promise.resolve<TideEvent[]>([]),
-        supports("waveheight")
-          ? fetchLatestNumericSample(station.id, "waveheight", "wh")
-          : Promise.resolve<NoaaNumericSample | null>(null),
         supports("wind")
           ? fetchLatestWindSample(station.id)
           : Promise.resolve<
@@ -84,10 +81,6 @@ export async function fetchNoaaMarineConditions(
 
     if (tideEvents.length > 0) {
       marine.tideEvents = tideEvents;
-    }
-    if (waveSample) {
-      marine.waveHeight = waveSample.value;
-      marine.waveObservationTimeIso = waveSample.timeIso;
     }
     if (waterTempSample) {
       marine.waterTemperature = waterTempSample.value;
