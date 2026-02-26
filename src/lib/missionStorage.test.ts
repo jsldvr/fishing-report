@@ -63,6 +63,22 @@ describe("missionStorage", () => {
     expect(loaded.waypoints[0].name).toBe("Milton Run");
   });
 
+  it("swallows storage write errors so mission actions stay usable", () => {
+    const failingStorage = {
+      getItem: () => null,
+      setItem: () => {
+        throw new Error("Quota exceeded");
+      },
+      removeItem: () => {
+        // no-op
+      },
+    };
+
+    expect(() =>
+      saveMissionState(createDefaultMissionState(), failingStorage)
+    ).not.toThrow();
+  });
+
   it("rejects duplicate waypoint names case-insensitively", () => {
     const state = addWaypoint(createDefaultMissionState(), {
       name: "South Padre",

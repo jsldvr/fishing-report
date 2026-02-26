@@ -154,7 +154,11 @@ export function saveMissionState(
     return;
   }
 
-  storage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    storage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn("Failed to persist mission state to storage:", error);
+  }
 }
 
 export function hasDuplicateWaypointName(
