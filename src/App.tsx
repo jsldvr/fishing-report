@@ -14,9 +14,16 @@ import Icon from "./components/Icon";
 
 const APP_VERSION = (packageJson as { version: string }).version;
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 function App() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [installPromptEvent, setInstallPromptEvent] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const location = useLocation();
 
   // Initialize theme from localStorage or system preference
@@ -69,6 +76,36 @@ function App() {
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () =>
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!installPromptEvent) {
+      return;
+    }
+
+    try {
+      await installPromptEvent.prompt();
+      const choice = await installPromptEvent.userChoice;
+      if (choice.outcome === "accepted" || choice.outcome === "dismissed") {
+        setInstallPromptEvent(null);
+      }
+    } catch (error) {
+      console.error("Failed to complete app installation prompt:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br">
@@ -169,13 +206,24 @@ function App() {
 
           {/* Status Bar */}
           <div className="status-bar" id="status-bar">
-            <div className="status-indicator">
-              <span className="status-dot active"></span>
-              <span className="status-text">SYSTEM OPERATIONAL</span>
-            </div>
-            <div className="app-version" id="app-version">
-              VERSION CTRL: {APP_VERSION}
-            </div>
+          <div className="status-indicator">
+            <span className="status-dot active"></span>
+            <span className="status-text">SYSTEM OPERATIONAL</span>
+          </div>
+          {installPromptEvent && (
+            <button
+              className="btn btn-secondary text-xs px-3 py-1"
+              id="install-app-button"
+              onClick={handleInstallApp}
+              type="button"
+            >
+              <Icon name="arrowRight" className="mr-1" />
+              Install App
+            </button>
+          )}
+          <div className="app-version" id="app-version">
+            VERSION CTRL: {APP_VERSION}
+          </div>
             <div className="timestamp" id="status-timestamp">
               {new Date().toLocaleTimeString("en-US", {
                 hour12: false,
