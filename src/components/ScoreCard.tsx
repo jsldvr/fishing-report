@@ -1,4 +1,8 @@
-import type { ForecastScore, SafetyAssessment } from "../types/forecast";
+import type {
+  ForecastReliability,
+  ForecastScore,
+  SafetyAssessment,
+} from "../types/forecast";
 import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
 import MarineConditions, { hasMarineDisplayData } from "./MarineConditions";
@@ -31,6 +35,7 @@ export default function ScoreCard({
   const safety = forecast.weather.safety;
   const cardId = `forecast-card-${forecast.date.replace(/[^0-9A-Za-z]/g, "")}`;
   const hasWeatherAlerts = forecast.weather.safety.activeAlerts.length > 0;
+  const reliability = forecast.weather.reliability;
 
   const getScoreColor = (score: number) => {
     if (score >= 75) return "bg-green-100 text-green-800";
@@ -78,6 +83,32 @@ export default function ScoreCard({
     }
   };
 
+  const getConfidenceStyles = (
+    level: ForecastReliability["confidenceLevel"] | undefined
+  ) => {
+    switch (level) {
+      case "HIGH":
+        return "bg-green-100 text-green-700";
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-800";
+      case "LOW":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const formatIsoForDisplay = (iso: string | undefined) => {
+    if (!iso) {
+      return "Unknown";
+    }
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) {
+      return "Unknown";
+    }
+    return parsed.toLocaleString();
+  };
+
   return (
     <div className="card forecast-card" id={cardId} data-testid="score-card">
       <div className="forecast-card__header" id={`${cardId}-header`}>
@@ -106,6 +137,27 @@ export default function ScoreCard({
                   {forecast.weather.barometricTrend.toLowerCase()} pressure
                 </span>
               )}
+            </div>
+          )}
+          {reliability && (
+            <div
+              className="forecast-card__badges mt-2"
+              id={`${cardId}-reliability-badges`}
+            >
+              <span
+                className={`text-xs px-2 py-1 rounded font-medium ${getConfidenceStyles(
+                  reliability.confidenceLevel
+                )}`}
+                id={`${cardId}-confidence-level`}
+              >
+                Confidence: {reliability.confidenceLevel}
+              </span>
+              <span
+                className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded"
+                id={`${cardId}-confidence-score`}
+              >
+                Score {reliability.confidenceScore}/100
+              </span>
             </div>
           )}
         </div>
@@ -456,6 +508,23 @@ export default function ScoreCard({
                   </span>
                 )}
               </div>
+              {reliability && (
+                <div
+                  className="text-sm opacity-80 mb-3"
+                  id={`${cardId}-reliability`}
+                >
+                  <p id={`${cardId}-reliability-weather`}>
+                    Weather freshness: {reliability.weatherFreshness} | Last
+                    updated:{" "}
+                    {formatIsoForDisplay(reliability.weatherLastUpdatedIso)}
+                  </p>
+                  <p id={`${cardId}-reliability-marine`}>
+                    Marine status: {reliability.marineStatus} | Freshness:{" "}
+                    {reliability.marineFreshness} | Last updated:{" "}
+                    {formatIsoForDisplay(reliability.marineLastUpdatedIso)}
+                  </p>
+                </div>
+              )}
               {safety.riskFactors.length > 0 && (
                 <div className="mb-3" id={`${cardId}-safety-risks`}>
                   <h4 className="font-medium mb-1">Risk Factors:</h4>

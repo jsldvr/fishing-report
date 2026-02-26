@@ -7,6 +7,7 @@ import type {
 import { fetchWeather as fetchOpenMeteoWeather } from "./openMeteo.js";
 import { nwsWeatherService } from "./nwsWeather.js";
 import { fetchNoaaMarineConditions } from "./noaaMarine.js";
+import { buildForecastReliability } from "./forecastReliability.js";
 import { addDaysToDate } from "./time.js";
 
 /**
@@ -17,6 +18,7 @@ export async function fetchEnhancedWeather(
   day: DayInputs
 ): Promise<EnhancedWeatherData> {
   let weather: EnhancedWeatherData | null = null;
+  const marineEligible = isMarineLocation(day.lat, day.lon);
 
   // Check if location is in the US (rough bounds)
   const isUSLocation =
@@ -73,7 +75,7 @@ export async function fetchEnhancedWeather(
     }
   }
 
-  if (weather && isMarineLocation(day.lat, day.lon)) {
+  if (weather && marineEligible) {
     try {
       const marineConditions = await fetchNoaaMarineConditions(day);
       if (marineConditions) {
@@ -100,7 +102,7 @@ export async function fetchEnhancedWeather(
   }
 
   if (!weather) {
-    return {
+    const fallback: EnhancedWeatherData = {
       tempC: 20.0,
       windKph: 10.0,
       precipMm: 0.0,
@@ -115,9 +117,20 @@ export async function fetchEnhancedWeather(
       barometricTrend: "STEADY",
       source: "OPEN_METEO",
     };
+    return {
+      ...fallback,
+      reliability: buildForecastReliability(fallback, {
+        isMarineEligible: marineEligible,
+      }),
+    };
   }
 
-  return weather;
+  return {
+    ...weather,
+    reliability: buildForecastReliability(weather, {
+      isMarineEligible: marineEligible,
+    }),
+  };
 }
 
 /**
