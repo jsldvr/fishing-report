@@ -24,14 +24,24 @@ vi.mock("react-router-dom", async () => {
 
 vi.mock("../components/LocationInput", () => ({
   default: ({ onLocationChange }: { onLocationChange: (lat: number, lon: number, name?: string) => void }) => (
-    <button
-      className="btn"
-      id="mock-set-location"
-      type="button"
-      onClick={() => onLocationChange(42.7754, -88.939, "Milton, Wisconsin")}
-    >
-      Set Milton Location
-    </button>
+    <>
+      <button
+        className="btn"
+        id="mock-set-location"
+        type="button"
+        onClick={() => onLocationChange(42.7754, -88.939, "Milton, Wisconsin")}
+      >
+        Set Milton Location
+      </button>
+      <button
+        className="btn"
+        id="mock-set-zero-location"
+        type="button"
+        onClick={() => onLocationChange(0, 0, "Null Island")}
+      >
+        Set Zero Location
+      </button>
+    </>
   ),
 }));
 
@@ -118,5 +128,25 @@ describe("Home", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Rerun" }));
     expect(navigateMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("treats 0,0 coordinates as valid for save and mission run", () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Set Zero Location" }));
+    fireEvent.click(screen.getByRole("button", { name: "Set Mission Date" }));
+
+    fireEvent.change(screen.getByLabelText("Waypoint name"), {
+      target: { value: "Zero Point" },
+    });
+
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Execute Mission Brief" })
+    ).toBeEnabled();
   });
 });

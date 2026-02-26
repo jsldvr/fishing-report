@@ -198,10 +198,13 @@ export default function Home() {
 
   const hasWaypointName = waypointNameDraft.trim().length > 0;
 
-  const isValid =
-    location.lat && location.lon && dateRange.startDate && dateRange.days > 0;
+  const hasLocationCoordinates =
+    Number.isFinite(location.lat) && Number.isFinite(location.lon);
 
-  const canSaveWaypoint = Boolean(location.lat && location.lon && hasWaypointName);
+  const isValid =
+    hasLocationCoordinates && Boolean(dateRange.startDate) && dateRange.days > 0;
+
+  const canSaveWaypoint = hasLocationCoordinates && hasWaypointName;
 
   const selectedLocationLabel =
     waypointNameDraft.trim() || location.name || `${location.lat}, ${location.lon}`;
