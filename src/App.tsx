@@ -96,10 +96,14 @@ function App() {
       return;
     }
 
-    await installPromptEvent.prompt();
-    const choice = await installPromptEvent.userChoice;
-    if (choice.outcome === "accepted" || choice.outcome === "dismissed") {
-      setInstallPromptEvent(null);
+    try {
+      await installPromptEvent.prompt();
+      const choice = await installPromptEvent.userChoice;
+      if (choice.outcome === "accepted" || choice.outcome === "dismissed") {
+        setInstallPromptEvent(null);
+      }
+    } catch (error) {
+      console.error("Failed to complete app installation prompt:", error);
     }
   };
 

@@ -9,7 +9,12 @@ export default defineConfig({
     VitePWA({
       injectRegister: "auto",
       registerType: "autoUpdate",
-      includeAssets: ["fishing.svg", "images/sharing-fishing-report.png"],
+      includeAssets: [
+        "fishing.svg",
+        "images/sharing-fishing-report.png",
+        "icons/icon-192.png",
+        "icons/icon-512.png",
+      ],
       manifest: {
         name: "Fishing Forecast",
         short_name: "FishingForecast",
@@ -19,6 +24,16 @@ export default defineConfig({
         theme_color: "#2563eb",
         background_color: "#ffffff",
         icons: [
+          {
+            src: "icons/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
           {
             src: "fishing.svg",
             sizes: "any",
@@ -30,7 +45,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
-        navigateFallback: "index.html",
+        navigateFallback: "/index.html",
         runtimeCaching: [
           {
             urlPattern: ({ request }) =>
