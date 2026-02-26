@@ -33,6 +33,7 @@ export async function fetchEnhancedWeather(
   let weather: EnhancedWeatherData | null = null;
   const marinePrefilter = evaluateMarinePrefilter(day.lat, day.lon);
   const marineEligible = marinePrefilter.eligible;
+  const shouldLogMarineDiagnostics = import.meta.env.DEV;
 
   // Check if location is in the US (rough bounds)
   const isUSLocation =
@@ -110,14 +111,16 @@ export async function fetchEnhancedWeather(
           safety: updatedSafety,
         };
       }
-      console.info("[marine] fetch outcome", {
-        lat: day.lat,
-        lon: day.lon,
-        prefilterReason: marinePrefilter.reason,
-        fetchReason: marineResult.reason,
-        stationId: marineResult.stationId,
-        stationDistanceKm: marineResult.stationDistanceKm,
-      });
+      if (shouldLogMarineDiagnostics) {
+        console.info("[marine] fetch outcome", {
+          lat: day.lat,
+          lon: day.lon,
+          prefilterReason: marinePrefilter.reason,
+          fetchReason: marineResult.reason,
+          stationId: marineResult.stationId,
+          stationDistanceKm: marineResult.stationDistanceKm,
+        });
+      }
     } catch (error) {
       console.warn("Marine conditions integration failed:", error);
     }
@@ -125,13 +128,17 @@ export async function fetchEnhancedWeather(
     const fetchReason: MarineFetchReason = marineEligible
       ? "API_ERROR"
       : "PREFILTER_REJECTED";
-    console.info("[marine] fetch skipped", {
-      lat: day.lat,
-      lon: day.lon,
-      prefilterReason: marinePrefilter.reason,
-      fetchReason,
-    });
+    if (shouldLogMarineDiagnostics) {
+      console.info("[marine] fetch skipped", {
+        lat: day.lat,
+        lon: day.lon,
+        prefilterReason: marinePrefilter.reason,
+        fetchReason,
+      });
+    }
   }
+
+  const reliabilityTimestampIso = new Date().toISOString();
 
   if (!weather) {
     const fallback: EnhancedWeatherData = {
@@ -153,6 +160,8 @@ export async function fetchEnhancedWeather(
       ...fallback,
       reliability: buildForecastReliability(fallback, {
         isMarineEligible: marineEligible,
+        nowIso: reliabilityTimestampIso,
+        weatherLastUpdatedIso: reliabilityTimestampIso,
       }),
     };
   }
@@ -161,6 +170,8 @@ export async function fetchEnhancedWeather(
     ...weather,
     reliability: buildForecastReliability(weather, {
       isMarineEligible: marineEligible,
+      nowIso: reliabilityTimestampIso,
+      weatherLastUpdatedIso: reliabilityTimestampIso,
     }),
   };
 }

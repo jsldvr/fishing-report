@@ -87,11 +87,7 @@ export function buildForecastReliability(
 function selectMarineTimestamp(
   marine: NonNullable<EnhancedWeatherData["marine"]>
 ): string | undefined {
-  return (
-    marine.observationTimeIso ??
-    marine.waveObservationTimeIso ??
-    marine.tideEvents?.[0]?.timeIso
-  );
+  return marine.observationTimeIso ?? marine.waveObservationTimeIso;
 }
 
 function applyFreshnessPenalty(

@@ -103,4 +103,30 @@ describe("buildForecastReliability", () => {
     expect(reliability.marineStatus).toBe("AVAILABLE");
     expect(reliability.marineFreshness).toBe("FRESH");
   });
+
+  it("does not use tide prediction time as marine last-updated timestamp", () => {
+    const weather = {
+      ...makeBaseWeather(),
+      marine: {
+        tideEvents: [
+          {
+            type: "HIGH" as const,
+            timeIso: "2026-02-25T18:00:00Z",
+            heightMeters: 1.1,
+          },
+        ],
+      },
+    };
+
+    const reliability = buildForecastReliability(weather, {
+      isMarineEligible: true,
+      nowIso: "2026-02-25T12:00:00Z",
+      weatherLastUpdatedIso: "2026-02-25T10:00:00Z",
+    });
+
+    expect(reliability.marineStatus).toBe("AVAILABLE");
+    expect(reliability.marineLastUpdatedIso).toBeUndefined();
+    expect(reliability.marineFreshness).toBe("UNKNOWN");
+    expect(reliability.reasons).toContain("marine freshness is unknown");
+  });
 });
