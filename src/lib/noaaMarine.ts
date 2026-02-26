@@ -37,6 +37,22 @@ const DATAGETTER_PRODUCTS = new Set<string>([
 
 const stationProductsCache = new Map<string, Set<string>>();
 
+export type MarineFetchReason =
+  | "DATA_AVAILABLE"
+  | "STATION_METADATA_ONLY"
+  | "NO_STATION_FOUND"
+  | "STATION_TOO_FAR"
+  | "NO_SUPPORTED_PRODUCTS"
+  | "PREFILTER_REJECTED"
+  | "API_ERROR";
+
+export interface MarineFetchResult {
+  marine: MarineWeatherData | null;
+  reason: MarineFetchReason;
+  stationId?: string;
+  stationDistanceKm?: number;
+}
+
 /**
  * Fetch marine conditions from NOAA Tides and Currents (CO-OPS).
  * Returns null when no nearby station is available or if the API fails.
@@ -44,18 +60,46 @@ const stationProductsCache = new Map<string, Set<string>>();
 export async function fetchNoaaMarineConditions(
   day: DayInputs
 ): Promise<MarineWeatherData | null> {
+  const result = await fetchNoaaMarineConditionsWithMeta(day);
+  return result.marine;
+}
+
+export async function fetchNoaaMarineConditionsWithMeta(
+  day: DayInputs
+): Promise<MarineFetchResult> {
   try {
     const station = await findNearestStation(day.lat, day.lon);
     if (!station) {
-      return null;
+      return {
+        marine: null,
+        reason: "NO_STATION_FOUND",
+      };
     }
     if (station.distanceKm > MAX_MARINE_STATION_DISTANCE_KM) {
-      return null;
+      return {
+        marine: null,
+        reason: "STATION_TOO_FAR",
+        stationId: station.id,
+        stationDistanceKm: Math.round(station.distanceKm * 10) / 10,
+      };
     }
 
     const productInfo = await getStationProducts(station.id);
     const supports = (productId: string) =>
       shouldAttemptProduct(station.id, productId, productInfo);
+    const supportsAnyProduct =
+      supports("predictions") ||
+      supports("wind") ||
+      supports("water_temperature");
+
+    if (!supportsAnyProduct) {
+      return {
+        marine: null,
+        reason: "NO_SUPPORTED_PRODUCTS",
+        stationId: station.id,
+        stationDistanceKm: Math.round(station.distanceKm * 10) / 10,
+      };
+    }
 
     const [tideEvents, windSample, waterTempSample] =
       await Promise.all([
@@ -97,10 +141,23 @@ export async function fetchNoaaMarineConditions(
       marine.windDirectionText = windSample.directionText;
     }
 
-    return marine;
+    const hasUsableObservations =
+      tideEvents.length > 0 || Boolean(waterTempSample) || Boolean(windSample);
+
+    return {
+      marine,
+      reason: hasUsableObservations ? "DATA_AVAILABLE" : "STATION_METADATA_ONLY",
+      stationId: station.id,
+      stationDistanceKm: Number.isFinite(station.distanceKm)
+        ? Math.round(station.distanceKm * 10) / 10
+        : undefined,
+    };
   } catch (error) {
     console.warn("NOAA marine conditions unavailable:", error);
-    return null;
+    return {
+      marine: null,
+      reason: "API_ERROR",
+    };
   }
 }
 

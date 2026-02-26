@@ -320,4 +320,104 @@ describe("NOAA marine regression", () => {
 
     expect(marine?.tideEvents?.length).toBe(1);
   });
+
+  it("returns STATION_TOO_FAR metadata for inland location", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/mdapi/prod/webapi/stations.json")) {
+        return makeJsonResponse({
+          stations: [
+            {
+              id: "9087057",
+              name: "Milwaukee",
+              lat: 43.0186,
+              lng: -87.8877,
+              state: "WI",
+            },
+          ],
+        });
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { fetchNoaaMarineConditionsWithMeta } = await import(
+      "../src/lib/noaaMarine"
+    );
+    const result = await fetchNoaaMarineConditionsWithMeta(milton);
+
+    expect(result.marine).toBeNull();
+    expect(result.reason).toBe("STATION_TOO_FAR");
+    expect(result.stationDistanceKm).toBeGreaterThan(50);
+  });
+
+  it("returns STATION_METADATA_ONLY when station catalog is inconclusive and no observations are returned", async () => {
+    const southPadre: DayInputs = {
+      date: "2026-02-25",
+      lat: 26.1037,
+      lon: -97.1647,
+    };
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/mdapi/prod/webapi/stations.json")) {
+        return makeJsonResponse({
+          stations: [
+            {
+              id: "8779748",
+              name: "South Padre Island CG Station",
+              lat: 26.0731,
+              lng: -97.1675,
+              state: "TX",
+            },
+          ],
+        });
+      }
+
+      if (url.includes("/mdapi/prod/webapi/stations/8779748.json")) {
+        return makeJsonResponse({
+          station: {
+            products: [{ id: "air_gap", name: "Air Gap" }],
+          },
+        });
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=predictions")
+      ) {
+        return makeJsonResponse({ error: { message: "not supported" } }, 400);
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=wind")
+      ) {
+        return makeJsonResponse({ error: { message: "not supported" } }, 400);
+      }
+
+      if (
+        url.includes("/api/prod/datagetter") &&
+        url.includes("product=water_temperature")
+      ) {
+        return makeJsonResponse({ error: { message: "not supported" } }, 400);
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { fetchNoaaMarineConditionsWithMeta } = await import(
+      "../src/lib/noaaMarine"
+    );
+    const result = await fetchNoaaMarineConditionsWithMeta(southPadre);
+
+    expect(result.marine).not.toBeNull();
+    expect(result.reason).toBe("STATION_METADATA_ONLY");
+  });
 });
