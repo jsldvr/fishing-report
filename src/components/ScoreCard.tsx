@@ -109,6 +109,47 @@ export default function ScoreCard({
     return parsed.toLocaleString();
   };
 
+  const formatRelativeAge = (iso: string | undefined) => {
+    if (!iso) {
+      return "Unknown";
+    }
+
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) {
+      return "Unknown";
+    }
+
+    const diffMs = Date.now() - parsed.getTime();
+    const isFuture = diffMs < 0;
+    const absMs = Math.abs(diffMs);
+    const minutes = Math.floor(absMs / 60000);
+    const hours = Math.floor(absMs / 3600000);
+    const days = Math.floor(absMs / 86400000);
+
+    if (minutes < 1) {
+      return isFuture ? "in less than a minute" : "just now";
+    }
+
+    if (minutes < 60) {
+      return isFuture
+        ? `in ${minutes} min`
+        : `${minutes} min ago`;
+    }
+
+    if (hours < 24) {
+      return isFuture ? `in ${hours} hr` : `${hours} hr ago`;
+    }
+
+    return isFuture ? `in ${days} day${days === 1 ? "" : "s"}` : `${days} day${days === 1 ? "" : "s"} ago`;
+  };
+
+  const formatLastUpdated = (iso: string | undefined) => {
+    if (!iso) {
+      return "Unknown";
+    }
+    return `${formatRelativeAge(iso)} @ ${formatIsoForDisplay(iso)}`;
+  };
+
   return (
     <div className="card forecast-card" id={cardId} data-testid="score-card">
       <div className="forecast-card__header" id={`${cardId}-header`}>
@@ -517,18 +558,21 @@ export default function ScoreCard({
                     className="forecast-card__reliability-item"
                     id={`${cardId}-reliability-weather`}
                   >
-                    Weather freshness: {reliability.weatherFreshness} | Last
-                    updated:{" "}
-                    {formatIsoForDisplay(reliability.weatherLastUpdatedIso)}
+                    Weather last updated:{" "}
+                    {formatLastUpdated(reliability.weatherLastUpdatedIso)}
                   </p>
                   {reliability.marineStatus !== "NOT_APPLICABLE" && (
                     <p
                       className="forecast-card__reliability-item"
                       id={`${cardId}-reliability-marine`}
                     >
-                      Marine status: {reliability.marineStatus} | Freshness:{" "}
-                      {reliability.marineFreshness} | Last updated:{" "}
-                      {formatIsoForDisplay(reliability.marineLastUpdatedIso)}
+                      {reliability.marineStatus === "AVAILABLE"
+                        ? `Marine last updated: ${formatLastUpdated(
+                            reliability.marineLastUpdatedIso
+                          )}`
+                        : `Marine status: ${reliability.marineStatus} | Last updated: ${formatLastUpdated(
+                            reliability.marineLastUpdatedIso
+                          )}`}
                     </p>
                   )}
                 </div>

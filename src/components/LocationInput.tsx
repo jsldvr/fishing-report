@@ -6,16 +6,20 @@ interface LocationInputProps {
   onLocationChange: (lat: number, lon: number, name?: string) => void;
   initialLat?: number;
   initialLon?: number;
+  initialName?: string;
+  prefillToken?: number;
 }
 
 export default function LocationInput({
   onLocationChange,
   initialLat = 40.7128,
   initialLon = -74.006,
+  initialName = "",
+  prefillToken = 0,
 }: LocationInputProps) {
   const [lat, setLat] = useState(initialLat.toString());
   const [lon, setLon] = useState(initialLon.toString());
-  const [locationName, setLocationName] = useState("");
+  const [locationName, setLocationName] = useState(initialName);
   const [isValid, setIsValid] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
@@ -33,6 +37,12 @@ export default function LocationInput({
       onLocationChange(latNum, lonNum, locationName || undefined);
     }
   }, [lat, lon, locationName, onLocationChange]);
+
+  useEffect(() => {
+    setLat(initialLat.toString());
+    setLon(initialLon.toString());
+    setLocationName(initialName);
+  }, [initialLat, initialLon, initialName, prefillToken]);
 
   const handleGeocodeLocation = async () => {
     if (!locationName.trim()) return;

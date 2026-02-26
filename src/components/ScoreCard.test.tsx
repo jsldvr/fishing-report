@@ -134,13 +134,15 @@ describe("ScoreCard", () => {
     expect(screen.queryByTestId("weather-alerts")).not.toBeInTheDocument();
   });
 
-  it("renders confidence and freshness metadata", () => {
+  it("renders confidence and recency metadata", () => {
     render(<ScoreCard forecast={mockForecastWithMarine} lat={40} lon={-74} />);
 
     expect(screen.getByText("Confidence: HIGH")).toBeInTheDocument();
     expect(screen.getByText("Score 92/100")).toBeInTheDocument();
-    expect(screen.getByText(/Weather freshness:/)).toBeInTheDocument();
-    expect(screen.getByText(/Marine status:/)).toBeInTheDocument();
+    expect(screen.getByText(/Weather last updated:/)).toBeInTheDocument();
+    expect(screen.getByText(/Marine last updated:/)).toBeInTheDocument();
+    expect(screen.queryByText(/Marine status: AVAILABLE/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/freshness/i)).not.toBeInTheDocument();
   });
 
   it("renders reliability safely when marine data is absent", () => {
@@ -163,6 +165,7 @@ describe("ScoreCard", () => {
     render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
     expect(screen.getByText("Confidence: MEDIUM")).toBeInTheDocument();
     expect(screen.getByText(/Marine status: UNAVAILABLE/)).toBeInTheDocument();
+    expect(screen.queryByText(/freshness/i)).not.toBeInTheDocument();
   });
 });
 
