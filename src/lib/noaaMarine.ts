@@ -28,8 +28,30 @@ interface NoaaNumericSample {
 }
 
 const BOUNDING_BOX_DELTAS = [0.3, 0.6, 1.0, 1.5, 2.5];
+const MAX_MARINE_STATION_DISTANCE_KM = 50;
+const DATAGETTER_PRODUCTS = new Set<string>([
+  "predictions",
+  "wind",
+  "water_temperature",
+]);
 
 const stationProductsCache = new Map<string, Set<string>>();
+
+export type MarineFetchReason =
+  | "DATA_AVAILABLE"
+  | "STATION_METADATA_ONLY"
+  | "NO_STATION_FOUND"
+  | "STATION_TOO_FAR"
+  | "NO_SUPPORTED_PRODUCTS"
+  | "PREFILTER_REJECTED"
+  | "API_ERROR";
+
+export interface MarineFetchResult {
+  marine: MarineWeatherData | null;
+  reason: MarineFetchReason;
+  stationId?: string;
+  stationDistanceKm?: number;
+}
 
 /**
  * Fetch marine conditions from NOAA Tides and Currents (CO-OPS).
@@ -38,24 +60,52 @@ const stationProductsCache = new Map<string, Set<string>>();
 export async function fetchNoaaMarineConditions(
   day: DayInputs
 ): Promise<MarineWeatherData | null> {
+  const result = await fetchNoaaMarineConditionsWithMeta(day);
+  return result.marine;
+}
+
+export async function fetchNoaaMarineConditionsWithMeta(
+  day: DayInputs
+): Promise<MarineFetchResult> {
   try {
     const station = await findNearestStation(day.lat, day.lon);
     if (!station) {
-      return null;
+      return {
+        marine: null,
+        reason: "NO_STATION_FOUND",
+      };
+    }
+    if (station.distanceKm > MAX_MARINE_STATION_DISTANCE_KM) {
+      return {
+        marine: null,
+        reason: "STATION_TOO_FAR",
+        stationId: station.id,
+        stationDistanceKm: Math.round(station.distanceKm * 10) / 10,
+      };
     }
 
     const productInfo = await getStationProducts(station.id);
     const supports = (productId: string) =>
       shouldAttemptProduct(station.id, productId, productInfo);
+    const supportsAnyProduct =
+      supports("predictions") ||
+      supports("wind") ||
+      supports("water_temperature");
 
-    const [tideEvents, waveSample, windSample, waterTempSample] =
+    if (!supportsAnyProduct) {
+      return {
+        marine: null,
+        reason: "NO_SUPPORTED_PRODUCTS",
+        stationId: station.id,
+        stationDistanceKm: Math.round(station.distanceKm * 10) / 10,
+      };
+    }
+
+    const [tideEvents, windSample, waterTempSample] =
       await Promise.all([
         supports("predictions")
           ? fetchTidePredictions(station.id, day.date)
           : Promise.resolve<TideEvent[]>([]),
-        supports("waveheight")
-          ? fetchLatestNumericSample(station.id, "waveheight", "wh")
-          : Promise.resolve<NoaaNumericSample | null>(null),
         supports("wind")
           ? fetchLatestWindSample(station.id)
           : Promise.resolve<
@@ -81,10 +131,6 @@ export async function fetchNoaaMarineConditions(
     if (tideEvents.length > 0) {
       marine.tideEvents = tideEvents;
     }
-    if (waveSample) {
-      marine.waveHeight = waveSample.value;
-      marine.waveObservationTimeIso = waveSample.timeIso;
-    }
     if (waterTempSample) {
       marine.waterTemperature = waterTempSample.value;
       marine.observationTimeIso = waterTempSample.timeIso;
@@ -95,10 +141,23 @@ export async function fetchNoaaMarineConditions(
       marine.windDirectionText = windSample.directionText;
     }
 
-    return marine;
+    const hasUsableObservations =
+      tideEvents.length > 0 || Boolean(waterTempSample) || Boolean(windSample);
+
+    return {
+      marine,
+      reason: hasUsableObservations ? "DATA_AVAILABLE" : "STATION_METADATA_ONLY",
+      stationId: station.id,
+      stationDistanceKm: Number.isFinite(station.distanceKm)
+        ? Math.round(station.distanceKm * 10) / 10
+        : undefined,
+    };
   } catch (error) {
     console.warn("NOAA marine conditions unavailable:", error);
-    return null;
+    return {
+      marine: null,
+      reason: "API_ERROR",
+    };
   }
 }
 
@@ -201,6 +260,9 @@ async function fetchTidePredictions(
 
     const response = await fetch(url.toString());
     if (!response.ok) {
+      if (response.status === 400 || response.status === 404) {
+        markProductUnsupported(stationId, "predictions");
+      }
       return [];
     }
 
@@ -429,7 +491,7 @@ async function getStationProducts(stationId: string): Promise<Set<string>> {
 
     const response = await fetch(url.toString());
     if (!response.ok) {
-      const fallback = new Set<string>([normalizeProductId("predictions")]);
+      const fallback = new Set<string>();
       stationProductsCache.set(stationId, fallback);
       return fallback;
     }
@@ -444,7 +506,6 @@ async function getStationProducts(stationId: string): Promise<Set<string>> {
     };
 
     const products = new Set<string>();
-    products.add(normalizeProductId("predictions"));
 
     const productList = data.station?.products;
     if (Array.isArray(productList)) {
@@ -460,7 +521,7 @@ async function getStationProducts(stationId: string): Promise<Set<string>> {
     return products;
   } catch (error) {
     console.warn("NOAA station product lookup failed:", error);
-    const fallback = new Set<string>([normalizeProductId("predictions")]);
+    const fallback = new Set<string>();
     stationProductsCache.set(stationId, fallback);
     return fallback;
   }
@@ -509,14 +570,31 @@ function shouldAttemptProduct(
     return true;
   }
 
-  // If metadata is inconclusive, attempt once and rely on runtime errors
-  // to mark the product unsupported.
-  return knownProducts.size === 0;
+  if (knownProducts.size === 0) {
+    return true;
+  }
+
+  // Station metadata is not a strict datagetter schema; if no recognized
+  // datagetter ids are present, treat it as inconclusive and attempt once.
+  const hasRecognizedDatagetterProduct = [...knownProducts].some((known) =>
+    DATAGETTER_PRODUCTS.has(known)
+  );
+  if (!hasRecognizedDatagetterProduct) {
+    return true;
+  }
+
+  return false;
 }
 
 function normalizeProductId(raw: string): string {
-  return raw
+  const normalized = raw
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+
+  if (normalized === "tide_predictions" || normalized === "high_low") {
+    return "predictions";
+  }
+
+  return normalized;
 }

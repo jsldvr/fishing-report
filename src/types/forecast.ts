@@ -99,6 +99,21 @@ export interface MarineWeatherData {
   windDirectionText?: string;
 }
 
+export type ForecastConfidenceLevel = "HIGH" | "MEDIUM" | "LOW";
+export type FreshnessLevel = "FRESH" | "AGING" | "STALE" | "UNKNOWN";
+export type MarineDataStatus = "AVAILABLE" | "UNAVAILABLE" | "NOT_APPLICABLE";
+
+export interface ForecastReliability {
+  confidenceLevel: ForecastConfidenceLevel;
+  confidenceScore: number; // 0..100
+  reasons: string[];
+  weatherFreshness: FreshnessLevel;
+  marineFreshness: FreshnessLevel;
+  marineStatus: MarineDataStatus;
+  weatherLastUpdatedIso?: string;
+  marineLastUpdatedIso?: string;
+}
+
 export interface SafetyAssessment {
   rating: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "DANGEROUS";
   activeAlerts: NWSAlert[];
@@ -112,6 +127,7 @@ export interface EnhancedWeatherData extends WeatherData {
   safety: SafetyAssessment;
   barometricTrend: "RISING" | "FALLING" | "STEADY";
   source: "NWS" | "OPEN_METEO" | "FUSED";
+  reliability?: ForecastReliability;
   localOffice?: LocalWeatherOfficeInfo;
 }
 

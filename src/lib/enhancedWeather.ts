@@ -6,8 +6,22 @@ import type {
 } from "../types/forecast.js";
 import { fetchWeather as fetchOpenMeteoWeather } from "./openMeteo.js";
 import { nwsWeatherService } from "./nwsWeather.js";
-import { fetchNoaaMarineConditions } from "./noaaMarine.js";
+import {
+  fetchNoaaMarineConditionsWithMeta,
+  type MarineFetchReason,
+} from "./noaaMarine.js";
+import { buildForecastReliability } from "./forecastReliability.js";
 import { addDaysToDate } from "./time.js";
+
+export type MarinePrefilterReason =
+  | "OUTSIDE_OPERATIONAL_BOUNDS"
+  | "REGION_MATCH"
+  | "NO_REGION_MATCH";
+
+interface MarinePrefilterResult {
+  eligible: boolean;
+  reason: MarinePrefilterReason;
+}
 
 /**
  * Enhanced weather fetcher that prioritizes NWS for US locations
@@ -17,6 +31,9 @@ export async function fetchEnhancedWeather(
   day: DayInputs
 ): Promise<EnhancedWeatherData> {
   let weather: EnhancedWeatherData | null = null;
+  const marinePrefilter = evaluateMarinePrefilter(day.lat, day.lon);
+  const marineEligible = marinePrefilter.eligible;
+  const shouldLogMarineDiagnostics = import.meta.env.DEV;
 
   // Check if location is in the US (rough bounds)
   const isUSLocation =
@@ -73,13 +90,13 @@ export async function fetchEnhancedWeather(
     }
   }
 
-  if (weather && isMarineLocation(day.lat, day.lon)) {
+  if (weather && marineEligible) {
     try {
-      const marineConditions = await fetchNoaaMarineConditions(day);
-      if (marineConditions) {
+      const marineResult = await fetchNoaaMarineConditionsWithMeta(day);
+      if (marineResult.marine) {
         const mergedMarine = {
           ...weather.marine,
-          ...marineConditions,
+          ...marineResult.marine,
         };
 
         const updatedSafety = adjustSafetyWithMarine(
@@ -94,13 +111,37 @@ export async function fetchEnhancedWeather(
           safety: updatedSafety,
         };
       }
+      if (shouldLogMarineDiagnostics) {
+        console.info("[marine] fetch outcome", {
+          lat: day.lat,
+          lon: day.lon,
+          prefilterReason: marinePrefilter.reason,
+          fetchReason: marineResult.reason,
+          stationId: marineResult.stationId,
+          stationDistanceKm: marineResult.stationDistanceKm,
+        });
+      }
     } catch (error) {
       console.warn("Marine conditions integration failed:", error);
     }
+  } else {
+    const fetchReason: MarineFetchReason = marineEligible
+      ? "API_ERROR"
+      : "PREFILTER_REJECTED";
+    if (shouldLogMarineDiagnostics) {
+      console.info("[marine] fetch skipped", {
+        lat: day.lat,
+        lon: day.lon,
+        prefilterReason: marinePrefilter.reason,
+        fetchReason,
+      });
+    }
   }
 
+  const reliabilityTimestampIso = new Date().toISOString();
+
   if (!weather) {
-    return {
+    const fallback: EnhancedWeatherData = {
       tempC: 20.0,
       windKph: 10.0,
       precipMm: 0.0,
@@ -115,25 +156,63 @@ export async function fetchEnhancedWeather(
       barometricTrend: "STEADY",
       source: "OPEN_METEO",
     };
+    return {
+      ...fallback,
+      reliability: buildForecastReliability(fallback, {
+        isMarineEligible: marineEligible,
+        nowIso: reliabilityTimestampIso,
+        weatherLastUpdatedIso: reliabilityTimestampIso,
+      }),
+    };
   }
 
-  return weather;
+  return {
+    ...weather,
+    reliability: buildForecastReliability(weather, {
+      isMarineEligible: marineEligible,
+      nowIso: reliabilityTimestampIso,
+      weatherLastUpdatedIso: reliabilityTimestampIso,
+    }),
+  };
 }
 
 /**
  * Determine if location has marine weather data available
  */
 export function isMarineLocation(lat: number, lon: number): boolean {
-  // Simple heuristic - coastal areas within 50km of major water bodies
-  // This could be enhanced with a proper coastline database
+  return evaluateMarinePrefilter(lat, lon).eligible;
+}
 
-  // US coastal regions
-  const isEastCoast = lon > -85 && lat > 24 && lat < 45;
-  const isWestCoast = lon < -115 && lat > 32 && lat < 49;
-  const isGulfCoast = lat > 25 && lat < 31 && lon > -98 && lon < -80;
-  const isGreatLakes = lat > 40 && lat < 49 && lon > -93 && lon < -76;
+export function evaluateMarinePrefilter(
+  lat: number,
+  lon: number
+): MarinePrefilterResult {
+  const inOperationalBounds = lat >= 14 && lat <= 83 && lon >= -180 && lon <= -50;
+  if (!inOperationalBounds) {
+    return { eligible: false, reason: "OUTSIDE_OPERATIONAL_BOUNDS" };
+  }
 
-  return isEastCoast || isWestCoast || isGulfCoast || isGreatLakes;
+  const regions = [
+    { minLat: 24, maxLat: 45, minLon: -85, maxLon: -50 }, // East coast
+    { minLat: 32, maxLat: 49, minLon: -180, maxLon: -115 }, // West coast
+    { minLat: 25, maxLat: 31, minLon: -98, maxLon: -80 }, // Gulf coast
+    { minLat: 18, maxLat: 23, minLon: -161, maxLon: -154 }, // Hawaii
+    { minLat: 40, maxLat: 49, minLon: -93, maxLon: -76 }, // Great Lakes
+  ];
+
+  const regionMatch = regions.some(
+    (region) =>
+      lat > region.minLat &&
+      lat < region.maxLat &&
+      lon > region.minLon &&
+      lon < region.maxLon
+  );
+
+  if (regionMatch) {
+    return { eligible: true, reason: "REGION_MATCH" };
+  }
+
+  return { eligible: false, reason: "NO_REGION_MATCH" };
 }
 
 /**

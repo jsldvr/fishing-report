@@ -29,6 +29,16 @@ const mockForecastWithMarine: ForecastScore = {
     },
     barometricTrend: "STEADY",
     source: "NWS",
+    reliability: {
+      confidenceLevel: "HIGH",
+      confidenceScore: 92,
+      reasons: ["Primary data sources are fresh and complete"],
+      weatherFreshness: "FRESH",
+      marineFreshness: "FRESH",
+      marineStatus: "AVAILABLE",
+      weatherLastUpdatedIso: "2026-02-25T12:00:00Z",
+      marineLastUpdatedIso: "2026-02-25T11:30:00Z",
+    },
   },
   almanac: {},
   biteScore0100: 0.8,
@@ -122,6 +132,40 @@ describe("ScoreCard", () => {
     );
 
     expect(screen.queryByTestId("weather-alerts")).not.toBeInTheDocument();
+  });
+
+  it("renders confidence and recency metadata", () => {
+    render(<ScoreCard forecast={mockForecastWithMarine} lat={40} lon={-74} />);
+
+    expect(screen.getByText("Confidence: HIGH")).toBeInTheDocument();
+    expect(screen.getByText("Score 92/100")).toBeInTheDocument();
+    expect(screen.getByText(/Weather last updated:/)).toBeInTheDocument();
+    expect(screen.getByText(/Marine last updated:/)).toBeInTheDocument();
+    expect(screen.queryByText(/Marine status: AVAILABLE/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/freshness/i)).not.toBeInTheDocument();
+  });
+
+  it("renders reliability safely when marine data is absent", () => {
+    const forecast = {
+      ...mockForecastWithoutMarine,
+      weather: {
+        ...mockForecastWithoutMarine.weather,
+        reliability: {
+          confidenceLevel: "MEDIUM" as const,
+          confidenceScore: 65,
+          reasons: ["Marine-eligible location missing marine observations"],
+          weatherFreshness: "FRESH" as const,
+          marineFreshness: "UNKNOWN" as const,
+          marineStatus: "UNAVAILABLE" as const,
+          weatherLastUpdatedIso: "2026-02-25T12:00:00Z",
+        },
+      },
+    };
+
+    render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
+    expect(screen.getByText("Confidence: MEDIUM")).toBeInTheDocument();
+    expect(screen.getByText(/Marine status: UNAVAILABLE/)).toBeInTheDocument();
+    expect(screen.queryByText(/freshness/i)).not.toBeInTheDocument();
   });
 });
 
