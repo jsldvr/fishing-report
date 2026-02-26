@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LocationInput from "../components/LocationInput";
 import DateRangePicker from "../components/DateRangePicker";
@@ -38,14 +38,14 @@ export default function Home() {
 
   const updateMissionState = useCallback(
     (updater: (state: MissionState) => MissionState) => {
-      setMissionState((previous) => {
-        const next = updater(previous);
-        saveMissionState(next);
-        return next;
-      });
+      setMissionState((previous) => updater(previous));
     },
     []
   );
+
+  useEffect(() => {
+    saveMissionState(missionState);
+  }, [missionState]);
 
   const handleLocationChange = useCallback(
     (lat: number, lon: number, name?: string) => {

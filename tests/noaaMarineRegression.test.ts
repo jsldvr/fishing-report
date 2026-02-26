@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DayInputs } from "../src/types/forecast";
 
 function makeJsonResponse(body: unknown, status = 200): Response {
@@ -19,6 +19,10 @@ describe("NOAA marine regression", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("skips marine data for inland locations when nearest station is too far", async () => {
