@@ -1462,7 +1462,7 @@ div#wx-outlook-controls {
 }
 
 .forecast-card__section--divider {
-  padding-top: 1.5rem;
+  padding-top: 1.15rem;
   border-top: 1px solid var(--border-primary);
 }
 
@@ -1493,6 +1493,10 @@ div#wx-outlook-controls {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+.forecast-card__info-list p {
+  margin: 0;
 }
 
 .forecast-card__metric {
@@ -1565,6 +1569,22 @@ div#wx-outlook-controls {
   color: var(--text-secondary);
 }
 
+.forecast-card__reliability {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-secondary);
+}
+
+.forecast-card__reliability-item {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
 .forecast-card .marine-conditions {
   margin-top: 0;
   padding-top: 0;
@@ -1591,6 +1611,10 @@ div#wx-outlook-controls {
 
 [data-theme="dark"] .forecast-card__callout {
   background: rgba(55, 65, 81, 0.45);
+}
+
+[data-theme="dark"] .forecast-card__reliability {
+  background: rgba(71, 85, 105, 0.25);
 }
 
 @media (max-width: 640px) {

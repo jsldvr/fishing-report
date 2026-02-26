@@ -477,7 +477,7 @@ export default function ScoreCard({
             id={`${cardId}-safety`}
           >
             <div
-              className={`rounded-lg border-2 ${getSafetyStyles(
+              className={`forecast-card__safety-panel rounded-lg border-2 ${getSafetyStyles(
                 safety.rating
               )}`}
               id={`${cardId}-safety-panel`}
@@ -510,19 +510,27 @@ export default function ScoreCard({
               </div>
               {reliability && (
                 <div
-                  className="text-sm opacity-80 mb-3"
+                  className="forecast-card__reliability"
                   id={`${cardId}-reliability`}
                 >
-                  <p id={`${cardId}-reliability-weather`}>
+                  <p
+                    className="forecast-card__reliability-item"
+                    id={`${cardId}-reliability-weather`}
+                  >
                     Weather freshness: {reliability.weatherFreshness} | Last
                     updated:{" "}
                     {formatIsoForDisplay(reliability.weatherLastUpdatedIso)}
                   </p>
-                  <p id={`${cardId}-reliability-marine`}>
-                    Marine status: {reliability.marineStatus} | Freshness:{" "}
-                    {reliability.marineFreshness} | Last updated:{" "}
-                    {formatIsoForDisplay(reliability.marineLastUpdatedIso)}
-                  </p>
+                  {reliability.marineStatus !== "NOT_APPLICABLE" && (
+                    <p
+                      className="forecast-card__reliability-item"
+                      id={`${cardId}-reliability-marine`}
+                    >
+                      Marine status: {reliability.marineStatus} | Freshness:{" "}
+                      {reliability.marineFreshness} | Last updated:{" "}
+                      {formatIsoForDisplay(reliability.marineLastUpdatedIso)}
+                    </p>
+                  )}
                 </div>
               )}
               {safety.riskFactors.length > 0 && (
