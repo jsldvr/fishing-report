@@ -4,6 +4,12 @@ import type { ForecastScore, DayInputs } from "../types/forecast";
 import { fetchEnhancedWeather } from "../lib/enhancedWeather";
 import { forecastForDay } from "../lib/forecast";
 import {
+  buildForecastCacheKey,
+  getOfflineForecastCache,
+  isCacheStale,
+  saveOfflineForecastCache,
+} from "../lib/offlineForecastCache";
+import {
   addDaysToDate,
   validateNorthAmericaCoords,
   getAstronomicalTimes,
@@ -23,6 +29,14 @@ export default function Results() {
   const [error, setError] = useState<string | null>(null);
   const [useFahrenheit, setUseFahrenheit] = useState(true);
   const [useMph, setUseMph] = useState(true);
+  const [isOffline, setIsOffline] = useState(
+    typeof navigator !== "undefined" ? !navigator.onLine : false
+  );
+  const [usedCachedData, setUsedCachedData] = useState(false);
+  const [cachedLastUpdatedIso, setCachedLastUpdatedIso] = useState<
+    string | null
+  >(null);
+  const [isCachedDataStale, setIsCachedDataStale] = useState(false);
 
   // Parse URL parameters
   const lat = parseFloat(searchParams.get("lat") || "0");
@@ -30,10 +44,41 @@ export default function Results() {
   const startDate = searchParams.get("startDate") || "";
   const days = parseInt(searchParams.get("days") || "0", 10);
   const locationName = searchParams.get("name") || "";
+  const cacheKey = buildForecastCacheKey({
+    lat,
+    lon,
+    startDate,
+    days,
+  });
+
+  const formatCacheTimestamp = (iso: string | null) => {
+    if (!iso) {
+      return "Unknown";
+    }
+
+    const timestamp = new Date(iso);
+    if (Number.isNaN(timestamp.getTime())) {
+      return "Unknown";
+    }
+
+    const diffMs = Date.now() - timestamp.getTime();
+    const minutes = Math.max(0, Math.floor(diffMs / 60000));
+    const relative =
+      minutes < 1
+        ? "just now"
+        : minutes < 60
+        ? `${minutes} min ago`
+        : `${Math.floor(minutes / 60)} hr ago`;
+
+    return `${relative} @ ${timestamp.toLocaleString()}`;
+  };
 
   const generateForecasts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    setUsedCachedData(false);
+    setCachedLastUpdatedIso(null);
+    setIsCachedDataStale(false);
 
     try {
       const results: ForecastScore[] = [];
@@ -76,14 +121,48 @@ export default function Results() {
       }
 
       setForecasts(results);
+      saveOfflineForecastCache({
+        cacheKey,
+        lat,
+        lon,
+        startDate,
+        days,
+        locationName: locationName || undefined,
+        forecasts: results,
+      });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to generate forecast"
-      );
+      const cached = getOfflineForecastCache(cacheKey);
+      if (cached && cached.forecasts.length > 0) {
+        setForecasts(cached.forecasts);
+        setUsedCachedData(true);
+        setCachedLastUpdatedIso(cached.lastUpdatedIso);
+        setIsCachedDataStale(isCacheStale(cached.lastUpdatedIso));
+        setError(null);
+      } else {
+        const baseMessage =
+          err instanceof Error ? err.message : "Failed to generate forecast";
+        const offlineMessage = !navigator.onLine
+          ? `${baseMessage}. You are offline and no cached forecast is available yet.`
+          : baseMessage;
+        setError(offlineMessage);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [lat, lon, startDate, days]);
+  }, [cacheKey, days, lat, locationName, lon, startDate]);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     // Validate parameters
@@ -230,6 +309,21 @@ export default function Results() {
           </button>
         </div>
       </div>
+
+      {(isOffline || usedCachedData) && (
+        <div className="card p-4 mb-6" id="offline-status-banner">
+          <p className="text-sm font-semibold text-primary">
+            <Icon name="warning" className="mr-2" />
+            {isOffline ? "Offline mode active" : "Using cached forecast data"}
+          </p>
+          {usedCachedData && (
+            <p className="text-xs text-secondary mt-1">
+              Last updated: {formatCacheTimestamp(cachedLastUpdatedIso)}
+              {isCachedDataStale ? " (stale)" : ""}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Summary */}
       {forecasts.length > 0 && (
