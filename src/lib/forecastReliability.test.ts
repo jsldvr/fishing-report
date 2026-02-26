@@ -25,6 +25,7 @@ describe("buildForecastReliability", () => {
     const reliability = buildForecastReliability(weather, {
       isMarineEligible: false,
       nowIso: "2026-02-25T12:00:00Z",
+      weatherLastUpdatedIso: "2026-02-25T10:00:00Z",
     });
 
     expect(reliability.confidenceLevel).toBe("HIGH");
@@ -41,6 +42,7 @@ describe("buildForecastReliability", () => {
     const reliability = buildForecastReliability(weather, {
       isMarineEligible: true,
       nowIso: "2026-02-25T12:00:00Z",
+      weatherLastUpdatedIso: "2026-02-25T10:00:00Z",
     });
 
     expect(reliability.confidenceLevel).toBe("LOW");
@@ -60,10 +62,41 @@ describe("buildForecastReliability", () => {
     const reliability = buildForecastReliability(weather, {
       isMarineEligible: true,
       nowIso: "2026-02-25T12:00:00Z",
+      weatherLastUpdatedIso: "2026-02-25T10:00:00Z",
     });
 
     expect(reliability.marineStatus).toBe("AVAILABLE");
     expect(reliability.marineFreshness).toBe("STALE");
     expect(reliability.confidenceLevel).toBe("MEDIUM");
+  });
+
+  it("leaves weather last updated undefined when source timestamp is unavailable", () => {
+    const weather = makeBaseWeather();
+    const reliability = buildForecastReliability(weather, {
+      isMarineEligible: false,
+      nowIso: "2026-02-25T12:00:00Z",
+    });
+
+    expect(reliability.weatherLastUpdatedIso).toBeUndefined();
+    expect(reliability.weatherFreshness).toBe("UNKNOWN");
+  });
+
+  it("treats waveHeight-only marine data as available", () => {
+    const weather = {
+      ...makeBaseWeather(),
+      marine: {
+        waveHeight: 1.2,
+        waveObservationTimeIso: "2026-02-25T11:00:00Z",
+      },
+    };
+
+    const reliability = buildForecastReliability(weather, {
+      isMarineEligible: true,
+      nowIso: "2026-02-25T12:00:00Z",
+      weatherLastUpdatedIso: "2026-02-25T10:00:00Z",
+    });
+
+    expect(reliability.marineStatus).toBe("AVAILABLE");
+    expect(reliability.marineFreshness).toBe("FRESH");
   });
 });

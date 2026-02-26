@@ -9,6 +9,7 @@ import type {
 interface ReliabilityContext {
   isMarineEligible: boolean;
   nowIso?: string;
+  weatherLastUpdatedIso?: string;
 }
 
 export function buildForecastReliability(
@@ -19,9 +20,11 @@ export function buildForecastReliability(
   const reasons: string[] = [];
   let score = 100;
 
-  const weatherLastUpdatedIso = context.nowIso ?? now.toISOString();
+  const weatherLastUpdatedIso = context.weatherLastUpdatedIso;
   const weatherFreshness = freshnessFromIso(weatherLastUpdatedIso, now);
-  score = applyFreshnessPenalty(score, weatherFreshness, "weather", reasons);
+  if (weatherLastUpdatedIso) {
+    score = applyFreshnessPenalty(score, weatherFreshness, "weather", reasons);
+  }
 
   if (weather.source === "OPEN_METEO") {
     score -= 30;
@@ -38,6 +41,10 @@ export function buildForecastReliability(
       const hasMarineData =
         marine.waterTemperature !== undefined ||
         marine.windSpeedKph !== undefined ||
+        marine.waveHeight !== undefined ||
+        marine.visibility !== undefined ||
+        marine.windWaveHeight !== undefined ||
+        marine.swellDirection !== undefined ||
         (marine.tideEvents?.length ?? 0) > 0;
 
       if (hasMarineData) {
