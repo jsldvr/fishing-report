@@ -22,9 +22,7 @@ export function buildForecastReliability(
 
   const weatherLastUpdatedIso = context.weatherLastUpdatedIso;
   const weatherFreshness = freshnessFromIso(weatherLastUpdatedIso, now);
-  if (weatherLastUpdatedIso) {
-    score = applyFreshnessPenalty(score, weatherFreshness, "weather", reasons);
-  }
+  score = applyFreshnessPenalty(score, weatherFreshness, "weather", reasons);
 
   if (weather.source === "OPEN_METEO") {
     score -= 30;

@@ -79,6 +79,10 @@ describe("buildForecastReliability", () => {
 
     expect(reliability.weatherLastUpdatedIso).toBeUndefined();
     expect(reliability.weatherFreshness).toBe("UNKNOWN");
+    expect(reliability.reasons).toContain("weather freshness is unknown");
+    expect(reliability.reasons).not.toContain(
+      "Primary data sources are fresh and complete"
+    );
   });
 
   it("treats waveHeight-only marine data as available", () => {
