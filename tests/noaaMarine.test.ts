@@ -1,112 +1,133 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  fetchNoaaMarineConditionsWithMeta,
+  _resetCachesForTesting,
+} from "../src/lib/noaaMarine";
+import type { DayInputs } from "../src/types/forecast";
 
-// Mock the noaaMarine module to test the logic without hitting real APIs
-describe("NOAA Marine Station Selection", () => {
-  describe("findNearestStation logic", () => {
-    it("should demonstrate why distant stations are returned for inland locations", async () => {
-      // Milton, Wisconsin coordinates (inland location)
-      const miltonWI = { lat: 42.7711, lon: -88.9423 };
+const COASTAL_DAY: DayInputs = { date: "2026-02-26", lat: 40.7588, lon: -74.0448 }; // NYC area
 
-      // Mock NOAA API response that would typically return distant coastal stations
-      const mockStations = [
-        {
-          id: "8637611",
-          name: "Quantico, Va.",
-          lat: 38.5617,
-          lng: -77.2961,
-          state: "VA",
-        },
-        {
-          id: "9087031",
-          name: "Milwaukee, WI",
-          lat: 43.0186,
-          lng: -87.8877,
-          state: "WI",
-        },
-      ];
+function makeStationsResponse(
+  stations: Array<{ id: string; name: string; lat: number; lng: number; state?: string }>
+) {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ stations }),
+  } as unknown as Response;
+}
 
-      // Calculate distances manually to understand the issue
-      const R = 6371; // Earth's radius in km
-      const toRad = (degrees: number) => (degrees * Math.PI) / 180;
+// Battery Park station ~5 km from COASTAL_DAY — within the 50 km limit
+const NEARBY_STATION = {
+  id: "8518750",
+  name: "Battery, NY",
+  lat: 40.6983,
+  lng: -74.0169,
+  state: "NY",
+};
 
-      const haversineDistance = (
-        lat1: number,
-        lon1: number,
-        lat2: number,
-        lon2: number
-      ) => {
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(toRad(lat1)) *
-            Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-      };
+describe("NOAA Marine Station Selection - regression", () => {
+  beforeEach(() => {
+    // Reset module-level product caches so tests don't poison each other.
+    _resetCachesForTesting();
+    vi.stubGlobal("fetch", vi.fn());
+  });
 
-      // Calculate distances from Milton, WI to each station
-      const distances = mockStations.map((station) => ({
-        ...station,
-        distanceKm: haversineDistance(
-          miltonWI.lat,
-          miltonWI.lon,
-          station.lat,
-          station.lng
-        ),
-      }));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
-      console.log("Distances from Milton, WI:");
-      distances.forEach((station) => {
-        console.log(`${station.name}: ${station.distanceKm.toFixed(1)} km`);
-      });
+  it("returns STATION_TOO_FAR for inland coords where nearest station is >50 km away", async () => {
+    // Quantico, VA is ~880 km from Milton, WI — well above the 50 km limit
+    const miltonWI: DayInputs = { date: "2026-02-26", lat: 42.7711, lon: -88.9423 };
+    const distantStation = {
+      id: "8637611",
+      name: "Quantico, VA",
+      lat: 38.5617,
+      lng: -77.2961,
+      state: "VA",
+    };
 
-      // Sort by distance (this is what the current code does)
-      const sorted = distances.sort((a, b) => a.distanceKm - b.distanceKm);
+    const fetchMock = vi.fn().mockResolvedValue(makeStationsResponse([distantStation]));
+    vi.stubGlobal("fetch", fetchMock);
 
-      console.log(
-        `Nearest station: ${sorted[0].name} at ${sorted[0].distanceKm.toFixed(
-          1
-        )} km`
-      );
+    const result = await fetchNoaaMarineConditionsWithMeta(miltonWI);
 
-      // The issue: even the "nearest" station might be very far for inland locations
-      expect(sorted[0].distanceKm).toBeGreaterThan(50); // Demonstrating the problem
+    expect(result.reason).toBe("STATION_TOO_FAR");
+    expect(result.marine).toBeNull();
+    expect(result.stationDistanceKm).toBeGreaterThan(50);
+  });
+
+  it("returns STATION_METADATA_ONLY when station is within range but all data fetches return 400", async () => {
+    // Code path: station found, within range → getStationProducts gets 400 → empty product Set
+    // → shouldAttemptProduct returns true (size === 0) → all data endpoints get 400
+    // → tideEvents=[], wind=null, waterTemp=null → hasUsableObservations=false → STATION_METADATA_ONLY
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("stations.json")) {
+        return Promise.resolve(makeStationsResponse([NEARBY_STATION]));
+      }
+      return Promise.resolve({
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        json: async () => ({}),
+      } as unknown as Response);
     });
+    vi.stubGlobal("fetch", fetchMock);
 
-    it("should show the BOUNDING_BOX_DELTAS expansion behavior", () => {
-      const BOUNDING_BOX_DELTAS = [0.3, 0.6, 1.0, 1.5, 2.5];
+    const result = await fetchNoaaMarineConditionsWithMeta(COASTAL_DAY);
 
-      console.log("Bounding box expansion for Milton, WI (42.7711, -88.9423):");
-      BOUNDING_BOX_DELTAS.forEach((delta) => {
-        const miltonLat = 42.7711;
-        const miltonLon = -88.9423;
+    expect(result.reason).toBe("STATION_METADATA_ONLY");
+    expect(result.stationId).toBe(NEARBY_STATION.id);
+    // marine object is still populated with station identity even without observation data
+    expect(result.marine).not.toBeNull();
+    expect(result.marine?.stationId).toBe(NEARBY_STATION.id);
+  });
 
-        const minLon = Math.max(-180, Math.min(180, miltonLon - delta));
-        const minLat = Math.max(-90, Math.min(90, miltonLat - delta));
-        const maxLon = Math.max(-180, Math.min(180, miltonLon + delta));
-        const maxLat = Math.max(-90, Math.min(90, miltonLat + delta));
-
-        const bbox = [minLon, minLat, maxLon, maxLat];
-
-        // Calculate approximate coverage area
-        const latSpanKm = (maxLat - minLat) * 111; // ~111 km per degree latitude
-        const lonSpanKm =
-          (maxLon - minLon) * 111 * Math.cos((miltonLat * Math.PI) / 180);
-
-        console.log(
-          `Delta ${delta}: bbox=${bbox
-            .map((x) => x.toFixed(1))
-            .join(",")}, coverage≈${Math.round(latSpanKm)}x${Math.round(
-            lonSpanKm
-          )}km`
-        );
-      });
-
-      // This shows how the algorithm progressively expands search area
-      // until it finds ANY station, regardless of distance
-      expect(BOUNDING_BOX_DELTAS.length).toBe(5);
+  it("returns DATA_AVAILABLE and populates stationId/stationDistanceKm when tide predictions succeed", async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("stations.json")) {
+        return Promise.resolve(makeStationsResponse([NEARBY_STATION]));
+      }
+      if (url.includes("datagetter")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            predictions: [
+              { t: "2026-02-26 06:00", v: "1.5", type: "H" },
+              { t: "2026-02-26 12:00", v: "0.2", type: "L" },
+            ],
+          }),
+        } as unknown as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+      } as unknown as Response);
     });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchNoaaMarineConditionsWithMeta(COASTAL_DAY);
+
+    expect(result.reason).toBe("DATA_AVAILABLE");
+    expect(result.stationId).toBe("8518750");
+    expect(result.stationDistanceKm).toBeDefined();
+    expect(result.stationDistanceKm!).toBeLessThanOrEqual(50);
+    expect(result.marine?.tideEvents?.length).toBeGreaterThan(0);
+  });
+
+  it("returns NO_STATION_FOUND when no station is found across all box expansions", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(makeStationsResponse([]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchNoaaMarineConditionsWithMeta(COASTAL_DAY);
+
+    expect(result.reason).toBe("NO_STATION_FOUND");
+    expect(result.marine).toBeNull();
+    expect(result.stationId).toBeUndefined();
   });
 });
+
+

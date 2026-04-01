@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type {
   ForecastReliability,
   ForecastScore,
@@ -7,6 +8,31 @@ import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
 import WeatherAlerts from "./WeatherAlerts";
 import MarineConditions, { hasMarineDisplayData } from "./MarineConditions";
 import Icon, { type IconName } from "./Icon";
+
+function formatIsoForDisplay(iso: string | undefined): string {
+  if (!iso) return "Unknown";
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "Unknown";
+  return parsed.toLocaleString();
+}
+
+function formatRelativeAge(iso: string | undefined, now: number): string {
+  if (!iso) return "Unknown";
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "Unknown";
+
+  const diffMs = now - parsed.getTime();
+  const isFuture = diffMs < 0;
+  const absMs = Math.abs(diffMs);
+  const minutes = Math.floor(absMs / 60000);
+  const hours = Math.floor(absMs / 3600000);
+  const days = Math.floor(absMs / 86400000);
+
+  if (minutes < 1) return isFuture ? "in less than a minute" : "just now";
+  if (minutes < 60) return isFuture ? `in ${minutes} min` : `${minutes} min ago`;
+  if (hours < 24) return isFuture ? `in ${hours} hr` : `${hours} hr ago`;
+  return isFuture ? `in ${days} day${days === 1 ? "" : "s"}` : `${days} day${days === 1 ? "" : "s"} ago`;
+}
 
 interface ScoreCardProps {
   forecast: ForecastScore;
@@ -25,6 +51,13 @@ export default function ScoreCard({
 }: ScoreCardProps) {
   const tz = getTimezoneFromCoords(lat, lon);
   const dateInfo = formatLocalDate(forecast.date, tz);
+
+  // Capture rendering timestamp once after mount. Date.now() is called in useEffect
+  // (not in the render path) so the component remains idempotent on re-renders.
+  const [nowMs, setNowMs] = useState<number | null>(null);
+  useEffect(() => {
+    setNowMs(Date.now());
+  }, []);
 
   const tempF = Math.round((forecast.weather.tempC * 9) / 5 + 32);
   const windMph = Math.round((forecast.weather.windKph / 1.609) * 10) / 10;
@@ -98,56 +131,9 @@ export default function ScoreCard({
     }
   };
 
-  const formatIsoForDisplay = (iso: string | undefined) => {
-    if (!iso) {
-      return "Unknown";
-    }
-    const parsed = new Date(iso);
-    if (Number.isNaN(parsed.getTime())) {
-      return "Unknown";
-    }
-    return parsed.toLocaleString();
-  };
-
-  const formatRelativeAge = (iso: string | undefined) => {
-    if (!iso) {
-      return "Unknown";
-    }
-
-    const parsed = new Date(iso);
-    if (Number.isNaN(parsed.getTime())) {
-      return "Unknown";
-    }
-
-    const diffMs = Date.now() - parsed.getTime();
-    const isFuture = diffMs < 0;
-    const absMs = Math.abs(diffMs);
-    const minutes = Math.floor(absMs / 60000);
-    const hours = Math.floor(absMs / 3600000);
-    const days = Math.floor(absMs / 86400000);
-
-    if (minutes < 1) {
-      return isFuture ? "in less than a minute" : "just now";
-    }
-
-    if (minutes < 60) {
-      return isFuture
-        ? `in ${minutes} min`
-        : `${minutes} min ago`;
-    }
-
-    if (hours < 24) {
-      return isFuture ? `in ${hours} hr` : `${hours} hr ago`;
-    }
-
-    return isFuture ? `in ${days} day${days === 1 ? "" : "s"}` : `${days} day${days === 1 ? "" : "s"} ago`;
-  };
-
   const formatLastUpdated = (iso: string | undefined) => {
-    if (!iso) {
-      return "Unknown";
-    }
-    return `${formatRelativeAge(iso)} @ ${formatIsoForDisplay(iso)}`;
+    if (!iso || nowMs === null) return "Unknown";
+    return `${formatRelativeAge(iso, nowMs)} @ ${formatIsoForDisplay(iso)}`;
   };
 
   return (

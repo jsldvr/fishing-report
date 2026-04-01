@@ -598,3 +598,12 @@ function normalizeProductId(raw: string): string {
 
   return normalized;
 }
+
+/**
+ * Reset module-level caches between test runs.
+ * @internal — test use only. Do not call in production code.
+ */
+export function _resetCachesForTesting(): void {
+  stationProductsCache.clear();
+  unsupportedProductCache.clear();
+}

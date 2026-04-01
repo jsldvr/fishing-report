@@ -7,6 +7,7 @@ interface MarineConditionsProps {
   useMph: boolean;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function hasMarineDisplayData(
   marine: MarineWeatherData | undefined
 ): boolean {

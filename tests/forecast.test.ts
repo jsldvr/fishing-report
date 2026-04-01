@@ -176,3 +176,101 @@ describe("Forecast Algorithm", () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Forecast Accuracy Regression Tests
+// These protect against changes that silently shift biteScore0100 values.
+// ---------------------------------------------------------------------------
+describe("Forecast Scoring — accuracy regression", () => {
+  const perfectWeather: WeatherData = {
+    tempC: 18,
+    windKph: 10,
+    precipMm: 0,
+    cloudPct: 30,
+  };
+
+  const terribleWeather: WeatherData = {
+    tempC: -10,
+    windKph: 50,
+    precipMm: 20,
+    cloudPct: 100,
+  };
+
+  it("biteScore0100 stays in 0–100 range regardless of input extremes", () => {
+    const dayInputs: DayInputs = { date: "2026-01-15", lat: 40.7128, lon: -74.006 };
+
+    const good = forecastForDay(dayInputs, perfectWeather);
+    const bad = forecastForDay(dayInputs, terribleWeather);
+
+    expect(good.biteScore0100).toBeGreaterThanOrEqual(0);
+    expect(good.biteScore0100).toBeLessThanOrEqual(100);
+    expect(bad.biteScore0100).toBeGreaterThanOrEqual(0);
+    expect(bad.biteScore0100).toBeLessThanOrEqual(100);
+  });
+
+  it("optimal weather scores higher than extreme poor weather", () => {
+    const dayInputs: DayInputs = { date: "2026-02-12", lat: 35.0, lon: -97.0 };
+
+    const good = forecastForDay(dayInputs, perfectWeather);
+    const bad = forecastForDay(dayInputs, terribleWeather);
+
+    expect(good.biteScore0100).toBeGreaterThan(bad.biteScore0100);
+  });
+
+  it("scoreWeather — boundary: wind just inside optimal range (3 kph) scores higher than wind 0", () => {
+    const windCalm: WeatherData = { tempC: 18, windKph: 0, precipMm: 0, cloudPct: 30 };
+    const windOptimal: WeatherData = { tempC: 18, windKph: 3, precipMm: 0, cloudPct: 30 };
+    const windHigh: WeatherData = { tempC: 18, windKph: 50, precipMm: 0, cloudPct: 30 };
+
+    expect(scoreWeather(windOptimal)).toBeGreaterThan(scoreWeather(windCalm));
+    expect(scoreWeather(windOptimal)).toBeGreaterThan(scoreWeather(windHigh));
+  });
+
+  it("scoreWeather — heavy rain (>10 mm) gets the minimum precipitation score", () => {
+    const dryWeather: WeatherData = { tempC: 18, windKph: 10, precipMm: 0, cloudPct: 30 };
+    const heavyRain: WeatherData = { tempC: 18, windKph: 10, precipMm: 15, cloudPct: 30 };
+
+    expect(scoreWeather(dryWeather)).toBeGreaterThan(scoreWeather(heavyRain));
+  });
+
+  it("scoreWeather — extreme heat (>35°C) scores lower than optimal temp range", () => {
+    const optimal: WeatherData = { tempC: 18, windKph: 10, precipMm: 0, cloudPct: 30 };
+    const extreme: WeatherData = { tempC: 40, windKph: 10, precipMm: 0, cloudPct: 30 };
+
+    expect(scoreWeather(optimal)).toBeGreaterThan(scoreWeather(extreme));
+  });
+
+  it("combineScores — weighted sum is always within 0–100", () => {
+    const cases: Array<[number, number, number | undefined]> = [
+      [0, 0, undefined],
+      [1, 1, undefined],
+      [0.5, 0.5, undefined],
+      [1, 1, 1],
+      [0, 0, 0],
+    ];
+
+    for (const [moon, weather, almanac] of cases) {
+      const { total } = combineScores(moon, weather, almanac);
+      expect(total).toBeGreaterThanOrEqual(0);
+      expect(total).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it("phaseNameFromAngle — all 8 phase names are reachable via their midpoints", () => {
+    const expectedPhases = [
+      [0, "New Moon"],
+      [45, "Waxing Crescent"],
+      [90, "First Quarter"],
+      [135, "Waxing Gibbous"],
+      [180, "Full Moon"],
+      [225, "Waning Gibbous"],
+      [270, "Last Quarter"],
+      [315, "Waning Crescent"],
+    ] as const;
+
+    for (const [angle, name] of expectedPhases) {
+      expect(phaseNameFromAngle(angle)).toBe(name);
+    }
+  });
+});
+

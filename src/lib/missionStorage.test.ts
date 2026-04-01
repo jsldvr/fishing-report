@@ -126,4 +126,104 @@ describe("missionStorage", () => {
     expect(state.history).toHaveLength(missionStorage.historyLimit);
     expect(state.history[0].name).toBe("Run 11");
   });
+
+  it("loads default state when storage is null", () => {
+    const state = loadMissionState(null);
+    expect(state).toEqual(createDefaultMissionState());
+  });
+
+  it("resets state and clears storage when schema version does not match", () => {
+    storage.setItem(
+      missionStorage.storageKey,
+      JSON.stringify({ schemaVersion: 99, waypoints: [], history: [] })
+    );
+
+    const state = loadMissionState(storage);
+
+    expect(state).toEqual(createDefaultMissionState());
+    expect(storage.getItem(missionStorage.storageKey)).toBeNull();
+  });
+
+  it("filters out invalid waypoints during load and keeps valid ones", () => {
+    const validWaypoint = {
+      id: "wp_abc",
+      name: "Good Spot",
+      lat: 40,
+      lon: -74,
+      createdAtIso: new Date().toISOString(),
+      updatedAtIso: new Date().toISOString(),
+    };
+
+    storage.setItem(
+      missionStorage.storageKey,
+      JSON.stringify({
+        schemaVersion: 1,
+        waypoints: [
+          validWaypoint,
+          { id: "", name: "", lat: "bad", lon: null }, // invalid
+        ],
+        history: [],
+      })
+    );
+
+    const state = loadMissionState(storage);
+    expect(state.waypoints).toHaveLength(1);
+    expect(state.waypoints[0].name).toBe("Good Spot");
+  });
+
+  it("renameWaypoint throws when waypoint id is not found", () => {
+    const state = createDefaultMissionState();
+    expect(() => renameWaypoint(state, "non-existent-id", "New Name")).toThrow(
+      "Waypoint not found"
+    );
+  });
+
+  it("renameWaypoint throws when new name collides with another waypoint", () => {
+    let state = createDefaultMissionState();
+    state = addWaypoint(state, { name: "Spot A", lat: 40, lon: -74 });
+    state = addWaypoint(state, { name: "Spot B", lat: 41, lon: -75 });
+
+    expect(() =>
+      renameWaypoint(state, state.waypoints[1].id, "Spot A")
+    ).toThrow("Waypoint name already exists");
+  });
+
+  it("renameWaypoint allows keeping the same name (rename to self)", () => {
+    let state = createDefaultMissionState();
+    state = addWaypoint(state, { name: "Spot A", lat: 40, lon: -74 });
+
+    const id = state.waypoints[0].id;
+    const renamed = renameWaypoint(state, id, "Spot A");
+    expect(renamed.waypoints[0].name).toBe("Spot A");
+  });
+
+  it("addWaypoint throws for an empty name", () => {
+    expect(() =>
+      addWaypoint(createDefaultMissionState(), { name: "   ", lat: 40, lon: -74 })
+    ).toThrow("Waypoint name is required");
+  });
+
+  it("recordMissionRun trims optional name whitespace", () => {
+    const state = recordMissionRun(createDefaultMissionState(), {
+      lat: 40,
+      lon: -74,
+      name: "  My Run  ",
+      startDate: "2026-02-25",
+      days: 3,
+    });
+
+    expect(state.history[0].name).toBe("My Run");
+  });
+
+  it("recordMissionRun stores run with undefined name when name is empty", () => {
+    const state = recordMissionRun(createDefaultMissionState(), {
+      lat: 40,
+      lon: -74,
+      name: "",
+      startDate: "2026-02-25",
+      days: 3,
+    });
+
+    expect(state.history[0].name).toBeUndefined();
+  });
 });

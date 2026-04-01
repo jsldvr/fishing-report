@@ -91,7 +91,7 @@ export default function LocationInput({
             }
           }
         }
-      } catch (photonError) {
+      } catch {
         console.log("Photon API failed, trying fallback...");
       }
 
