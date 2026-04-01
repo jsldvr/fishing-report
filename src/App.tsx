@@ -111,8 +111,9 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br">
       {/* Theme Toggle Button */}
       <button
-        onClick={toggleTheme}
         className="theme-toggle"
+        id="theme-toggle"
+        onClick={toggleTheme}
         aria-label="Toggle theme"
         title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
       >

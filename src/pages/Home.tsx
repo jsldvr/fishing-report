@@ -383,6 +383,7 @@ export default function Home() {
       <div className="text-center">
         <button
           className="btn btn-primary text-lg px-8 py-3"
+          id="action-generate-forecast"
           onClick={handleGenerateForecast}
           disabled={!isValid}
         >

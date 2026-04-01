@@ -23,6 +23,7 @@ export default function LocationInput({
   const [isValid, setIsValid] = useState(true);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     const latNum = parseFloat(lat);
@@ -34,6 +35,7 @@ export default function LocationInput({
     setIsValid(valid);
 
     if (valid) {
+      setLocationError(null);
       onLocationChange(latNum, lonNum, locationName || undefined);
     }
   }, [lat, lon, locationName, onLocationChange]);
@@ -48,6 +50,7 @@ export default function LocationInput({
     if (!locationName.trim()) return;
 
     setIsGeocoding(true);
+    setLocationError(null);
     try {
       // Strategy 1: Check if input looks like coordinates first
       const coordMatch = locationName.match(
@@ -86,7 +89,7 @@ export default function LocationInput({
               setLon(lon.toFixed(4));
               return;
             } else {
-              alert("Location is outside North America");
+              setLocationError("Location is outside North America");
               return;
             }
           }
@@ -130,16 +133,12 @@ export default function LocationInput({
       }
 
       // If all strategies fail, show helpful message
-      alert(
-        `Location "${locationName}" not found. Try:\n` +
-          `- Common city format: "Oklahoma City, OK"\n` +
-          `- Coordinates: "35.3383, -97.4867"\n` +
-          `- Use the coordinate fields below\n` +
-          `- Try the "Use Current Location" button`
+      setLocationError(
+        `Location "${locationName}" not found. Try a known city like "Oklahoma City, OK" or enter coordinates directly.`
       );
     } catch (error) {
       console.error("Geocoding error:", error);
-      alert(
+      setLocationError(
         'Failed to find location. Try entering coordinates like "35.3383, -97.4867"'
       );
     } finally {
@@ -149,11 +148,12 @@ export default function LocationInput({
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser");
+      setLocationError("Geolocation is not supported by this browser");
       return;
     }
 
     setIsGeolocating(true);
+    setLocationError(null);
 
     // Success handler - shared across all attempts
     const handleSuccess = (position: GeolocationPosition) => {
@@ -165,7 +165,7 @@ export default function LocationInput({
         setLon(newLon.toFixed(4));
         setLocationName("");
       } else {
-        alert("Your current location is outside North America");
+        setLocationError("Your current location is outside North America");
       }
       setIsGeolocating(false);
     };
@@ -184,8 +184,8 @@ export default function LocationInput({
             );
             tryIpLocation().catch((ipError) => {
               console.error("IP location also failed:", ipError);
-              alert(
-                "Location permission denied. We tried to get your approximate location using your IP address, but that also failed. Please enter coordinates manually or allow location access and try again."
+              setLocationError(
+                "Location permission denied. Please enter coordinates manually or allow location access and try again."
               );
               setIsGeolocating(false);
             });
@@ -252,8 +252,8 @@ export default function LocationInput({
             console.log("Permission denied, trying IP location...");
             tryIpLocation().catch((ipError) => {
               console.error("IP location also failed:", ipError);
-              alert(
-                "Location permission denied. We tried to get your approximate location using your IP address, but that also failed. Please enter coordinates manually or allow location access and try again."
+              setLocationError(
+                "Location permission denied. Please enter coordinates manually or allow location access and try again."
               );
               setIsGeolocating(false);
             });
@@ -279,7 +279,7 @@ export default function LocationInput({
           console.log(errorMessage);
           tryIpLocation().catch((ipError) => {
             console.error("IP location failed:", ipError);
-            alert(
+            setLocationError(
               errorMessage.replace(
                 "Trying alternative method...",
                 "Please enter coordinates manually."
@@ -405,6 +405,7 @@ export default function LocationInput({
             />
             <button
               className="btn btn-primary"
+              id="geocode-submit"
               onClick={handleGeocodeLocation}
               disabled={!locationName.trim() || isGeocoding}
             >
@@ -468,6 +469,7 @@ export default function LocationInput({
 
         <button
           className="btn btn-primary"
+          id="geolocation-button"
           onClick={handleGetCurrentLocation}
           disabled={isGeolocating}
         >
@@ -489,6 +491,13 @@ export default function LocationInput({
             <Icon name="warning" className="mr-2" />
             Invalid coordinates. AO must be within North America (Lat:
             14-83°N, Lon: -180 to -50°W)
+          </p>
+        )}
+
+        {locationError && (
+          <p className="text-sm text-error mt-2" id="location-error-message">
+            <Icon name="warning" className="mr-2" />
+            {locationError}
           </p>
         )}
       </div>

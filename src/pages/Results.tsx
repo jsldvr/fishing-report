@@ -39,10 +39,13 @@ export default function Results() {
   const [isCachedDataStale, setIsCachedDataStale] = useState(false);
 
   // Parse URL parameters
-  const lat = parseFloat(searchParams.get("lat") || "0");
-  const lon = parseFloat(searchParams.get("lon") || "0");
+  const latParam = searchParams.get("lat");
+  const lonParam = searchParams.get("lon");
+  const lat = parseFloat(latParam ?? "NaN");
+  const lon = parseFloat(lonParam ?? "NaN");
   const startDate = searchParams.get("startDate") || "";
-  const days = parseInt(searchParams.get("days") || "0", 10);
+  const daysParam = searchParams.get("days");
+  const days = parseInt(daysParam || "0", 10);
   const locationName = searchParams.get("name") || "";
   const cacheKey = buildForecastCacheKey({
     lat,
@@ -166,7 +169,7 @@ export default function Results() {
 
   useEffect(() => {
     // Validate parameters
-    if (!lat || !lon || !startDate || !days) {
+    if (!latParam || !lonParam || !startDate || !daysParam) {
       setError("Missing required parameters");
       setIsLoading(false);
       return;
@@ -185,7 +188,7 @@ export default function Results() {
     }
 
     generateForecasts();
-  }, [lat, lon, startDate, days, generateForecasts]);
+  }, [lat, lon, latParam, lonParam, startDate, days, daysParam, generateForecasts]);
 
   const handleBackToHome = () => {
     navigate("/");
@@ -232,7 +235,7 @@ export default function Results() {
           </div>
           <h2 className="text-xl font-semibold mb-2 text-red-600">Error</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button className="btn btn-primary" onClick={handleBackToHome}>
+          <button className="btn btn-primary" id="action-back-home-error" onClick={handleBackToHome}>
             Back to Home
           </button>
         </div>
