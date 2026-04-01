@@ -285,3 +285,7 @@ playground/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Repo
+temp/
+tmp/

@@ -45,7 +45,7 @@
     "tsx": "^4.6.0",
     "typescript": "^5.2.2",
     "vite": "^7.1.10",
-    "vite-plugin-pwa": "^1.2.0",
+    "vite-plugin-pwa": "^0.19.8",
     "vitest": "^3.2.4"
   },
   "keywords": [
