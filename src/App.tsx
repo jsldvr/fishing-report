@@ -28,12 +28,14 @@ function App() {
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    const rawTheme = localStorage.getItem("theme");
+    const savedTheme: "light" | "dark" | null =
+      rawTheme === "light" || rawTheme === "dark" ? rawTheme : null;
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
       .matches
       ? "dark"
       : "light";
-    const initialTheme = savedTheme || systemTheme;
+    const initialTheme = savedTheme ?? systemTheme;
 
     setTheme(initialTheme);
     document.documentElement.setAttribute("data-theme", initialTheme);

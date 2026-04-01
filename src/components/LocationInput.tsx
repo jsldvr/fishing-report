@@ -315,7 +315,6 @@ export default function LocationInput({
 
             if (response.ok) {
               const data = await response.json();
-              console.log("IP location response:", data);
 
               let lat: number = NaN,
                 lon: number = NaN,
@@ -341,13 +340,10 @@ export default function LocationInput({
                 region = data.region || "";
               }
               if (!isNaN(lat) && !isNaN(lon)) {
-                console.log(`Found IP location: ${lat}, ${lon}`);
-
                 if (validateNorthAmericaCoords(lat, lon)) {
                   setLat(lat.toFixed(4));
                   setLon(lon.toFixed(4));
                   setLocationName(city && region ? `${city}, ${region}` : "");
-                  console.log("IP location set successfully");
                   setIsGeolocating(false);
                   return;
                 } else {
