@@ -104,7 +104,7 @@ describe("Results — URL parameter validation", () => {
 
   it("error state renders a back-to-home button with correct id", async () => {
     renderWithParams("lon=-97.5&startDate=2026-06-01&days=3");
-    const button = await screen.findByRole("button", { name: "Back to Home" });
+    const button = await screen.findByRole("button", { name: "Back to Forecast" });
     expect(button).toHaveAttribute("id", "action-back-home-error");
   });
 });

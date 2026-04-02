@@ -8,6 +8,7 @@ interface LocationInputProps {
   initialLon?: number;
   initialName?: string;
   prefillToken?: number;
+  embedded?: boolean;
 }
 
 export default function LocationInput({
@@ -16,6 +17,7 @@ export default function LocationInput({
   initialLon = -74.006,
   initialName = "",
   prefillToken = 0,
+  embedded = false,
 }: LocationInputProps) {
   const [lat, setLat] = useState(initialLat.toString());
   const [lon, setLon] = useState(initialLon.toString());
@@ -374,10 +376,10 @@ export default function LocationInput({
   };
 
   return (
-    <div className="card p-6">
+    <div className={embedded ? "planner-band__section" : "card p-6"}>
       <h2 className="text-xl font-semibold mb-4 text-primary flex items-center gap-2">
-        <Icon name="target" />
-        Target Coordinates
+        <Icon name="mapPin" />
+        Location
       </h2>
 
       <div className="grid gap-4">
@@ -387,13 +389,13 @@ export default function LocationInput({
             htmlFor="location-name"
             className="block text-sm font-medium mb-2"
           >
-            Location Intel Search
+            Search place or coordinates
           </label>
           <div className="flex gap-2">
             <input
+              className="input flex-1"
               id="location-name"
               type="text"
-              className="input flex-1"
               placeholder="e.g., Oklahoma City, OK or 35.3383, -97.4867"
               value={locationName}
               onChange={(e) => setLocationName(e.target.value)}
@@ -410,14 +412,13 @@ export default function LocationInput({
               ) : (
                 <>
                   <Icon name="search" className="mr-2" />
-                  Recon
+                  Find
                 </>
               )}
             </button>
           </div>
           <p className="text-xs text-muted mt-1">
-            Enter target designation or precise coordinates (lat, lon). Multiple
-            search vectors available for target acquisition.
+            Enter a city, harbor, or latitude/longitude pair.
           </p>
         </div>
 
@@ -431,12 +432,12 @@ export default function LocationInput({
               Latitude (°N)
             </label>
             <input
+              className="input"
               id="latitude"
               type="number"
               step="0.0001"
               min="14"
               max="83"
-              className="input"
               placeholder="40.7128"
               value={lat}
               onChange={(e) => setLat(e.target.value)}
@@ -450,12 +451,12 @@ export default function LocationInput({
               Longitude (°W)
             </label>
             <input
+              className="input"
               id="longitude"
               type="number"
               step="0.0001"
               min="-180"
               max="-50"
-              className="input"
               placeholder="-74.0060"
               value={lon}
               onChange={(e) => setLon(e.target.value)}
@@ -477,7 +478,7 @@ export default function LocationInput({
           ) : (
             <>
               <Icon name="locationTarget" className="mr-2" />
-              GPS Lock
+              Use current location
             </>
           )}
         </button>
@@ -485,8 +486,8 @@ export default function LocationInput({
         {!isValid && (
           <p className="text-sm text-error mt-2">
             <Icon name="warning" className="mr-2" />
-            Invalid coordinates. AO must be within North America (Lat:
-            14-83°N, Lon: -180 to -50°W)
+            Invalid coordinates. Must be in North America (Lat: 14-83°N, Lon:
+            -180 to -50°W).
           </p>
         )}
 

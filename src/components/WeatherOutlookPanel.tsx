@@ -191,7 +191,7 @@ export default function WeatherOutlookPanel({
         >
           <div className="spinner" id="wx-outlook-spinner"></div>
           <p className="text-sm text-muted" id="wx-outlook-loading-copy">
-            Ingesting forecast guidance…
+            Fetching latest outlook guidance...
           </p>
         </div>
       );
@@ -214,7 +214,7 @@ export default function WeatherOutlookPanel({
             id="wx-outlook-retry"
             onClick={handleRetry}
           >
-            Retry Fetch
+            Retry
           </button>
         </div>
       );
@@ -230,7 +230,7 @@ export default function WeatherOutlookPanel({
             className="text-sm text-muted text-center"
             id="wx-outlook-empty-copy"
           >
-            Outlook data not available for these coordinates.
+            Outlook data is not currently available for these coordinates.
           </p>
         </div>
       );
@@ -310,7 +310,7 @@ export default function WeatherOutlookPanel({
             className="text-xl sm:text-2xl font-semibold text-primary"
             id="wx-outlook-title"
           >
-            5-Day Weather Outlook
+            Five-day weather outlook
           </h2>
           <p
             className="text-sm text-muted font-mono"
@@ -405,9 +405,9 @@ export default function WeatherOutlookPanel({
         className="mt-4 p-3 text-xs bg-secondary/50 rounded-lg"
         id="wx-outlook-disclaimer"
       >
-        <strong>Advisory:</strong> Forecasts auto-refresh with coordinate
-        updates. For mission-critical planning, cross-check with official
-        briefings.
+        <strong>Advisory:</strong> Outlook refreshes automatically when
+        coordinates change. Verify with official agency briefings for
+        safety-critical planning.
       </div>
     </div>
   );

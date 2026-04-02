@@ -94,12 +94,12 @@ export default function MarineConditions({
         id={`${idBase}-title`}
       >
         <Icon name="water" />
-        Coastal Conditions
+        Coastal and marine conditions
       </h4>
 
       {hasStation && (
         <p className="text-sm text-gray-600 mb-3" id={`${idBase}-station`}>
-          Nearest NOAA station: {marine.stationName || marine.stationId}
+          Nearest NOAA marine station: {marine.stationName || marine.stationId}
           {marine.stationDistanceKm !== undefined
             ? ` (${formatDistance(marine.stationDistanceKm)} away)`
             : ""}
@@ -133,7 +133,7 @@ export default function MarineConditions({
                 className="font-medium text-sky-900 mb-1"
                 id={`${idBase}-wind-label`}
               >
-                Wind at Station
+                Wind at station
               </p>
               <p className="text-sky-800" id={`${idBase}-wind-value`}>
                 {formatWindSpeed(marine.windSpeedKph)}
@@ -168,7 +168,7 @@ export default function MarineConditions({
             className="font-semibold text-gray-700 mb-2"
             id={`${idBase}-tides-title`}
           >
-            Tide Timeline
+            Tide timeline
           </h5>
           <ul className="space-y-2" id={`${idBase}-tides-list`}>
             {upcomingTides.map((event, index) => (

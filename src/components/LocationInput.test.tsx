@@ -23,13 +23,13 @@ describe("LocationInput", () => {
   describe("geocode button", () => {
     it("has id='geocode-submit'", () => {
       renderInput();
-      const button = screen.getByRole("button", { name: /recon/i });
+      const button = screen.getByRole("button", { name: /find/i });
       expect(button).toHaveAttribute("id", "geocode-submit");
     });
 
     it("is disabled when location name is empty", () => {
       renderInput();
-      const button = screen.getByRole("button", { name: /recon/i });
+      const button = screen.getByRole("button", { name: /find/i });
       expect(button).toBeDisabled();
     });
 
@@ -53,7 +53,7 @@ describe("LocationInput", () => {
       const input = screen.getByPlaceholderText(/oklahoma city/i);
       fireEvent.change(input, { target: { value: "Paris, France" } });
 
-      fireEvent.click(screen.getByRole("button", { name: /recon/i }));
+      fireEvent.click(screen.getByRole("button", { name: /find/i }));
 
       await waitFor(() => {
         expect(
@@ -77,7 +77,7 @@ describe("LocationInput", () => {
       const input = screen.getByPlaceholderText(/oklahoma city/i);
       fireEvent.change(input, { target: { value: "Totally Unknown Place XYZ" } });
 
-      fireEvent.click(screen.getByRole("button", { name: /recon/i }));
+      fireEvent.click(screen.getByRole("button", { name: /find/i }));
 
       await waitFor(() => {
         expect(
@@ -98,7 +98,7 @@ describe("LocationInput", () => {
       const input = screen.getByPlaceholderText(/oklahoma city/i);
       fireEvent.change(input, { target: { value: "Totally Unknown Place XYZ" } });
 
-      fireEvent.click(screen.getByRole("button", { name: /recon/i }));
+      fireEvent.click(screen.getByRole("button", { name: /find/i }));
 
       await waitFor(() => {
         expect(
@@ -123,7 +123,7 @@ describe("LocationInput", () => {
       renderInput();
       const input = screen.getByPlaceholderText(/oklahoma city/i);
       fireEvent.change(input, { target: { value: "Nowhere" } });
-      fireEvent.click(screen.getByRole("button", { name: /recon/i }));
+      fireEvent.click(screen.getByRole("button", { name: /find/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/not found/i)).toBeInTheDocument();
@@ -139,7 +139,9 @@ describe("LocationInput", () => {
   describe("geolocation button", () => {
     it("has id='geolocation-button'", () => {
       renderInput();
-      const button = screen.getByRole("button", { name: /gps lock/i });
+      const button = screen.getByRole("button", {
+        name: /use current location/i,
+      });
       expect(button).toHaveAttribute("id", "geolocation-button");
     });
 
@@ -152,7 +154,9 @@ describe("LocationInput", () => {
       });
 
       renderInput();
-      fireEvent.click(screen.getByRole("button", { name: /gps lock/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /use current location/i })
+      );
 
       expect(
         screen.getByText("Geolocation is not supported by this browser")
@@ -175,7 +179,9 @@ describe("LocationInput", () => {
       });
 
       renderInput();
-      fireEvent.click(screen.getByRole("button", { name: /gps lock/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /use current location/i })
+      );
 
       expect(alertSpy).not.toHaveBeenCalled();
 
@@ -208,7 +214,7 @@ describe("LocationInput", () => {
       renderInput();
       const input = screen.getByPlaceholderText(/oklahoma city/i);
       fireEvent.change(input, { target: { value: "Paris, France" } });
-      fireEvent.click(screen.getByRole("button", { name: /recon/i }));
+      fireEvent.click(screen.getByRole("button", { name: /find/i }));
 
       await waitFor(() => {
         expect(

@@ -210,229 +210,219 @@ export default function Home() {
     waypointNameDraft.trim() || location.name || `${location.lat}, ${location.lon}`;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-4">
-          Tactical Fishing Intel
+    <div className="home-page max-w-7xl mx-auto px-4 py-8" id="home-page">
+      <section className="home-intro-strip" id="home-intro-strip">
+        <h1 className="home-intro-strip__title text-3xl font-bold text-primary" id="home-intro-title">
+          Fishing Forecast
         </h1>
-        <p className="text-lg text-secondary mb-2">
-          Military-grade precision for North American fishing operations
+        <p className="home-intro-strip__summary text-lg text-secondary" id="home-intro-summary">
+          Weather-informed planning for North American waters.
         </p>
-        <p className="text-sm text-muted">
-          Advanced algorithms combining lunar cycles, meteorological data, and
-          field intelligence
+        <p className="home-intro-strip__trust text-sm text-muted" id="home-intro-trust">
+          Uses location, timing, and observed conditions to generate a daily forecast.
         </p>
-      </div>
+      </section>
 
-      <div className="grid gap-6 lg:grid-cols-2 mb-8">
-        <LocationInput
-          onLocationChange={handleLocationChange}
-          initialLat={location.lat}
-          initialLon={location.lon}
-          initialName={location.name}
-          prefillToken={prefillToken}
-        />
+      <section className="home-planner-strip" id="home-planner-strip">
+        <div className="home-planner-strip__controls" id="home-planner-controls">
+          <LocationInput
+            onLocationChange={handleLocationChange}
+            initialLat={location.lat}
+            initialLon={location.lon}
+            initialName={location.name}
+            prefillToken={prefillToken}
+            embedded
+          />
 
-        <DateRangePicker
-          onDateRangeChange={handleDateRangeChange}
-          maxDays={7}
-        />
-      </div>
+          <DateRangePicker
+            onDateRangeChange={handleDateRangeChange}
+            maxDays={7}
+            embedded
+          />
+        </div>
 
-      <div className="card p-6 mb-8 mission-panel" id="mission-panel">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <h2 className="text-lg font-semibold mb-3 text-primary">
-              <Icon name="mapPin" className="mr-2" />
-              Saved Waypoints
-            </h2>
-            <p className="text-sm text-secondary mb-3">
-              Save repeat targets and launch briefs with one click.
+        <div className="home-planner-strip__actions" id="home-planner-actions">
+          <button
+            className="btn btn-primary home-planner-strip__cta"
+            id="action-generate-forecast"
+            onClick={handleGenerateForecast}
+            disabled={!isValid}
+          >
+            <Icon name="target" className="mr-2" />
+            Generate Forecast
+          </button>
+
+          {!isValid && (
+            <p className="text-sm text-muted" id="home-planner-validation-message">
+              <Icon name="warning" className="mr-2" />
+              Add a valid location and date window to continue.
             </p>
-            <label
-              className="block text-sm font-medium mb-2"
-              htmlFor="waypoint-name-input"
+          )}
+        </div>
+      </section>
+
+      <section className="home-support-row" id="home-support-row">
+        <div className="home-support-row__panel" id="waypoints-panel">
+          <h2 className="text-lg font-semibold mb-3 text-primary">
+            <Icon name="mapPin" className="mr-2" />
+            Saved Waypoints
+          </h2>
+          <p className="text-sm text-secondary mb-3">
+            Save frequent locations and run a report with one click.
+          </p>
+          <label
+            className="block text-sm font-medium mb-2"
+            htmlFor="waypoint-name-input"
+          >
+            Waypoint name
+          </label>
+          <div className="flex gap-2 mb-2">
+            <input
+              className="input mission-panel__waypoint-input"
+              id="waypoint-name-input"
+              type="text"
+              value={waypointNameDraft}
+              onChange={(event) => setWaypointNameDraft(event.target.value)}
+              placeholder="Waypoint name"
+            />
+            <button
+              className="btn btn-secondary mission-panel__save-waypoint-btn"
+              id="save-waypoint-button"
+              onClick={handleSaveWaypoint}
+              disabled={!canSaveWaypoint}
             >
-              Waypoint name
-            </label>
-            <div className="flex gap-2 mb-2">
-              <input
-                className="input mission-panel__waypoint-input"
-                id="waypoint-name-input"
-                type="text"
-                value={waypointNameDraft}
-                onChange={(event) => setWaypointNameDraft(event.target.value)}
-                placeholder="Waypoint name"
-              />
-              <button
-                className="btn btn-primary mission-panel__save-waypoint-btn"
-                id="save-waypoint-button"
-                onClick={handleSaveWaypoint}
-                disabled={!canSaveWaypoint}
-              >
-                Save
-              </button>
-            </div>
-            <p className="text-xs text-muted mb-4">
-              Current target: {selectedLocationLabel}
-            </p>
-            {waypointError && (
-              <p className="text-sm text-error mb-3">{waypointError}</p>
-            )}
-
-            {missionState.waypoints.length === 0 ? (
-              <p className="text-sm text-muted">No waypoints saved yet.</p>
-            ) : (
-              <ul className="grid gap-2" id="waypoint-list">
-                {missionState.waypoints.map((waypoint) => (
-                  <li
-                    className="bg-accent border border-primary rounded-lg p-3"
-                    id={`waypoint-item-${waypoint.id}`}
-                    key={waypoint.id}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="font-semibold">{waypoint.name}</p>
-                        <p className="text-xs text-muted">
-                          {waypoint.lat.toFixed(4)}, {waypoint.lon.toFixed(4)}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          className="btn btn-secondary mission-panel__waypoint-select-btn"
-                          id={`waypoint-select-${waypoint.id}`}
-                          onClick={() => applyWaypoint(waypoint)}
-                        >
-                          Select
-                        </button>
-                        <button
-                          className="btn btn-primary mission-panel__waypoint-run-btn"
-                          id={`waypoint-run-${waypoint.id}`}
-                          onClick={() => handleRunWaypoint(waypoint)}
-                        >
-                          Run
-                        </button>
-                        <button
-                          className="btn btn-secondary mission-panel__waypoint-rename-btn"
-                          id={`waypoint-rename-${waypoint.id}`}
-                          onClick={() => handleRenameWaypoint(waypoint)}
-                        >
-                          Rename
-                        </button>
-                        <button
-                          className="btn btn-secondary mission-panel__waypoint-delete-btn"
-                          id={`waypoint-delete-${waypoint.id}`}
-                          onClick={() => handleDeleteWaypoint(waypoint)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+              Save
+            </button>
           </div>
+          <p className="text-xs text-muted mb-4">
+            Current location: {selectedLocationLabel}
+          </p>
+          {waypointError && (
+            <p className="text-sm text-error mb-3">{waypointError}</p>
+          )}
 
-          <div>
-            <h2 className="text-lg font-semibold mb-3 text-primary">
-              <Icon name="book" className="mr-2" />
-              Recent Mission History
-            </h2>
-            <p className="text-sm text-secondary mb-3">
-              Latest 5 runs shown. Full history is retained up to 10 missions.
-            </p>
-            {recentHistory.length === 0 ? (
-              <p className="text-sm text-muted">No mission history yet.</p>
-            ) : (
-              <ul className="grid gap-2" id="mission-history-list">
-                {recentHistory.map((historyItem) => (
-                  <li
-                    className="bg-accent border border-primary rounded-lg p-3"
-                    id={`history-item-${historyItem.id}`}
-                    key={historyItem.id}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="font-semibold">
-                          {historyItem.name ||
-                            `${historyItem.lat.toFixed(4)}, ${historyItem.lon.toFixed(4)}`}
-                        </p>
-                        <p className="text-xs text-muted">
-                          {historyItem.startDate} for {historyItem.days} day
-                          {historyItem.days === 1 ? "" : "s"} |{" "}
-                          {formatHistoryTimestamp(historyItem.timestampIso)}
-                        </p>
-                      </div>
+          {missionState.waypoints.length === 0 ? (
+            <p className="text-sm text-muted">No waypoints saved yet.</p>
+          ) : (
+            <ul className="grid gap-2" id="waypoint-list">
+              {missionState.waypoints.map((waypoint) => (
+                <li
+                  className="bg-accent border border-primary rounded-lg p-3"
+                  id={`waypoint-item-${waypoint.id}`}
+                  key={waypoint.id}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">{waypoint.name}</p>
+                      <p className="text-xs text-muted">
+                        {waypoint.lat.toFixed(4)}, {waypoint.lon.toFixed(4)}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
                       <button
-                        className="btn btn-primary mission-panel__history-rerun-btn"
-                        id={`history-rerun-${historyItem.id}`}
-                        onClick={() => handleRunHistory(historyItem)}
+                        className="btn btn-secondary mission-panel__waypoint-select-btn"
+                        id={`waypoint-select-${waypoint.id}`}
+                        onClick={() => applyWaypoint(waypoint)}
                       >
-                        Rerun
+                        Select
+                      </button>
+                      <button
+                        className="btn btn-primary mission-panel__waypoint-run-btn"
+                        id={`waypoint-run-${waypoint.id}`}
+                        onClick={() => handleRunWaypoint(waypoint)}
+                      >
+                        Run
+                      </button>
+                      <button
+                        className="btn btn-secondary mission-panel__waypoint-rename-btn"
+                        id={`waypoint-rename-${waypoint.id}`}
+                        onClick={() => handleRenameWaypoint(waypoint)}
+                      >
+                        Rename
+                      </button>
+                      <button
+                        className="btn btn-secondary mission-panel__waypoint-delete-btn"
+                        id={`waypoint-delete-${waypoint.id}`}
+                        onClick={() => handleDeleteWaypoint(waypoint)}
+                      >
+                        Delete
                       </button>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      </div>
 
-      <div className="text-center">
-        <button
-          className="btn btn-primary text-lg px-8 py-3"
-          id="action-generate-forecast"
-          onClick={handleGenerateForecast}
-          disabled={!isValid}
-        >
-          <Icon name="target" className="mr-2" />
-          Execute Mission Brief
-        </button>
-
-        {!isValid && (
-          <p className="text-sm text-muted mt-2">
-            <Icon name="warning" className="mr-2" />
-            Coordinates and operational window required for intel generation
+        <div className="home-support-row__panel" id="history-panel">
+          <h2 className="text-lg font-semibold mb-3 text-primary">
+            <Icon name="book" className="mr-2" />
+            Recent Forecasts
+          </h2>
+          <p className="text-sm text-secondary mb-3">
+            Latest 5 runs shown. Full history keeps up to 10 reports.
           </p>
-        )}
-      </div>
+          {recentHistory.length === 0 ? (
+            <p className="text-sm text-muted">No recent forecasts yet.</p>
+          ) : (
+            <ul className="grid gap-2" id="mission-history-list">
+              {recentHistory.map((historyItem) => (
+                <li
+                  className="bg-accent border border-primary rounded-lg p-3"
+                  id={`history-item-${historyItem.id}`}
+                  key={historyItem.id}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">
+                        {historyItem.name ||
+                          `${historyItem.lat.toFixed(4)}, ${historyItem.lon.toFixed(4)}`}
+                      </p>
+                      <p className="text-xs text-muted">
+                        {historyItem.startDate} for {historyItem.days} day
+                        {historyItem.days === 1 ? "" : "s"} |{" "}
+                        {formatHistoryTimestamp(historyItem.timestampIso)}
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-secondary mission-panel__history-rerun-btn"
+                      id={`history-rerun-${historyItem.id}`}
+                      onClick={() => handleRunHistory(historyItem)}
+                    >
+                      Run again
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
 
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="card p-6 text-center">
-          <div className="text-3xl mb-3">
-            <Icon name="moon" className="text-3xl" />
-          </div>
-          <h3 className="font-semibold mb-2 text-primary">Lunar Intel</h3>
+      <section className="home-notes-row" id="home-notes-row">
+        <div className="home-note" id="home-note-lunar">
+          <h3 className="font-semibold mb-2 text-primary">Lunar conditions</h3>
           <p className="text-sm text-secondary">
-            Solunar theory deployment: moon phase tracking and illumination
-            analysis for optimal engagement windows
+            Moon phase and illumination are included in each day score.
           </p>
         </div>
 
-        <div className="card p-6 text-center">
-          <div className="text-3xl mb-3">
-            <Icon name="storm" className="text-3xl" />
-          </div>
-          <h3 className="font-semibold mb-2 text-primary">Weather Recon</h3>
+        <div className="home-note" id="home-note-weather">
+          <h3 className="font-semibold mb-2 text-primary">Weather signals</h3>
           <p className="text-sm text-secondary">
-            Live meteorological surveillance: temperature, wind vectors,
-            precipitation, and cloud cover assessment
+            Temperature, wind, precipitation, and cloud data are weighted into
+            the forecast.
           </p>
         </div>
 
-        <div className="card p-6 text-center">
-          <div className="text-3xl mb-3">
-            <Icon name="target" className="text-3xl" />
-          </div>
-          <h3 className="font-semibold mb-2 text-primary">Tactical Analysis</h3>
+        <div className="home-note" id="home-note-source">
+          <h3 className="font-semibold mb-2 text-primary">Source quality</h3>
           <p className="text-sm text-secondary">
-            Multi-factor algorithmic assessment providing precision strike
-            recommendations with confidence metrics
+            Reliability indicators help explain data freshness and confidence.
           </p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

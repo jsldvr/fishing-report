@@ -71,9 +71,9 @@ export default function ScoreCard({
   const reliability = forecast.weather.reliability;
 
   const getScoreColor = (score: number) => {
-    if (score >= 75) return "bg-green-100 text-green-800";
-    if (score >= 50) return "bg-yellow-100 text-yellow-800";
-    return "bg-red-100 text-red-800";
+    if (score >= 75) return "score-chip score-chip--high";
+    if (score >= 50) return "score-chip score-chip--medium";
+    return "score-chip score-chip--low";
   };
 
   const getScoreIconName = (score: number): IconName => {
@@ -85,17 +85,17 @@ export default function ScoreCard({
   const getSafetyStyles = (rating: SafetyAssessment["rating"]) => {
     switch (rating) {
       case "EXCELLENT":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "safety-panel safety-panel--excellent";
       case "GOOD":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "safety-panel safety-panel--good";
       case "FAIR":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "safety-panel safety-panel--fair";
       case "POOR":
-        return "bg-orange-100 text-orange-800 border-orange-200";
+        return "safety-panel safety-panel--poor";
       case "DANGEROUS":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "safety-panel safety-panel--dangerous";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "safety-panel";
     }
   };
 
@@ -121,13 +121,13 @@ export default function ScoreCard({
   ) => {
     switch (level) {
       case "HIGH":
-        return "bg-green-100 text-green-700";
+        return "confidence-pill confidence-pill--high";
       case "MEDIUM":
-        return "bg-yellow-100 text-yellow-800";
+        return "confidence-pill confidence-pill--medium";
       case "LOW":
-        return "bg-red-100 text-red-700";
+        return "confidence-pill confidence-pill--low";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "confidence-pill";
     }
   };
 
@@ -157,7 +157,7 @@ export default function ScoreCard({
           {forecast.weather.source === "NWS" && (
             <div className="forecast-card__badges" id={`${cardId}-badges`}>
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
-                NWS Data
+                NWS source
               </span>
               {forecast.weather.barometricTrend !== "STEADY" && (
                 <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
@@ -205,7 +205,7 @@ export default function ScoreCard({
             className="text-xs forecast-card__score-label"
             id={`${cardId}-score-label`}
           >
-            Bite Score
+            Forecast score
           </p>
         </div>
       </div>
@@ -231,7 +231,7 @@ export default function ScoreCard({
                 className="forecast-card__metric-help"
                 id={`${cardId}-metric-moon-help`}
               >
-                Lunar phase impact on fish activity; higher is better.
+                Lunar phase contribution to expected fish activity.
               </span>
             </div>
             <span className="forecast-card__metric-value">
@@ -269,7 +269,7 @@ export default function ScoreCard({
                 className="forecast-card__metric-help"
                 id={`${cardId}-metric-weather-help`}
               >
-                Considers temp, wind, precip, and clouds for bite conditions.
+                Weighted weather signal from temperature, wind, rain, and cloud.
               </span>
             </div>
             <span className="forecast-card__metric-value">
@@ -518,7 +518,7 @@ export default function ScoreCard({
                   className="text-xl"
                 />
                 <h3 className="font-semibold text-lg">
-                  Fishing Safety: {safety.rating}
+                  On-water safety: {safety.rating}
                 </h3>
               </div>
               <div
@@ -582,7 +582,7 @@ export default function ScoreCard({
               )}
               {safety.recommendations.length > 0 && (
                 <div id={`${cardId}-safety-recs`}>
-                  <h4 className="font-medium mb-1">Recommendations:</h4>
+                  <h4 className="font-medium mb-1">Recommended actions:</h4>
                   <ul className="text-sm space-y-1">
                     {safety.recommendations.map((rec, index) => (
                       <li

@@ -209,17 +209,19 @@ export default function Results() {
     forecasts[0]
   );
 
+  const endDate = startDate && days > 0 ? addDaysToDate(startDate, days - 1) : "";
+
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="text-center">
           <div
             className="spinner mx-auto mb-4"
             style={{ width: "40px", height: "40px" }}
           ></div>
-          <h2 className="text-xl font-semibold mb-2">Generating Forecast...</h2>
+          <h2 className="text-xl font-semibold mb-2">Generating forecast...</h2>
           <p className="text-gray-600">
-            Fetching weather data and calculating bite scores
+            Fetching weather and marine data, then calculating daily scores.
           </p>
         </div>
       </div>
@@ -228,15 +230,15 @@ export default function Results() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="card p-6 text-center">
           <div className="text-4xl mb-4">
             <Icon name="warning" className="text-4xl" />
           </div>
-          <h2 className="text-xl font-semibold mb-2 text-red-600">Error</h2>
+          <h2 className="text-xl font-semibold mb-2 text-red-600">Unable to load forecast</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button className="btn btn-primary" id="action-back-home-error" onClick={handleBackToHome}>
-            Back to Home
+            Back to Forecast
           </button>
         </div>
       </div>
@@ -244,174 +246,157 @@ export default function Results() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex mb-6 results-header" id="results-header">
-        <div className="results-header-title" id="results-header-title">
-          <h1 className="text-2xl font-bold text-gray-900">Fishing Forecast</h1>
-          <p className="text-gray-600">
+    <div className="results-page max-w-7xl mx-auto px-4 py-8" id="results-page">
+      <section className="results-summary-band" id="results-summary-band">
+        <div className="results-summary-band__identity" id="results-summary-identity">
+          <h1 className="text-2xl font-bold text-gray-900" id="results-summary-title">
+            Forecast Report
+          </h1>
+          <p className="text-gray-600" id="results-summary-location">
             {locationName || `${lat.toFixed(4)}, ${lon.toFixed(4)}`}
           </p>
+          <p className="text-sm text-secondary" id="results-summary-dates">
+            {startDate} to {endDate}
+          </p>
         </div>
 
-        <div
-          className="flex gap-4 results-header-controls"
-          id="results-header-controls"
-        >
-          {/* Unit toggles */}
-          <div
-            className="flex items-center gap-2 results-unit-group"
-            id="temperature-unit-group"
-          >
-            <button
-              className={`btn ${
-                !useFahrenheit ? "btn-primary" : "btn-secondary"
-              }`}
-              id="unit-toggle-celsius"
-              onClick={() => setUseFahrenheit(false)}
-            >
-              °C
-            </button>
-            <button
-              className={`btn ${
-                useFahrenheit ? "btn-primary" : "btn-secondary"
-              }`}
-              id="unit-toggle-fahrenheit"
-              onClick={() => setUseFahrenheit(true)}
-            >
-              °F
-            </button>
+        <div className="results-summary-band__metrics" id="results-summary-metrics">
+          <div className="results-summary-band__metric" id="overall-outlook-card">
+            <p className="text-sm text-secondary" id="overall-outlook-title">Average score</p>
+            <p className="text-3xl font-bold text-primary" id="overall-outlook-score">{averageScore}</p>
           </div>
-
-          <div
-            className="flex items-center gap-2 results-unit-group"
-            id="wind-unit-group"
-          >
-            <button
-              className={`btn ${!useMph ? "btn-primary" : "btn-secondary"}`}
-              id="unit-toggle-kmh"
-              onClick={() => setUseMph(false)}
-            >
-              km/h
-            </button>
-            <button
-              className={`btn ${useMph ? "btn-primary" : "btn-secondary"}`}
-              id="unit-toggle-mph"
-              onClick={() => setUseMph(true)}
-            >
-              mph
-            </button>
+          <div className="results-summary-band__metric" id="best-day-card">
+            <p className="text-sm text-secondary" id="best-day-title">Best day</p>
+            <p className="text-base font-semibold" id="best-day-date">
+              {new Date(bestDay.date + "T12:00:00").toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+              })}
+            </p>
+            <p className="text-xl font-bold text-primary" id="best-day-score">
+              {bestDay.biteScore0100}
+            </p>
           </div>
-
-          <button
-            className="btn btn-primary"
-            id="action-new-forecast"
-            onClick={handleBackToHome}
-          >
-            New Forecast
-          </button>
         </div>
-      </div>
 
-      {(isOffline || usedCachedData) && (
-        <div className="card p-4 mb-6" id="offline-status-banner">
-          <p className="text-sm font-semibold text-primary">
-            <Icon name="warning" className="mr-2" />
-            {isOffline ? "Offline mode active" : "Using cached forecast data"}
+        <div className="results-summary-band__status" id="results-summary-status">
+          <p className="text-sm text-secondary" id="results-summary-online-state">
+            {isOffline ? "Offline" : "Online"}
+          </p>
+          <p className="text-sm text-secondary" id="results-summary-cache-state">
+            {usedCachedData ? "Using cached report data" : "Using latest available data"}
           </p>
           {usedCachedData && (
-            <p className="text-xs text-secondary mt-1">
+            <p className="text-xs text-secondary" id="results-summary-cache-updated">
               Last updated: {formatCacheTimestamp(cachedLastUpdatedIso)}
               {isCachedDataStale ? " (stale)" : ""}
             </p>
           )}
         </div>
-      )}
+      </section>
 
-      {/* Summary */}
-      {forecasts.length > 0 && (
-        <div className="grid gap-6 sm:grid-cols-2 mb-8" id="results-summary">
-          <div className="card p-6" id="overall-outlook-card">
-            <h3
-              className="text-lg font-semibold mb-2"
-              id="overall-outlook-title"
-            >
-              Overall Outlook
-            </h3>
-            <div
-              className="text-3xl font-bold text-blue-600 mb-2"
-              id="overall-outlook-score"
-            >
-              {averageScore}
+      <section className="results-workspace" id="results-workspace">
+        <aside className="results-rail" id="results-controls-rail">
+          <div className="results-rail__section" id="results-units-section">
+            <h2 className="text-base font-semibold" id="results-units-title">Units</h2>
+            <div className="results-rail__toggle-group" id="temperature-unit-group">
+              <span className="text-xs text-secondary">Temperature</span>
+              <div className="results-rail__toggle-row" id="temperature-unit-row">
+                <button
+                  className={`btn ${!useFahrenheit ? "btn-primary" : "btn-secondary"}`}
+                  id="unit-toggle-celsius"
+                  onClick={() => setUseFahrenheit(false)}
+                >
+                  deg C
+                </button>
+                <button
+                  className={`btn ${useFahrenheit ? "btn-primary" : "btn-secondary"}`}
+                  id="unit-toggle-fahrenheit"
+                  onClick={() => setUseFahrenheit(true)}
+                >
+                  deg F
+                </button>
+              </div>
             </div>
-            <p className="text-sm text-gray-600" id="overall-outlook-label">
-              Average bite score
+
+            <div className="results-rail__toggle-group" id="wind-unit-group">
+              <span className="text-xs text-secondary">Wind speed</span>
+              <div className="results-rail__toggle-row" id="wind-unit-row">
+                <button
+                  className={`btn ${!useMph ? "btn-primary" : "btn-secondary"}`}
+                  id="unit-toggle-kmh"
+                  onClick={() => setUseMph(false)}
+                >
+                  km/h
+                </button>
+                <button
+                  className={`btn ${useMph ? "btn-primary" : "btn-secondary"}`}
+                  id="unit-toggle-mph"
+                  onClick={() => setUseMph(true)}
+                >
+                  mph
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="results-rail__section" id="results-actions-section">
+            <button
+              className="btn btn-primary results-rail__new-forecast-button"
+              id="action-new-forecast"
+              onClick={handleBackToHome}
+            >
+              New Forecast
+            </button>
+          </div>
+
+          {forecasts.length > 0 &&
+            forecasts[0]?.weather?.source === "NWS" &&
+            forecasts[0]?.weather?.localOffice && (
+              <div className="results-rail__section" id="nws-office-section">
+                <NWSOfficeInfo
+                  localOffice={forecasts[0].weather.localOffice}
+                  className="results-rail__office"
+                  id="nws-office-card"
+                />
+              </div>
+            )}
+        </aside>
+
+        <div className="results-main" id="results-main-panel">
+          <div className="results-main__explanation" id="results-score-explanation">
+            <h2 className="text-lg font-semibold text-primary">Score interpretation</h2>
+            <p className="text-sm text-secondary">
+              Scores combine lunar, weather, and available marine indicators.
+              Reliability notes describe confidence and data freshness.
             </p>
           </div>
 
-          <div className="card p-6" id="best-day-card">
-            <h3 className="text-lg font-semibold mb-2" id="best-day-title">
-              Best Day
-            </h3>
-            <div className="text-lg font-medium mb-1" id="best-day-date">
-              {new Date(bestDay.date + "T12:00:00").toLocaleDateString(
-                "en-US",
-                {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
-                }
-              )}
-            </div>
-            <div
-              className="text-2xl font-bold text-green-600"
-              id="best-day-score"
-            >
-              {bestDay.biteScore0100}
-            </div>
+          <div className="results-main__cards" id="results-forecast-cards">
+            {forecasts.map((forecast) => (
+              <ScoreCard
+                key={forecast.date}
+                forecast={forecast}
+                lat={lat}
+                lon={lon}
+                useFahrenheit={useFahrenheit}
+                useMph={useMph}
+              />
+            ))}
+          </div>
+
+          <div className="results-main__footer text-sm text-gray-500" id="results-data-sources">
+            <p>
+              Data sources: NWS grids and alerts, SPC outlooks, NOAA marine and tides,
+              Open-Meteo fallback, and astronomical calculations.
+            </p>
+            <p className="mt-1">
+              Use this report with official advisories when planning on-water activity.
+            </p>
           </div>
         </div>
-      )}
-
-      {/* NWS Office Information */}
-      {forecasts.length > 0 &&
-        forecasts[0]?.weather?.source === "NWS" &&
-        forecasts[0]?.weather?.localOffice && (
-          <div className="mb-8" id="nws-office-section">
-            <NWSOfficeInfo
-              localOffice={forecasts[0].weather.localOffice}
-              className="max-w-none"
-              id="nws-office-card"
-            />
-          </div>
-        )}
-
-      {/* Daily Forecasts */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {forecasts.map((forecast) => (
-          <ScoreCard
-            key={forecast.date}
-            forecast={forecast}
-            lat={lat}
-            lon={lon}
-            useFahrenheit={useFahrenheit}
-            useMph={useMph}
-          />
-        ))}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-8 text-center text-sm text-gray-500">
-        <p>
-          Data sources: NWS grid/alerts, SPC convective outlooks, NOAA tides &
-          marine, Open-Meteo fallback, astronomical calculations for lunar
-          phase
-        </p>
-        <p className="mt-1">
-          Forecasts are for entertainment purposes and should not be the sole
-          factor in fishing decisions
-        </p>
-      </div>
+      </section>
     </div>
   );
 }

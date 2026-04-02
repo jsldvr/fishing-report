@@ -126,7 +126,7 @@ describe("Home", () => {
       "/results?lat=42.7754&lon=-88.939&startDate=2026-02-25&days=3&name=Milton+Mission"
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Rerun" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run again" }));
     expect(navigateMock).toHaveBeenCalledTimes(2);
   });
 
@@ -146,7 +146,7 @@ describe("Home", () => {
 
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
     expect(
-      screen.getByRole("button", { name: "Execute Mission Brief" })
+      screen.getByRole("button", { name: "Generate Forecast" })
     ).toBeEnabled();
   });
 });

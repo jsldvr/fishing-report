@@ -25,6 +25,9 @@ function App() {
   const [installPromptEvent, setInstallPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
   const location = useLocation();
+  const [isOffline, setIsOffline] = useState(
+    typeof navigator !== "undefined" ? !navigator.onLine : false
+  );
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
@@ -80,6 +83,19 @@ function App() {
   }, [location.pathname]);
 
   useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPromptEvent(event as BeforeInstallPromptEvent);
@@ -109,136 +125,112 @@ function App() {
     }
   };
 
+  const getRouteLabel = () => {
+    if (location.pathname === "/") return "Home";
+    if (location.pathname === "/results") return "Results";
+    if (location.pathname === "/about") return "About";
+    if (location.pathname === "/wx") return "Weather Resources";
+    if (location.pathname === "/guide") return "Guide";
+    return "Fishing Forecast";
+  };
+
+  const getContextLine = () => {
+    if (location.pathname === "/") {
+      return "Use location, timing, and observed conditions to generate a daily forecast.";
+    }
+
+    if (location.pathname === "/results") {
+      const params = new URLSearchParams(location.search);
+      const locationLabel = params.get("name");
+      const lat = params.get("lat");
+      const lon = params.get("lon");
+      const startDate = params.get("startDate");
+      const days = params.get("days");
+      const coords = lat && lon ? `${Number.parseFloat(lat).toFixed(4)}, ${Number.parseFloat(lon).toFixed(4)}` : "Location pending";
+      const displayLocation = locationLabel || coords;
+      const dateWindow =
+        startDate && days ? `${startDate} for ${days} day${days === "1" ? "" : "s"}` : "Date window pending";
+
+      return `${displayLocation} | ${dateWindow} | ${isOffline ? "Offline" : "Online"}`;
+    }
+
+    return "Forecast planning interface for North American waters.";
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br">
-      {/* Theme Toggle Button */}
-      <button
-        className="theme-toggle"
-        id="theme-toggle"
-        onClick={toggleTheme}
-        aria-label="Toggle theme"
-        title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-      >
-        <Icon name={theme === "light" ? "moon" : "sun"} />
-      </button>
+    <div className="app-shell min-h-screen bg-gradient-to-br" id="app-shell">
+      <header className="app-shell__header" id="app-shell-header">
+        <div className="app-shell__topbar" id="app-shell-topbar">
+          <div className="app-shell__brand" id="app-shell-brand">
+            <a className="app-shell__brand-link" id="app-shell-brand-link" href="#/">
+              <Icon name="fish" />
+              Fishing Forecast
+            </a>
+          </div>
 
-      <header className="header">
-        <div className="header-container">
-          <div className="header-content">
-            {/* Mission Logo & Title */}
-            <div className="header-brand">
-              <div className="brand-icon">
-                <Icon name="fish" />
-              </div>
-              <div className="brand-text">
-                <h1 className="brand-title">TACTICAL FISHING INTEL</h1>
-                <span className="brand-subtitle">
-                  MISSION-READY FORECASTING
-                </span>
-              </div>
-            </div>
+          <div className="app-shell__route" id="app-shell-route-label">
+            {getRouteLabel()}
+          </div>
 
-            {/* Navigation Controls */}
-            <nav className="header-nav" id="primary-navigation">
-              <div className="nav-primary" id="primary-navigation-links">
-                <a
-                  href="#/"
-                  className="nav-link"
-                  id="nav-link-home"
-                  data-section="intel"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">
-                    <Icon name="home" />
-                  </span>
-                  <span className="nav-text">INTEL</span>
-                </a>
-                <a
-                  href="#/wx"
-                  className="nav-link"
-                  id="nav-link-wx"
-                  data-section="weather"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">
-                    <Icon name="weather" />
-                  </span>
-                  <span className="nav-text">WX</span>
-                </a>
-                <a
-                  href="#/guide"
-                  className="nav-link"
-                  id="nav-link-guide"
-                  data-section="guide"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">
-                    <Icon name="compass" />
-                  </span>
-                  <span className="nav-text">GUIDE</span>
-                </a>
-                <a
-                  href="#/about"
-                  className="nav-link"
-                  id="nav-link-about"
-                  data-section="mission"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="nav-icon">
-                    <Icon name="clipboard" />
-                  </span>
-                  <span className="nav-text">MISSION</span>
-                </a>
-              </div>
-
-              {/* Mobile Menu Toggle */}
-              <button
-                className={`mobile-menu-toggle ${
-                  mobileMenuOpen ? "active" : ""
-                }`}
-                id="mobile-menu-toggle"
-                onClick={toggleMobileMenu}
-                aria-label="Toggle navigation"
-              >
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
-              </button>
+          <div className="app-shell__utilities" id="app-shell-utilities">
+            <nav className="app-shell__nav" id="primary-navigation">
+              <a className="app-shell__nav-link" id="nav-link-home" href="#/" onClick={closeMobileMenu}>
+                Home
+              </a>
+              <a className="app-shell__nav-link" id="nav-link-wx" href="#/wx" onClick={closeMobileMenu}>
+                Weather
+              </a>
+              <a className="app-shell__nav-link" id="nav-link-guide" href="#/guide" onClick={closeMobileMenu}>
+                Guide
+              </a>
+              <a className="app-shell__nav-link" id="nav-link-about" href="#/about" onClick={closeMobileMenu}>
+                About
+              </a>
             </nav>
-          </div>
 
-          {/* Status Bar */}
-          <div className="status-bar" id="status-bar">
-          <div className="status-indicator">
-            <span className="status-dot active"></span>
-            <span className="status-text">SYSTEM OPERATIONAL</span>
-          </div>
-          {installPromptEvent && (
+            {installPromptEvent && (
+              <button
+                className="btn btn-secondary app-shell__install-button"
+                id="install-app-button"
+                onClick={handleInstallApp}
+                type="button"
+              >
+                Install App
+              </button>
+            )}
+
             <button
-              className="btn btn-secondary text-xs px-3 py-1"
-              id="install-app-button"
-              onClick={handleInstallApp}
-              type="button"
+              className="app-shell__theme-toggle"
+              id="theme-toggle"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
             >
-              <Icon name="arrowRight" className="mr-1" />
-              Install App
+              <Icon name={theme === "light" ? "moon" : "sun"} />
             </button>
-          )}
-          <div className="app-version" id="app-version">
-            VERSION CTRL: {APP_VERSION}
-          </div>
-            <div className="timestamp" id="status-timestamp">
-              {new Date().toLocaleTimeString("en-US", {
-                hour12: false,
-                hour: "2-digit",
-                minute: "2-digit",
-              })}{" "}
-              LOCAL
-            </div>
+
+            <button
+              className={`mobile-menu-toggle ${mobileMenuOpen ? "active" : ""}`}
+              id="mobile-menu-toggle"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle navigation"
+            >
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+            </button>
           </div>
         </div>
 
-        {/* Mobile Menu Overlay */}
+        <div className="app-shell__context-strip" id="app-shell-context-strip">
+          <p className="app-shell__context-copy" id="app-shell-context-copy">
+            {getContextLine()}
+          </p>
+          <p className="app-shell__version" id="app-version">
+            v{APP_VERSION}
+          </p>
+        </div>
+
         {mobileMenuOpen && (
           <div
             className="mobile-menu-overlay"
@@ -257,11 +249,8 @@ function App() {
                   id="mobile-nav-home"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">
-                    <Icon name="home" />
-                  </span>
-                  <span className="nav-text">INTEL HUB</span>
-                  <span className="nav-description">Mission Control</span>
+                  <span className="nav-text">Home</span>
+                  <span className="nav-description">Forecast setup</span>
                 </a>
                 <a
                   href="#/wx"
@@ -269,11 +258,8 @@ function App() {
                   id="mobile-nav-wx"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">
-                    <Icon name="weather" />
-                  </span>
-                  <span className="nav-text">WX LINKS</span>
-                  <span className="nav-description">Weather Resources</span>
+                  <span className="nav-text">Weather</span>
+                  <span className="nav-description">Official resources</span>
                 </a>
                 <a
                   href="#/guide"
@@ -281,11 +267,8 @@ function App() {
                   id="mobile-nav-guide"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">
-                    <Icon name="compass" />
-                  </span>
                   <span className="nav-text">GUIDE</span>
-                  <span className="nav-description">Survival Tips</span>
+                  <span className="nav-description">Method overview</span>
                 </a>
                 <a
                   href="#/about"
@@ -293,11 +276,8 @@ function App() {
                   id="mobile-nav-about"
                   onClick={closeMobileMenu}
                 >
-                  <span className="nav-icon">
-                    <Icon name="clipboard" />
-                  </span>
-                  <span className="nav-text">MISSION BRIEF</span>
-                  <span className="nav-description">System Info</span>
+                  <span className="nav-text">About</span>
+                  <span className="nav-description">Sources and approach</span>
                 </a>
               </nav>
             </div>
@@ -339,8 +319,8 @@ function App() {
           </a>
         </div>
         <div className="footer-disclaimer" id="site-disclaimer">
-          This website is for entertainment purposes only and any real life
-          outcome is purely coincidental.
+          Forecast output is planning guidance and should be verified with
+          official marine and weather advisories.
         </div>
       </footer>
     </div>
