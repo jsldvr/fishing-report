@@ -46,7 +46,7 @@ export default function NWSOfficeInfo({
       >
         <Icon name="building" />
         Local NWS Office
-        <span className="hidden sm:inline text-secondary font-normal">
+        <span className="hidden sm:inline text-secondary font-normal nws-office-info__office-name">
           {office.name}
         </span>
         <span
@@ -81,7 +81,7 @@ export default function NWSOfficeInfo({
         </div>
 
         <div
-          className="flex items-center gap-4"
+          className="flex items-center gap-4 nws-office-info__location"
           id={id ? `${id}-location-info` : "nws-office-location-info"}
         >
           <span
@@ -105,7 +105,7 @@ export default function NWSOfficeInfo({
         </div>
 
         <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 pt-2 border-t"
+          className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 pt-2 border-t nws-office-info__address-contact"
           style={{ borderColor: "var(--border-primary)" }}
         >
           <div>
@@ -136,7 +136,7 @@ export default function NWSOfficeInfo({
           style={{ borderColor: "var(--border-primary)" }}
         >
           <p className="text-xs font-medium text-primary">Coverage Area:</p>
-          <div className="text-xs text-secondary grid grid-cols-2 gap-1 mt-1">
+          <div className="text-xs text-secondary grid grid-cols-2 gap-1 mt-1 nws-office-info__coverage-grid">
             <span>Counties: {office.responsibleCounties.length}</span>
             <span>
               Forecast Zones: {office.responsibleForecastZones.length}

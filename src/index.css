@@ -2901,8 +2901,12 @@ label {
 .results-workspace {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   align-items: start;
+}
+
+.results-workspace > * {
+  min-width: 0;
 }
 
 .results-rail {
@@ -2910,6 +2914,9 @@ label {
   gap: 0.8rem;
   position: sticky;
   top: 7.5rem;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
 }
 
 .results-rail__section {
@@ -2917,6 +2924,8 @@ label {
   border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   padding: 0.8rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .results-rail__toggle-group {
@@ -2938,6 +2947,7 @@ label {
 .results-main {
   display: grid;
   gap: 0.9rem;
+  min-width: 0;
 }
 
 .results-main__explanation,
@@ -2946,11 +2956,50 @@ label {
   border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   padding: 0.9rem 1rem;
+  min-width: 0;
 }
 
 .results-main__cards {
   display: grid;
   gap: 0.9rem;
+  min-width: 0;
+}
+
+.results-rail__toggle-row .btn,
+.results-rail__new-forecast-button {
+  min-width: 0;
+}
+
+.results-rail__office {
+  width: 100%;
+  min-width: 0;
+}
+
+.results-rail__office .nws-office-info__office-name {
+  display: none;
+}
+
+.results-rail__office .mission-timeline-toggle {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.results-rail__office .nws-office-info__location {
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.results-rail__office .nws-office-info__address-contact,
+.results-rail__office .nws-office-info__coverage-grid {
+  grid-template-columns: 1fr;
+}
+
+.results-rail__office .nws-office-info__location span,
+.results-rail__office .nws-office-info__coverage-grid span,
+.results-rail__office .nws-office-info__address-contact p,
+.results-rail__office .nws-office-info__address-contact div {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .forecast-card {
