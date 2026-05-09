@@ -22,6 +22,11 @@ CLASSIFICATION: UNCLASSIFIED
   padding: 0;
 }
 
+ul,
+ol {
+  list-style: none;
+}
+
 html {
   font-size: 16px;
   line-height: 1.4;
@@ -2774,29 +2779,8 @@ label {
   gap: 1.25rem;
 }
 
-.home-intro-strip {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  padding: 1.25rem 1.5rem;
-}
-
-.home-intro-strip__title,
-.home-intro-strip__summary,
-.home-intro-strip__trust {
-  margin: 0;
-}
-
-.home-intro-strip__summary {
-  margin-top: 0.4rem;
-}
-
-.home-intro-strip__trust {
-  margin-top: 0.35rem;
-}
-
 .home-planner-strip {
-  max-width: 980px;
+  max-width: 100%;
   width: 100%;
   margin: 0 auto;
   background: var(--bg-secondary);
@@ -2823,7 +2807,7 @@ label {
 .home-planner-strip__actions {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.45rem;
 }
 

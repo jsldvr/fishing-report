@@ -211,18 +211,6 @@ export default function Home() {
 
   return (
     <div className="home-page max-w-7xl mx-auto px-4 py-8" id="home-page">
-      <section className="home-intro-strip" id="home-intro-strip">
-        <h1 className="home-intro-strip__title text-3xl font-bold text-primary" id="home-intro-title">
-          Fishing Forecast
-        </h1>
-        <p className="home-intro-strip__summary text-lg text-secondary" id="home-intro-summary">
-          Weather-informed planning for North American waters.
-        </p>
-        <p className="home-intro-strip__trust text-sm text-muted" id="home-intro-trust">
-          Uses location, timing, and observed conditions to generate a daily forecast.
-        </p>
-      </section>
-
       <section className="home-planner-strip" id="home-planner-strip">
         <div className="home-planner-strip__controls" id="home-planner-controls">
           <LocationInput
@@ -366,10 +354,10 @@ export default function Home() {
           {recentHistory.length === 0 ? (
             <p className="text-sm text-muted">No recent forecasts yet.</p>
           ) : (
-            <ul className="grid gap-2" id="mission-history-list">
+            <ul className="grid gap-2 list-none" id="mission-history-list">
               {recentHistory.map((historyItem) => (
                 <li
-                  className="bg-accent border border-primary rounded-lg p-3"
+                  className="border border-primary rounded-lg p-3"
                   id={`history-item-${historyItem.id}`}
                   key={historyItem.id}
                 >
