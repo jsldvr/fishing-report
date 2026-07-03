@@ -38,7 +38,10 @@ export interface AlmanacData {
   notes?: string;
 }
 
-export type ForecastAvailability = "OK" | "WEATHER_UNAVAILABLE";
+// Single-value union by design: "OK" has no distinct representation from
+// undefined, so it is never assigned. forecastStatus is either unset (OK)
+// or "WEATHER_UNAVAILABLE" -- there is exactly one way to express each state.
+export type ForecastAvailability = "WEATHER_UNAVAILABLE";
 
 export interface ForecastScore {
   date: string; // ISO date
@@ -51,10 +54,11 @@ export interface ForecastScore {
   solunar?: SolunarTimes;
   /**
    * "WEATHER_UNAVAILABLE" means no verified weather could be fetched; the bite
-   * score is not valid and must not be rendered as a normal forecast.
+   * score is not valid and must not be rendered as a normal forecast. Unset
+   * means OK -- there is no separate "OK" literal to avoid dual representation.
    */
   forecastStatus?: ForecastAvailability;
-  /** Human-readable reason when forecastStatus is not OK. */
+  /** Human-readable reason when forecastStatus is "WEATHER_UNAVAILABLE". */
   unavailableReason?: string;
 }
 

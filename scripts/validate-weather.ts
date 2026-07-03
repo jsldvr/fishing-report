@@ -234,7 +234,7 @@ check("blocking: total weather failure never yields a normal score", blockedChec
 // --- Report ---
 const total = passed + failed;
 const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : "0.0";
-const blockedRate = blockedChecks ? "100" : "0";
+const blockedStatus = blockedChecks ? "PASS" : "FAIL";
 
 console.log("Weather data validation");
 console.log(`Locations tested: ${LOCATIONS.length}`);
@@ -243,7 +243,7 @@ console.log(
 );
 console.log(`Checks: ${passed}/${total} passed`);
 console.log(`Pass rate: ${passRate}%`);
-console.log(`Blocked unsafe/missing forecasts: ${blockedRate}%`);
+console.log(`Blocked unsafe/missing forecasts: ${blockedStatus}`);
 console.log(
   "Known limitations: precipitation amount unavailable from NWS grid PoP; Open-Meteo provides no source update timestamp (freshness UNKNOWN); US bounds are rough rectangles (southern Ontario/Quebec near the Great Lakes still routes to NWS)"
 );
