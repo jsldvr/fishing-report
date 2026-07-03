@@ -4,7 +4,7 @@
 - Applies to: Web front end, agent code, and infra in this repo.
 
 ## 1. Changelog
-- Location: /AGENTS_CHANGELOG.md using and following current format.
+- Location: /CHANGELOG.md using and following current format.
 
 ## 2. Front End Markup Conventions
 - Every interactive node must include (class and id, in that order):
