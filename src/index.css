@@ -1859,6 +1859,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
   max-width: 40rem;
 }
 
+/* Location + forecast window live inside one hero card; a single divider
+   separates them instead of each nesting its own bordered card. The grid's
+   own gap provides base spacing -- this only adds the dividing line. */
+.hero-panel__section + .hero-panel__section {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-primary);
+}
+
 .trust-strip {
   display: flex;
   flex-wrap: wrap;

@@ -38,7 +38,7 @@ export default function DateRangePicker({
   const timelineContentId = "mission-timeline-content";
 
   return (
-    <div className="card p-6">
+    <div className="hero-panel__section">
       <h2
         className="text-xl font-semibold text-primary mission-timeline-toggle"
         id="mission-timeline-toggle"

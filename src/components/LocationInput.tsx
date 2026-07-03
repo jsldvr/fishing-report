@@ -378,7 +378,7 @@ export default function LocationInput({
   };
 
   return (
-    <div className="card p-6">
+    <div className="hero-panel__section">
       <h2 className="text-xl font-semibold mb-4 text-primary flex items-center gap-2">
         <Icon name="mapPin" />
         Location
