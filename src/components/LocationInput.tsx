@@ -423,8 +423,8 @@ export default function LocationInput({
           </p>
         </div>
 
-        {/* Manual Coordinates */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Manual Coordinates + Use my location */}
+        <div className="location-row">
           <div>
             <label
               htmlFor="latitude"
@@ -463,25 +463,24 @@ export default function LocationInput({
               onChange={(e) => setLon(e.target.value)}
             />
           </div>
+          <button
+            className="btn btn-primary"
+            onClick={handleGetCurrentLocation}
+            disabled={isGeolocating}
+          >
+            {isGeolocating ? (
+              <>
+                <span className="spinner"></span>
+                Finding your location…
+              </>
+            ) : (
+              <>
+                <Icon name="locationTarget" className="mr-2" />
+                Use my location
+              </>
+            )}
+          </button>
         </div>
-
-        <button
-          className="btn btn-primary"
-          onClick={handleGetCurrentLocation}
-          disabled={isGeolocating}
-        >
-          {isGeolocating ? (
-            <>
-              <span className="spinner"></span>
-              Finding your location…
-            </>
-          ) : (
-            <>
-              <Icon name="locationTarget" className="mr-2" />
-              Use my location
-            </>
-          )}
-        </button>
 
         {!isValid && (
           <p className="text-sm text-error mt-2">
