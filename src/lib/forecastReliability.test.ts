@@ -41,6 +41,7 @@ describe("buildForecastReliability", () => {
 
     const reliability = buildForecastReliability(weather, {
       isMarineEligible: true,
+      isFallbackSource: true,
       nowIso: "2026-02-25T12:00:00Z",
       weatherLastUpdatedIso: "2026-02-25T10:00:00Z",
     });
@@ -48,6 +49,36 @@ describe("buildForecastReliability", () => {
     expect(reliability.confidenceLevel).toBe("LOW");
     expect(reliability.marineStatus).toBe("UNAVAILABLE");
     expect(reliability.reasons.join(" ")).toContain("fallback");
+  });
+
+  it("does not apply the fallback penalty when Open-Meteo is the primary source", () => {
+    const weather = {
+      ...makeBaseWeather(),
+      source: "OPEN_METEO" as const,
+    };
+
+    const reliability = buildForecastReliability(weather, {
+      isMarineEligible: false,
+      isFallbackSource: false,
+      nowIso: "2026-02-25T12:00:00Z",
+      weatherLastUpdatedIso: "2026-02-25T10:00:00Z",
+    });
+
+    expect(reliability.confidenceLevel).toBe("HIGH");
+    expect(reliability.reasons.join(" ")).not.toContain("fallback");
+  });
+
+  it("carries the forecast-generated timestamp separately from source update time", () => {
+    const weather = makeBaseWeather();
+    const reliability = buildForecastReliability(weather, {
+      isMarineEligible: false,
+      nowIso: "2026-02-25T12:00:00Z",
+      forecastGeneratedIso: "2026-02-25T12:00:00Z",
+      weatherLastUpdatedIso: "2026-02-25T09:00:00Z",
+    });
+
+    expect(reliability.forecastGeneratedIso).toBe("2026-02-25T12:00:00Z");
+    expect(reliability.weatherLastUpdatedIso).toBe("2026-02-25T09:00:00Z");
   });
 
   it("marks stale marine observations and downgrades confidence", () => {

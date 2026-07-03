@@ -134,13 +134,15 @@ describe("ScoreCard", () => {
     expect(screen.queryByTestId("weather-alerts")).not.toBeInTheDocument();
   });
 
-  it("renders confidence and recency metadata", () => {
+  it("renders data quality and recency metadata", () => {
     render(<ScoreCard forecast={mockForecastWithMarine} lat={40} lon={-74} />);
 
-    expect(screen.getByText("Confidence: HIGH")).toBeInTheDocument();
-    expect(screen.getByText("Score 92/100")).toBeInTheDocument();
-    expect(screen.getByText(/Weather last updated:/)).toBeInTheDocument();
-    expect(screen.getByText(/Marine last updated:/)).toBeInTheDocument();
+    expect(screen.getByText("Data quality: HIGH")).toBeInTheDocument();
+    expect(screen.getByText("Data quality score 92/100")).toBeInTheDocument();
+    expect(screen.queryByText(/Confidence/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Forecast generated:/)).toBeInTheDocument();
+    expect(screen.getByText(/Weather source updated:/)).toBeInTheDocument();
+    expect(screen.getByText(/Marine observation updated:/)).toBeInTheDocument();
     expect(screen.queryByText(/Marine status: AVAILABLE/)).not.toBeInTheDocument();
     expect(screen.queryByText(/freshness/i)).not.toBeInTheDocument();
   });
@@ -163,9 +165,81 @@ describe("ScoreCard", () => {
     };
 
     render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
-    expect(screen.getByText("Confidence: MEDIUM")).toBeInTheDocument();
+    expect(screen.getByText("Data quality: MEDIUM")).toBeInTheDocument();
     expect(screen.getByText(/Marine status: UNAVAILABLE/)).toBeInTheDocument();
     expect(screen.queryByText(/freshness/i)).not.toBeInTheDocument();
+  });
+
+  it("shows unknown source freshness instead of claiming fresh data", () => {
+    const forecast = {
+      ...mockForecastWithoutMarine,
+      weather: {
+        ...mockForecastWithoutMarine.weather,
+        reliability: {
+          ...mockForecastWithoutMarine.weather.reliability!,
+          weatherFreshness: "UNKNOWN" as const,
+          weatherLastUpdatedIso: undefined,
+          marineStatus: "NOT_APPLICABLE" as const,
+        },
+      },
+    };
+
+    render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
+    expect(
+      screen.getByText(/Weather source updated:\s*Unknown/)
+    ).toBeInTheDocument();
+  });
+
+  it("renders a blocked card without a bite score when weather is unavailable", () => {
+    const forecast: ForecastScore = {
+      ...mockForecastWithoutMarine,
+      weather: {
+        ...mockForecastWithoutMarine.weather,
+        tempC: NaN,
+        windKph: NaN,
+        precipMm: undefined,
+        cloudPct: NaN,
+        source: "UNAVAILABLE",
+        safety: {
+          rating: "UNKNOWN",
+          activeAlerts: [],
+          recommendations: [],
+          riskFactors: [],
+        },
+      },
+      biteScore0100: 0,
+      components: {},
+      forecastStatus: "WEATHER_UNAVAILABLE",
+      unavailableReason: "Current weather could not be verified from any source",
+    };
+
+    render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
+
+    expect(screen.getByTestId("score-card-unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Forecast unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Safety: Unknown")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Check official weather before fishing/)
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Bite Score")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("score-card")).not.toBeInTheDocument();
+  });
+
+  it("displays precipitation probability separately from amount", () => {
+    const forecast: ForecastScore = {
+      ...mockForecastWithoutMarine,
+      weather: {
+        ...mockForecastWithoutMarine.weather,
+        precipMm: undefined,
+        precipProbabilityPct: 40,
+      },
+    };
+
+    render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
+
+    expect(screen.getByText("Chance of rain: 40%")).toBeInTheDocument();
+    expect(screen.getByText("Rain amount unavailable")).toBeInTheDocument();
+    expect(screen.queryByText(/Rain amount: /)).not.toBeInTheDocument();
   });
 });
 

@@ -25,23 +25,66 @@ interface NWSPointResponse {
   };
 }
 
+interface NWSGridpointQuantity {
+  uom?: string;
+  values: Array<{ validTime: string; value: number | null }>;
+}
+
 interface NWSGridpointResponse {
   properties: {
-    temperature?: { values: Array<{ validTime: string; value: number }> };
-    windSpeed?: { values: Array<{ validTime: string; value: number }> };
-    probabilityOfPrecipitation?: {
-      values: Array<{ validTime: string; value: number }>;
-    };
-    skyCover?: { values: Array<{ validTime: string; value: number }> };
-    pressure?: { values: Array<{ validTime: string; value: number }> };
-    waveHeight?: { values: Array<{ validTime: string; value: number }> };
-    primarySwellDirection?: {
-      values: Array<{ validTime: string; value: number }>;
-    };
-    waterTemperature?: { values: Array<{ validTime: string; value: number }> };
-    visibility?: { values: Array<{ validTime: string; value: number }> };
-    windWaveHeight?: { values: Array<{ validTime: string; value: number }> };
+    updateTime?: string;
+    temperature?: NWSGridpointQuantity;
+    windSpeed?: NWSGridpointQuantity;
+    probabilityOfPrecipitation?: NWSGridpointQuantity;
+    skyCover?: NWSGridpointQuantity;
+    pressure?: NWSGridpointQuantity;
+    waveHeight?: NWSGridpointQuantity;
+    primarySwellDirection?: NWSGridpointQuantity;
+    waterTemperature?: NWSGridpointQuantity;
+    visibility?: NWSGridpointQuantity;
+    windWaveHeight?: NWSGridpointQuantity;
   };
+}
+
+/**
+ * Convert an NWS wind speed value to km/h based on the reported unit.
+ * NWS gridpoints report windSpeed in km/h by default (wmoUnit:km_h-1).
+ */
+export function convertWindToKph(value: number, uom?: string): number {
+  if (uom?.includes("m_s")) {
+    return value * 3.6;
+  }
+  if (uom?.includes("kn")) {
+    return value * 1.852;
+  }
+  if (uom?.includes("mi_h")) {
+    return value * 1.609344;
+  }
+  return value; // km_h-1 or unspecified (NWS default)
+}
+
+/**
+ * Convert an NWS pressure value to hPa based on the reported unit.
+ * NWS gridpoints report pressure in Pa (wmoUnit:Pa) unless stated otherwise.
+ */
+export function convertPressureToHpa(value: number, uom?: string): number {
+  if (uom?.includes("hPa") || uom?.includes("mbar")) {
+    return value;
+  }
+  return value / 100; // Pa -> hPa (NWS default)
+}
+
+/** Convert an NWS temperature value to Celsius based on the reported unit. */
+export function convertTemperatureToC(value: number, uom?: string): number {
+  if (uom?.includes("degF")) {
+    return ((value - 32) * 5) / 9;
+  }
+  return value; // degC or unspecified (NWS default)
+}
+
+/** Clamp a probability-of-precipitation value into 0..100. */
+export function clampProbabilityPct(value: number): number {
+  return Math.max(0, Math.min(100, value));
 }
 
 interface NWSAlertsResponse {
@@ -315,13 +358,15 @@ export class NWSWeatherService {
   }
 
   private extractValueForDate(
-    values: Array<{ validTime: string; value: number }> | undefined,
+    values: Array<{ validTime: string; value: number | null }> | undefined,
     targetDate: string
   ): number | undefined {
     if (!values) return undefined;
 
     const targetDay = targetDate.split("T")[0];
-    const dayValues = values.filter((v) => v.validTime.startsWith(targetDay));
+    const dayValues = values.filter(
+      (v) => v.value !== null && v.validTime.startsWith(targetDay)
+    ) as Array<{ validTime: string; value: number }>;
 
     if (dayValues.length === 0) return undefined;
 
@@ -359,15 +404,15 @@ export class NWSWeatherService {
 
       // Extract weather data for the target date
       const targetDateTime = `${day.date}T12:00:00Z`;
-      const temp = this.extractValueForDate(
+      const tempRaw = this.extractValueForDate(
         gridData.properties.temperature?.values,
         targetDateTime
       );
-      const windSpeed = this.extractValueForDate(
+      const windSpeedRaw = this.extractValueForDate(
         gridData.properties.windSpeed?.values,
         targetDateTime
       );
-      const precipitation = this.extractValueForDate(
+      const precipProbability = this.extractValueForDate(
         gridData.properties.probabilityOfPrecipitation?.values,
         targetDateTime
       );
@@ -375,10 +420,31 @@ export class NWSWeatherService {
         gridData.properties.skyCover?.values,
         targetDateTime
       );
-      const pressure = this.extractValueForDate(
+      const pressureRaw = this.extractValueForDate(
         gridData.properties.pressure?.values,
         targetDateTime
       );
+
+      // Core fields must be real observations/forecasts. Throwing here lets the
+      // caller fall back to Open-Meteo instead of scoring synthetic values.
+      if (tempRaw === undefined || windSpeedRaw === undefined || cloudCover === undefined) {
+        throw new Error(
+          `NWS gridpoint data incomplete for ${day.date} (temp/wind/cloud missing)`
+        );
+      }
+
+      const tempC = convertTemperatureToC(
+        tempRaw,
+        gridData.properties.temperature?.uom
+      );
+      const windKph = convertWindToKph(
+        windSpeedRaw,
+        gridData.properties.windSpeed?.uom
+      );
+      const pressureHpa =
+        pressureRaw !== undefined
+          ? convertPressureToHpa(pressureRaw, gridData.properties.pressure?.uom)
+          : undefined;
 
       // Marine data (if available)
       const marine: MarineWeatherData = {
@@ -409,35 +475,43 @@ export class NWSWeatherService {
         marine.waveHeight !== undefined ||
         marine.waterTemperature !== undefined;
 
+      // NWS grid supplies probability of precipitation, not an amount.
+      // precipMm stays undefined rather than faking an amount from PoP.
+      const precipProbabilityPct =
+        precipProbability !== undefined
+          ? clampProbabilityPct(precipProbability)
+          : undefined;
+
+      const weatherFields: WeatherData = {
+        tempC,
+        windKph,
+        precipMm: undefined,
+        precipProbabilityPct,
+        cloudPct: cloudCover,
+        pressureHpa,
+      };
+
       // Assess safety
       const safety = this.assessSafety(
         alerts,
-        {
-          tempC: temp || 20,
-          windKph: (windSpeed || 10) * 3.6,
-          precipMm: (precipitation || 0) / 100,
-          cloudPct: cloudCover || 50,
-          pressureHpa: pressure ? pressure / 100 : undefined,
-        },
+        weatherFields,
         spcOutlook ? { spcOutlook } : undefined
       );
 
       // Calculate barometric trend (simplified)
       const barometricTrend = this.calculateBarometricTrend(
         gridData.properties.pressure?.values,
-        targetDateTime
+        targetDateTime,
+        gridData.properties.pressure?.uom
       );
 
       return {
-        tempC: temp || 20,
-        windKph: (windSpeed || 10) * 3.6, // m/s to km/h
-        precipMm: (precipitation || 0) / 100, // probability to mm (simplified)
-        cloudPct: cloudCover || 50,
-        pressureHpa: pressure ? pressure / 100 : undefined, // Pa to hPa
+        ...weatherFields,
         ...(hasMarineData && { marine }),
         safety,
         barometricTrend,
         source: "NWS",
+        sourceUpdatedIso: gridData.properties.updateTime,
         localOffice: localOffice || undefined,
       };
     } catch (error) {
@@ -543,8 +617,16 @@ export class NWSWeatherService {
       recommendations.push("Consider sheltered fishing spots");
     }
 
-    if (weather.precipMm > 10) {
+    if (weather.precipMm !== undefined && weather.precipMm > 10) {
       riskFactors.push("Heavy precipitation expected");
+      recommendations.push("Bring weather protection");
+    } else if (
+      weather.precipProbabilityPct !== undefined &&
+      weather.precipProbabilityPct >= 70
+    ) {
+      riskFactors.push(
+        `High chance of precipitation (${Math.round(weather.precipProbabilityPct)}%)`
+      );
       recommendations.push("Bring weather protection");
     }
 
@@ -647,13 +729,19 @@ export class NWSWeatherService {
   }
 
   private calculateBarometricTrend(
-    pressureValues: Array<{ validTime: string; value: number }> | undefined,
-    targetDateTime: string
+    pressureValues: Array<{ validTime: string; value: number | null }> | undefined,
+    targetDateTime: string,
+    uom?: string
   ): "RISING" | "FALLING" | "STEADY" {
     if (!pressureValues || pressureValues.length < 2) return "STEADY";
 
     const targetTime = new Date(targetDateTime).getTime();
-    const recentValues = pressureValues
+    const recentValues = (
+      pressureValues.filter((v) => v.value !== null) as Array<{
+        validTime: string;
+        value: number;
+      }>
+    )
       .filter((v) => {
         const time = new Date(v.validTime).getTime();
         return Math.abs(time - targetTime) <= 6 * 60 * 60 * 1000; // 6 hours
@@ -665,12 +753,17 @@ export class NWSWeatherService {
 
     if (recentValues.length < 2) return "STEADY";
 
-    const first = recentValues[0].value;
-    const last = recentValues[recentValues.length - 1].value;
+    // Normalize to hPa before diffing so the threshold below is unit-safe
+    // regardless of whether the feed reports Pa (the NWS default) or hPa.
+    const first = convertPressureToHpa(recentValues[0].value, uom);
+    const last = convertPressureToHpa(
+      recentValues[recentValues.length - 1].value,
+      uom
+    );
     const change = last - first;
 
-    if (change > 100) return "RISING"; // >1 hPa rise
-    if (change < -100) return "FALLING"; // >1 hPa fall
+    if (change > 1) return "RISING"; // >1 hPa rise
+    if (change < -1) return "FALLING"; // >1 hPa fall
     return "STEADY";
   }
 }

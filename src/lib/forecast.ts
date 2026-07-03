@@ -119,7 +119,8 @@ export function scoreMoon(moonData: MoonData): number {
 export function scoreWeather(
   weatherData: WeatherData | EnhancedWeatherData
 ): number {
-  const { tempC, windKph, precipMm, cloudPct } = weatherData;
+  const { tempC, windKph, precipMm, precipProbabilityPct, cloudPct } =
+    weatherData;
 
   // Wind range 3–18 km/h is optimal
   let windS: number;
@@ -145,17 +146,9 @@ export function scoreWeather(
     cloudS = 0.3 + ((80 - cloudPct) / 40) * 0.7;
   }
 
-  // Light rain OK, heavy rain bad
-  let precipS: number;
-  if (precipMm > 10) {
-    precipS = 0.1;
-  } else if (precipMm < 1) {
-    precipS = 0.8;
-  } else if (precipMm < 5) {
-    precipS = 0.5;
-  } else {
-    precipS = 0.2;
-  }
+  // Light rain OK, heavy rain bad. Amount (mm) and probability (%) are
+  // scored on separate scales — probability is never treated as an amount.
+  const precipS = scorePrecipitation(precipMm, precipProbabilityPct);
 
   // Temp comfort window 10–24°C
   let tempS: number;
@@ -189,8 +182,11 @@ export function scoreWeather(
         enhancementBonus += 0.05; // Ideal wave conditions
       }
     }
+  }
 
-    // Safety penalty
+  // Safety penalty applies regardless of source (marine adjustments can
+  // degrade Open-Meteo-sourced safety too)
+  if ("safety" in weatherData) {
     if (weatherData.safety.rating === "DANGEROUS") {
       return 0.0; // Override everything for safety
     } else if (weatherData.safety.rating === "POOR") {
@@ -205,6 +201,32 @@ export function scoreWeather(
   const finalScore = baseScore + enhancementBonus;
 
   return clamp(0.0, 1.0, finalScore);
+}
+
+/**
+ * Score precipitation 0..1 from amount (preferred) or probability (fallback).
+ * Neutral 0.6 when neither is available so the missing field neither inflates
+ * nor tanks the weather score.
+ */
+export function scorePrecipitation(
+  precipMm: number | undefined,
+  precipProbabilityPct: number | undefined
+): number {
+  if (precipMm !== undefined) {
+    if (precipMm > 10) return 0.1;
+    if (precipMm < 1) return 0.8;
+    if (precipMm < 5) return 0.5;
+    return 0.2;
+  }
+
+  if (precipProbabilityPct !== undefined) {
+    if (precipProbabilityPct < 20) return 0.8;
+    if (precipProbabilityPct < 50) return 0.6;
+    if (precipProbabilityPct < 80) return 0.4;
+    return 0.2;
+  }
+
+  return 0.6;
 }
 
 /**
@@ -298,6 +320,46 @@ export function forecastForDay(
     almanac: almanacData,
     biteScore0100: total,
     components,
+  };
+}
+
+/**
+ * Build a blocked forecast for a day whose weather could not be verified.
+ * The bite score is intentionally 0 with forecastStatus WEATHER_UNAVAILABLE;
+ * the UI must render an unavailable state, never a normal score. Weather
+ * metric fields are NaN so any accidental rendering is visibly broken rather
+ * than plausibly wrong.
+ */
+export function buildUnavailableForecast(
+  day: DayInputs,
+  reason: string
+): ForecastScore {
+  const moonData = getMoonData(day.date);
+
+  return {
+    date: day.date,
+    moon: moonData,
+    weather: {
+      tempC: NaN,
+      windKph: NaN,
+      precipMm: undefined,
+      precipProbabilityPct: undefined,
+      cloudPct: NaN,
+      pressureHpa: undefined,
+      safety: {
+        rating: "UNKNOWN",
+        activeAlerts: [],
+        recommendations: ["Check official weather before fishing"],
+        riskFactors: ["Current weather could not be verified"],
+      },
+      barometricTrend: "STEADY",
+      source: "UNAVAILABLE",
+    },
+    almanac: {},
+    biteScore0100: 0,
+    components: {},
+    forecastStatus: "WEATHER_UNAVAILABLE",
+    unavailableReason: reason,
   };
 }
 

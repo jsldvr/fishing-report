@@ -13,7 +13,9 @@ interface OpenMeteoResponse {
 }
 
 /**
- * Fetch weather data from Open-Meteo for a specific day and location
+ * Fetch weather data from Open-Meteo for a specific day and location.
+ * Throws when the API fails or returns no usable data for the target day.
+ * Never returns synthetic/default weather.
  */
 export async function fetchWeather(day: DayInputs): Promise<WeatherData> {
   const baseUrl = "https://api.open-meteo.com/v1/forecast";
@@ -29,36 +31,33 @@ export async function fetchWeather(day: DayInputs): Promise<WeatherData> {
     longitude: day.lon.toString(),
     hourly:
       "temperature_2m,precipitation,cloud_cover,pressure_msl,windspeed_10m",
+    windspeed_unit: "kmh",
     timezone: "auto",
     forecast_days: Math.max(1, daysFromToday + 1).toString(),
   });
 
-  try {
-    const response = await fetch(`${baseUrl}?${params}`, {
-      signal: AbortSignal.timeout(20000), // 20s timeout
-    });
+  const response = await fetch(`${baseUrl}?${params}`, {
+    signal: AbortSignal.timeout(20000), // 20s timeout
+  });
 
-    if (!response.ok) {
-      throw new Error(`Open-Meteo API error: ${response.status}`);
-    }
-
-    const data: OpenMeteoResponse = await response.json();
-    return processWeatherData(data, day.date);
-  } catch (error) {
-    console.warn("Weather fetch failed, using defaults:", error);
-    return getDefaultWeatherData();
+  if (!response.ok) {
+    throw new Error(`Open-Meteo API error: ${response.status}`);
   }
+
+  const data: OpenMeteoResponse = await response.json();
+  return processWeatherData(data, day.date);
 }
 
 /**
- * Process Open-Meteo hourly data into averaged daylight-window metrics
+ * Process Open-Meteo hourly data into averaged daylight-window metrics.
+ * Throws when a required field has no usable values for the target day.
  */
 function processWeatherData(
   data: OpenMeteoResponse,
   targetDate: string
 ): WeatherData {
   const { hourly } = data;
-  const times = hourly.time || [];
+  const times = hourly?.time || [];
 
   // Filter for target date and daylight hours (6-18 local)
   const validIndices = times
@@ -70,48 +69,53 @@ function processWeatherData(
     .map(({ index }) => index);
 
   if (validIndices.length === 0) {
-    console.warn(`No daylight hours found for ${targetDate}, using defaults`);
-    return getDefaultWeatherData();
+    throw new Error(
+      `Open-Meteo returned no daylight-window data for ${targetDate}`
+    );
   }
 
   const avg = (
     field: keyof OpenMeteoResponse["hourly"],
-    defaultValue: number,
     scale = 1.0
-  ): number => {
+  ): number | undefined => {
     const arr = hourly[field] as number[] | undefined;
-    if (!arr) return defaultValue;
+    if (!arr) return undefined;
 
     const values = validIndices
       .map((i) => arr[i])
       .filter((val) => val != null && !isNaN(val));
 
-    if (values.length === 0) return defaultValue;
+    if (values.length === 0) return undefined;
 
     const sum = values.reduce((a, b) => a + b, 0);
     return (sum / values.length) * scale;
   };
 
-  return {
-    tempC: Math.round(avg("temperature_2m", 20.0) * 10) / 10,
-    windKph: Math.round(avg("windspeed_10m", 10.0, 3.6) * 10) / 10, // m/s -> km/h
-    precipMm: Math.round(avg("precipitation", 0.0) * 100) / 100,
-    cloudPct: Math.round(avg("cloud_cover", 50.0)),
-    pressureHpa: hourly.pressure_msl
-      ? Math.round(avg("pressure_msl", 1013.25) * 10) / 10
-      : undefined,
+  const requireField = (
+    field: keyof OpenMeteoResponse["hourly"],
+    scale = 1.0
+  ): number => {
+    const value = avg(field, scale);
+    if (value === undefined) {
+      throw new Error(
+        `Open-Meteo response missing required field "${field}" for ${targetDate}`
+      );
+    }
+    return value;
   };
-}
 
-/**
- * Fallback weather data for errors
- */
-function getDefaultWeatherData(): WeatherData {
+  const precipAvg = avg("precipitation");
+  const pressureAvg = avg("pressure_msl");
+
   return {
-    tempC: 20.0,
-    windKph: 10.0,
-    precipMm: 0.0,
-    cloudPct: 50,
-    pressureHpa: undefined,
+    tempC: Math.round(requireField("temperature_2m") * 10) / 10,
+    windKph: Math.round(requireField("windspeed_10m") * 10) / 10, // requested in km/h
+    precipMm:
+      precipAvg !== undefined ? Math.round(precipAvg * 100) / 100 : undefined,
+    cloudPct: Math.round(requireField("cloud_cover")),
+    pressureHpa:
+      pressureAvg !== undefined
+        ? Math.round(pressureAvg * 10) / 10
+        : undefined,
   };
 }

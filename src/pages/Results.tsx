@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import type { ForecastScore, DayInputs } from "../types/forecast";
 import { fetchEnhancedWeather } from "../lib/enhancedWeather";
-import { forecastForDay } from "../lib/forecast";
+import { buildUnavailableForecast, forecastForDay } from "../lib/forecast";
 import {
   buildForecastCacheKey,
   getOfflineForecastCache,
@@ -92,11 +92,16 @@ export default function Results() {
           lon,
         };
 
-        // Fetch enhanced weather data
-        const weatherData = await fetchEnhancedWeather(dayInputs);
+        // Fetch enhanced weather data; UNAVAILABLE blocks the bite score
+        const weatherResult = await fetchEnhancedWeather(dayInputs);
+
+        if (weatherResult.status === "UNAVAILABLE") {
+          results.push(buildUnavailableForecast(dayInputs, weatherResult.reason));
+          continue;
+        }
 
         // Generate forecast (no almanac data for now)
-        const forecast = forecastForDay(dayInputs, weatherData);
+        const forecast = forecastForDay(dayInputs, weatherResult.weather);
 
         // Add astronomical and solunar data
         const timezone = getTimezoneFromCoords(lat, lon);
@@ -118,6 +123,25 @@ export default function Results() {
         forecast.solunar = solunar;
 
         results.push(forecast);
+      }
+
+      const allUnavailable = results.every(
+        (f) => f.forecastStatus === "WEATHER_UNAVAILABLE"
+      );
+
+      if (allUnavailable) {
+        // Prefer a cached real forecast (clearly marked cached/stale) over a
+        // page of blocked cards, and never overwrite the cache with them.
+        const cached = getOfflineForecastCache(cacheKey);
+        if (cached && cached.forecasts.length > 0) {
+          setForecasts(cached.forecasts);
+          setUsedCachedData(true);
+          setCachedLastUpdatedIso(cached.lastUpdatedIso);
+          setIsCachedDataStale(isCacheStale(cached.lastUpdatedIso));
+          return;
+        }
+        setForecasts(results);
+        return;
       }
 
       setForecasts(results);
@@ -191,19 +215,24 @@ export default function Results() {
     navigate("/");
   };
 
+  const availableForecasts = forecasts.filter(
+    (f) => f.forecastStatus !== "WEATHER_UNAVAILABLE"
+  );
+  const unavailableCount = forecasts.length - availableForecasts.length;
+
   const averageScore =
-    forecasts.length > 0
+    availableForecasts.length > 0
       ? Math.round(
-          (forecasts.reduce((sum, f) => sum + f.biteScore0100, 0) /
-            forecasts.length) *
+          (availableForecasts.reduce((sum, f) => sum + f.biteScore0100, 0) /
+            availableForecasts.length) *
             10
         ) / 10
       : 0;
 
-  const bestDay = forecasts.reduce(
+  const bestDay = availableForecasts.reduce(
     (best, current) =>
       current.biteScore0100 > best.biteScore0100 ? current : best,
-    forecasts[0]
+    availableForecasts[0]
   );
 
   if (isLoading) {
@@ -325,8 +354,26 @@ export default function Results() {
         </div>
       )}
 
+      {unavailableCount > 0 && (
+        <div
+          className="card p-4 mb-6 border-2 border-red-200 bg-red-50"
+          id="weather-unavailable-banner"
+        >
+          <p className="text-sm font-semibold text-red-700">
+            <Icon name="warning" className="mr-2" />
+            {unavailableCount === forecasts.length
+              ? "Weather unavailable. Bite scores paused."
+              : `Weather unavailable for ${unavailableCount} of ${forecasts.length} days. Those bite scores are paused.`}
+          </p>
+          <p className="text-xs text-red-700 mt-1">
+            Current weather could not be verified. Check official weather
+            before fishing.
+          </p>
+        </div>
+      )}
+
       {/* Summary */}
-      {forecasts.length > 0 && (
+      {availableForecasts.length > 0 && (
         <div className="grid gap-6 sm:grid-cols-2 mb-8" id="results-summary">
           <div className="card p-6" id="overall-outlook-card">
             <h3

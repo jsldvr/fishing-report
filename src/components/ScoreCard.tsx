@@ -28,7 +28,12 @@ export default function ScoreCard({
 
   const tempF = Math.round((forecast.weather.tempC * 9) / 5 + 32);
   const windMph = Math.round((forecast.weather.windKph / 1.609) * 10) / 10;
-  const precipIn = Math.round((forecast.weather.precipMm / 25.4) * 100) / 100;
+  const precipMm = forecast.weather.precipMm;
+  const precipIn =
+    precipMm !== undefined
+      ? Math.round((precipMm / 25.4) * 100) / 100
+      : undefined;
+  const precipProbabilityPct = forecast.weather.precipProbabilityPct;
   const pressureInHg = forecast.weather.pressureHpa
     ? Math.round((forecast.weather.pressureHpa * 0.02953) * 100) / 100
     : undefined;
@@ -150,6 +155,118 @@ export default function ScoreCard({
     return `${formatRelativeAge(iso)} @ ${formatIsoForDisplay(iso)}`;
   };
 
+  const getOutlookLabel = (score: number) => {
+    if (score >= 75) return "Good fishing";
+    if (score >= 50) return "Fair fishing";
+    return "Slow fishing";
+  };
+
+  const getSafetyLabel = (rating: SafetyAssessment["rating"]) => {
+    switch (rating) {
+      case "EXCELLENT":
+      case "GOOD":
+        return "Good safety";
+      case "FAIR":
+        return "Fair safety";
+      case "POOR":
+        return "Poor safety";
+      case "DANGEROUS":
+        return "Dangerous conditions";
+      default:
+        return "Safety unknown";
+    }
+  };
+
+  const buildWhySummary = () => {
+    const parts: string[] = [];
+    const wind = forecast.weather.windKph;
+    if (Number.isFinite(wind)) {
+      if (wind <= 18) parts.push("light wind");
+      else if (wind <= 30) parts.push("moderate wind");
+      else parts.push("strong wind");
+    }
+    if (forecast.weather.barometricTrend === "STEADY") {
+      parts.push("stable pressure");
+    } else {
+      parts.push(`${forecast.weather.barometricTrend.toLowerCase()} pressure`);
+    }
+    if (forecast.solunar && forecast.solunar.dayRating >= 2) {
+      parts.push("solunar window");
+    } else {
+      parts.push(`${forecast.moon.phaseName.toLowerCase()}`);
+    }
+    return parts.join(", ");
+  };
+
+  const buildDataQualitySummary = () => {
+    if (!reliability) {
+      return "Unknown";
+    }
+    const sources: string[] = [];
+    if (forecast.weather.source === "NWS") sources.push("NWS");
+    if (forecast.weather.source === "OPEN_METEO") sources.push("Open-Meteo");
+    if (reliability.marineStatus === "AVAILABLE") sources.push("NOAA marine");
+    const sourceText = sources.length > 0 ? ` — ${sources.join(" + ")} checked` : "";
+    return `${reliability.confidenceLevel}${sourceText}`;
+  };
+
+  const bestWindow =
+    forecast.solunar && forecast.solunar.majorPeriods.length > 0
+      ? `${forecast.solunar.majorPeriods[0].start} - ${forecast.solunar.majorPeriods[0].end}`
+      : undefined;
+
+  if (forecast.forecastStatus === "WEATHER_UNAVAILABLE") {
+    return (
+      <div
+        className="card forecast-card"
+        id={cardId}
+        data-testid="score-card-unavailable"
+      >
+        <div className="forecast-card__header" id={`${cardId}-header`}>
+          <div className="forecast-card__title" id={`${cardId}-title`}>
+            <h3 className="text-xl font-semibold forecast-card__heading">
+              {new Date(forecast.date + "T12:00:00").toLocaleDateString(
+                "en-US",
+                {
+                  weekday: "long",
+                  month: "short",
+                  day: "numeric",
+                }
+              )}
+            </h3>
+            <p
+              className="text-sm forecast-card__subtext"
+              id={`${cardId}-local-time`}
+              title={`UTC: ${dateInfo.utc}`}
+            >
+              {dateInfo.local}
+            </p>
+          </div>
+        </div>
+        <div
+          className="forecast-card__section rounded-lg border-2 bg-red-50 border-red-200 p-4"
+          id={`${cardId}-unavailable`}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="warning" className="text-xl" />
+            <h3 className="font-semibold text-lg">Forecast unavailable</h3>
+          </div>
+          <div className="text-sm space-y-1">
+            <p>Safety: Unknown</p>
+            <p>
+              Reason:{" "}
+              {forecast.unavailableReason ||
+                "Current weather could not be verified"}
+            </p>
+            <p className="font-medium">
+              Action: Check official weather before fishing.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card forecast-card" id={cardId} data-testid="score-card">
       <div className="forecast-card__header" id={`${cardId}-header`}>
@@ -191,13 +308,13 @@ export default function ScoreCard({
                 )}`}
                 id={`${cardId}-confidence-level`}
               >
-                Confidence: {reliability.confidenceLevel}
+                Data quality: {reliability.confidenceLevel}
               </span>
               <span
                 className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded"
                 id={`${cardId}-confidence-score`}
               >
-                Score {reliability.confidenceScore}/100
+                Data quality score {reliability.confidenceScore}/100
               </span>
             </div>
           )}
@@ -222,6 +339,20 @@ export default function ScoreCard({
             Bite Score
           </p>
         </div>
+      </div>
+
+      <div
+        className="forecast-card__section forecast-card__summary text-sm space-y-1"
+        id={`${cardId}-summary`}
+        data-testid="score-card-summary"
+      >
+        <p className="font-semibold">
+          {getOutlookLabel(forecast.biteScore0100)},{" "}
+          {getSafetyLabel(safety.rating)}
+        </p>
+        {bestWindow && <p>Best window: {bestWindow}</p>}
+        <p>Why: {buildWhySummary()}</p>
+        <p>Data quality: {buildDataQualitySummary()}</p>
       </div>
 
       <div className="forecast-card__section" id={`${cardId}-score-breakdown`}>
@@ -389,12 +520,16 @@ export default function ScoreCard({
               Wind:{" "}
               {useMph ? `${windMph} mph` : `${forecast.weather.windKph} km/h`}
             </p>
-            <p>
-              Rain:{" "}
-              {useFahrenheit
-                ? `${precipIn} in`
-                : `${forecast.weather.precipMm} mm`}
-            </p>
+            {precipProbabilityPct !== undefined && (
+              <p>Chance of rain: {Math.round(precipProbabilityPct)}%</p>
+            )}
+            {precipMm !== undefined ? (
+              <p>
+                Rain amount: {useFahrenheit ? `${precipIn} in` : `${precipMm} mm`}
+              </p>
+            ) : (
+              <p>Rain amount unavailable</p>
+            )}
             <p>Clouds: {forecast.weather.cloudPct}%</p>
             {forecast.weather.pressureHpa &&
               (useFahrenheit ? (
@@ -556,9 +691,16 @@ export default function ScoreCard({
                 >
                   <p
                     className="forecast-card__reliability-item"
+                    id={`${cardId}-reliability-generated`}
+                  >
+                    Forecast generated:{" "}
+                    {formatLastUpdated(reliability.forecastGeneratedIso)}
+                  </p>
+                  <p
+                    className="forecast-card__reliability-item"
                     id={`${cardId}-reliability-weather`}
                   >
-                    Weather last updated:{" "}
+                    Weather source updated:{" "}
                     {formatLastUpdated(reliability.weatherLastUpdatedIso)}
                   </p>
                   {reliability.marineStatus !== "NOT_APPLICABLE" && (
@@ -567,10 +709,10 @@ export default function ScoreCard({
                       id={`${cardId}-reliability-marine`}
                     >
                       {reliability.marineStatus === "AVAILABLE"
-                        ? `Marine last updated: ${formatLastUpdated(
+                        ? `Marine observation updated: ${formatLastUpdated(
                             reliability.marineLastUpdatedIso
                           )}`
-                        : `Marine status: ${reliability.marineStatus} | Last updated: ${formatLastUpdated(
+                        : `Marine status: ${reliability.marineStatus} | Observation updated: ${formatLastUpdated(
                             reliability.marineLastUpdatedIso
                           )}`}
                     </p>

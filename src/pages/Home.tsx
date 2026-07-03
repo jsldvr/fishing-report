@@ -428,7 +428,7 @@ export default function Home() {
           <h3 className="font-semibold mb-2 text-primary">Tactical Analysis</h3>
           <p className="text-sm text-secondary">
             Multi-factor algorithmic assessment providing precision strike
-            recommendations with confidence metrics
+            recommendations with data quality metrics
           </p>
         </div>
       </div>
