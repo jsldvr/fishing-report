@@ -1,6 +1,6 @@
-import type { FC } from "react";
+import ContentPage, { type ContentPageSection } from "../components/ContentPage";
 
-const sections = [
+const sections: ContentPageSection[] = [
   {
     title: "Cookie Usage",
     paragraphs: [
@@ -24,38 +24,18 @@ const sections = [
   },
 ];
 
-const CookieConsent: FC = () => (
-  <section className="legal-page" id="page-cookie-consent">
-    <header className="legal-header" id="cookie-header">
-      <h1 className="legal-title" id="cookie-title">
-        Cookie Consent
-      </h1>
-      <p className="legal-summary" id="cookie-summary">
-        Fishing Report uses functional cookies exclusively to run the app. No
-        other tracking is used.
-      </p>
-    </header>
-    {sections.map((section, index) => (
-      <article
-        className="legal-section"
-        id={`cookie-section-${index + 1}`}
-        key={section.title}
-      >
-        <h2 className="legal-heading" id={`cookie-section-title-${index + 1}`}>
-          {section.title}
-        </h2>
-        {section.paragraphs.map((paragraph, paragraphIndex) => (
-          <p
-            className="legal-paragraph"
-            id={`cookie-section-${index + 1}-paragraph-${paragraphIndex + 1}`}
-            key={`${section.title}-${paragraphIndex}`}
-          >
-            {paragraph}
-          </p>
-        ))}
-      </article>
-    ))}
-  </section>
-);
-
-export default CookieConsent;
+export default function CookieConsent() {
+  return (
+    <ContentPage
+      pageId="page-cookie-consent"
+      introId="cookie-header"
+      titleId="cookie-title"
+      subtitleId="cookie-summary"
+      sectionsId="cookie-sections"
+      sectionIdPrefix="cookie"
+      title="Cookie Consent"
+      subtitle="Fishing Report uses functional cookies exclusively to run the app. No other tracking is used."
+      sections={sections}
+    />
+  );
+}

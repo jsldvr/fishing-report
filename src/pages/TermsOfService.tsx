@@ -1,6 +1,6 @@
-import type { FC } from "react";
+import ContentPage, { type ContentPageSection } from "../components/ContentPage";
 
-const sections = [
+const sections: ContentPageSection[] = [
   {
     title: "Acceptance of Terms",
     paragraphs: [
@@ -11,7 +11,7 @@ const sections = [
   {
     title: "No Warranty or Guarantee",
     paragraphs: [
-      "All services, visualizations, and recommendations are provided “as is,” without warranties of accuracy, reliability, or suitability for any particular purpose. Environmental conditions change rapidly, and the platform cannot guarantee up-to-date or location-specific output.",
+      'All services, visualizations, and recommendations are provided "as is" without warranties of accuracy, reliability, or suitability for any particular purpose. Environmental conditions change rapidly, and the platform cannot guarantee up-to-date or location-specific output.',
       "You acknowledge that Fishing Report is not liable for any direct, indirect, incidental, or consequential damages arising from reliance on the provided materials, including but not limited to lost catches or equipment damage.",
     ],
   },
@@ -31,40 +31,18 @@ const sections = [
   },
 ];
 
-const TermsOfService: FC = () => (
-  <section className="legal-page" id="page-terms-of-service">
-    <header className="legal-header" id="terms-header">
-      <h1 className="legal-title" id="terms-title">
-        Terms of Service
-      </h1>
-      <p className="legal-summary" id="terms-summary">
-        Fishing Report is an entertainment tool. Use of the site confirms you understand the information is non-binding.
-      </p>
-    </header>
-    {sections.map((section, index) => (
-      <article
-        className="legal-section"
-        id={`terms-section-${index + 1}`}
-        key={section.title}
-      >
-        <h2
-          className="legal-heading"
-          id={`terms-section-title-${index + 1}`}
-        >
-          {section.title}
-        </h2>
-        {section.paragraphs.map((paragraph, paragraphIndex) => (
-          <p
-            className="legal-paragraph"
-            id={`terms-section-${index + 1}-paragraph-${paragraphIndex + 1}`}
-            key={`${section.title}-${paragraphIndex}`}
-          >
-            {paragraph}
-          </p>
-        ))}
-      </article>
-    ))}
-  </section>
-);
-
-export default TermsOfService;
+export default function TermsOfService() {
+  return (
+    <ContentPage
+      pageId="page-terms-of-service"
+      introId="terms-header"
+      titleId="terms-title"
+      subtitleId="terms-summary"
+      sectionsId="terms-sections"
+      sectionIdPrefix="terms"
+      title="Terms of Service"
+      subtitle="Fishing Report is an entertainment tool. Use of the site confirms you understand the information is non-binding."
+      sections={sections}
+    />
+  );
+}

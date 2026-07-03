@@ -1,6 +1,6 @@
-import type { FC } from "react";
+import ContentPage, { type ContentPageSection } from "../components/ContentPage";
 
-const sections = [
+const sections: ContentPageSection[] = [
   {
     title: "Purpose of This Policy",
     paragraphs: [
@@ -31,38 +31,18 @@ const sections = [
   },
 ];
 
-const PrivacyPolicy: FC = () => (
-  <section className="legal-page" id="page-privacy-policy">
-    <header className="legal-header" id="privacy-header">
-      <h1 className="legal-title" id="privacy-title">
-        Privacy Policy
-      </h1>
-      <p className="legal-summary" id="privacy-summary">
-        Effective October 19, 2025 — Fishing Report uses only functional
-        cookies required to deliver forecasts.
-      </p>
-    </header>
-    {sections.map((section, index) => (
-      <article
-        className="legal-section"
-        id={`privacy-section-${index + 1}`}
-        key={section.title}
-      >
-        <h2 className="legal-heading" id={`privacy-section-title-${index + 1}`}>
-          {section.title}
-        </h2>
-        {section.paragraphs.map((paragraph, paragraphIndex) => (
-          <p
-            className="legal-paragraph"
-            id={`privacy-section-${index + 1}-paragraph-${paragraphIndex + 1}`}
-            key={`${section.title}-${paragraphIndex}`}
-          >
-            {paragraph}
-          </p>
-        ))}
-      </article>
-    ))}
-  </section>
-);
-
-export default PrivacyPolicy;
+export default function PrivacyPolicy() {
+  return (
+    <ContentPage
+      pageId="page-privacy-policy"
+      introId="privacy-header"
+      titleId="privacy-title"
+      subtitleId="privacy-summary"
+      sectionsId="privacy-sections"
+      sectionIdPrefix="privacy"
+      title="Privacy Policy"
+      subtitle="Effective October 19, 2025 - Fishing Report uses only functional cookies required to deliver forecasts."
+      sections={sections}
+    />
+  );
+}

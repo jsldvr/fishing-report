@@ -1,6 +1,6 @@
-import type { FC } from "react";
+import ContentPage, { type ContentPageSection } from "../components/ContentPage";
 
-const sections = [
+const sections: ContentPageSection[] = [
   {
     title: "Local, Regional, and Federal Obligations",
     paragraphs: [
@@ -31,40 +31,18 @@ const sections = [
   },
 ];
 
-const ComplianceStatement: FC = () => (
-  <section className="legal-page" id="page-compliance-statement">
-    <header className="legal-header" id="compliance-header">
-      <h1 className="legal-title" id="compliance-title">
-        Compliance Statement
-      </h1>
-      <p className="legal-summary" id="compliance-summary">
-        You remain responsible for observing the fishing regulations issued by your governing authorities, regardless of what Fishing Report shows.
-      </p>
-    </header>
-    {sections.map((section, index) => (
-      <article
-        className="legal-section"
-        id={`compliance-section-${index + 1}`}
-        key={section.title}
-      >
-        <h2
-          className="legal-heading"
-          id={`compliance-section-title-${index + 1}`}
-        >
-          {section.title}
-        </h2>
-        {section.paragraphs.map((paragraph, paragraphIndex) => (
-          <p
-            className="legal-paragraph"
-            id={`compliance-section-${index + 1}-paragraph-${paragraphIndex + 1}`}
-            key={`${section.title}-${paragraphIndex}`}
-          >
-            {paragraph}
-          </p>
-        ))}
-      </article>
-    ))}
-  </section>
-);
-
-export default ComplianceStatement;
+export default function ComplianceStatement() {
+  return (
+    <ContentPage
+      pageId="page-compliance-statement"
+      introId="compliance-header"
+      titleId="compliance-title"
+      subtitleId="compliance-summary"
+      sectionsId="compliance-sections"
+      sectionIdPrefix="compliance"
+      title="Compliance Statement"
+      subtitle="You remain responsible for observing the fishing regulations issued by your governing authorities, regardless of what Fishing Report shows."
+      sections={sections}
+    />
+  );
+}
