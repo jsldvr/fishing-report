@@ -163,3 +163,50 @@ describe("NWSWeatherService - assessSafety", () => {
     });
   });
 });
+
+describe("NWSWeatherService - calculateBarometricTrend", () => {
+  // Private method; accessed via bracket notation to unit-test the
+  // uom-aware conversion directly rather than through the full fetch path.
+  type BarometricTrendFn = (
+    pressureValues: Array<{ validTime: string; value: number | null }> | undefined,
+    targetDateTime: string,
+    uom?: string
+  ) => "RISING" | "FALLING" | "STEADY";
+  const calculateBarometricTrend = (
+    service as unknown as { calculateBarometricTrend: BarometricTrendFn }
+  ).calculateBarometricTrend.bind(service);
+
+  const targetDateTime = "2026-07-03T12:00:00Z";
+
+  it("classifies RISING from a Pa-scale change (NWS default uom)", () => {
+    const values = [
+      { validTime: "2026-07-03T09:00:00Z", value: 101300 },
+      { validTime: "2026-07-03T15:00:00Z", value: 101500 }, // +200 Pa = +2 hPa
+    ];
+    expect(
+      calculateBarometricTrend(values, targetDateTime, "wmoUnit:Pa")
+    ).toBe("RISING");
+  });
+
+  it("classifies FALLING from an hPa-scale change (previously misread as STEADY)", () => {
+    // A 2 hPa drop reported directly in hPa. Before the uom-aware fix, this
+    // was compared against a >100 threshold meant for Pa and never fired.
+    const values = [
+      { validTime: "2026-07-03T09:00:00Z", value: 1015 },
+      { validTime: "2026-07-03T15:00:00Z", value: 1013 },
+    ];
+    expect(
+      calculateBarometricTrend(values, targetDateTime, "wmoUnit:hPa")
+    ).toBe("FALLING");
+  });
+
+  it("stays STEADY for a sub-threshold hPa-scale change", () => {
+    const values = [
+      { validTime: "2026-07-03T09:00:00Z", value: 1013.2 },
+      { validTime: "2026-07-03T15:00:00Z", value: 1013.6 },
+    ];
+    expect(
+      calculateBarometricTrend(values, targetDateTime, "wmoUnit:hPa")
+    ).toBe("STEADY");
+  });
+});

@@ -501,7 +501,8 @@ export class NWSWeatherService {
       // Calculate barometric trend (simplified)
       const barometricTrend = this.calculateBarometricTrend(
         gridData.properties.pressure?.values,
-        targetDateTime
+        targetDateTime,
+        gridData.properties.pressure?.uom
       );
 
       return {
@@ -729,7 +730,8 @@ export class NWSWeatherService {
 
   private calculateBarometricTrend(
     pressureValues: Array<{ validTime: string; value: number | null }> | undefined,
-    targetDateTime: string
+    targetDateTime: string,
+    uom?: string
   ): "RISING" | "FALLING" | "STEADY" {
     if (!pressureValues || pressureValues.length < 2) return "STEADY";
 
@@ -751,12 +753,17 @@ export class NWSWeatherService {
 
     if (recentValues.length < 2) return "STEADY";
 
-    const first = recentValues[0].value;
-    const last = recentValues[recentValues.length - 1].value;
+    // Normalize to hPa before diffing so the threshold below is unit-safe
+    // regardless of whether the feed reports Pa (the NWS default) or hPa.
+    const first = convertPressureToHpa(recentValues[0].value, uom);
+    const last = convertPressureToHpa(
+      recentValues[recentValues.length - 1].value,
+      uom
+    );
     const change = last - first;
 
-    if (change > 100) return "RISING"; // >1 hPa rise
-    if (change < -100) return "FALLING"; // >1 hPa fall
+    if (change > 1) return "RISING"; // >1 hPa rise
+    if (change < -1) return "FALLING"; // >1 hPa fall
     return "STEADY";
   }
 }
