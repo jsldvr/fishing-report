@@ -235,6 +235,7 @@ export default function Home() {
         <div className="text-center">
           <button
             className="btn btn-primary btn-lg"
+            id="generate-forecast-button"
             onClick={handleGenerateForecast}
             disabled={!isValid}
           >

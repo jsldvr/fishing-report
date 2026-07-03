@@ -1718,15 +1718,17 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* Animations */
 .animate-slide-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: slideIn 0.3s ease-out;
 }
 
-@keyframes fadeIn {
+@keyframes slideIn {
   from {
     opacity: 0;
+    transform: translateY(0.5rem);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1863,9 +1865,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
 /* Location + forecast window live inside one hero card; a single divider
    separates them instead of each nesting its own bordered card. The grid's
    own gap provides base spacing -- this only adds the dividing line. */
-.hero-panel__section + .hero-panel__section {
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-primary);
+@media (max-width: 1023px) {
+  .hero-panel__section + .hero-panel__section {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-primary);
+  }
 }
 
 .trust-strip {
