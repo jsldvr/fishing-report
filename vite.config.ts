@@ -21,8 +21,8 @@ export default defineConfig({
         description: "Science-based fishing predictions for North America",
         start_url: "/",
         display: "standalone",
-        theme_color: "#2563eb",
-        background_color: "#ffffff",
+        theme_color: "#102820",
+        background_color: "#eef3ef",
         icons: [
           {
             src: "icons/icon-192.png",

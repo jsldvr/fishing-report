@@ -405,9 +405,8 @@ export default function WeatherOutlookPanel({
         className="mt-4 p-3 text-xs bg-secondary/50 rounded-lg"
         id="wx-outlook-disclaimer"
       >
-        <strong>Advisory:</strong> Forecasts auto-refresh with coordinate
-        updates. For mission-critical planning, cross-check with official
-        briefings.
+        <strong>Note:</strong> Forecasts auto-refresh with coordinate
+        updates. For important trips, cross-check with official forecasts.
       </div>
     </div>
   );

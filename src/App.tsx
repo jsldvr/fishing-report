@@ -122,15 +122,15 @@ function App() {
       <header className="header">
         <div className="header-container">
           <div className="header-content">
-            {/* Mission Logo & Title */}
+            {/* Brand */}
             <div className="header-brand">
               <div className="brand-icon">
                 <Icon name="fish" />
               </div>
               <div className="brand-text">
-                <h1 className="brand-title">TACTICAL FISHING INTEL</h1>
+                <h1 className="brand-title">Fishing Report</h1>
                 <span className="brand-subtitle">
-                  MISSION-READY FORECASTING
+                  Weather-aware fishing outlook
                 </span>
               </div>
             </div>
@@ -142,13 +142,13 @@ function App() {
                   href="#/"
                   className="nav-link"
                   id="nav-link-home"
-                  data-section="intel"
+                  data-section="home"
                   onClick={closeMobileMenu}
                 >
                   <span className="nav-icon">
                     <Icon name="home" />
                   </span>
-                  <span className="nav-text">INTEL</span>
+                  <span className="nav-text">Home</span>
                 </a>
                 <a
                   href="#/wx"
@@ -160,7 +160,7 @@ function App() {
                   <span className="nav-icon">
                     <Icon name="weather" />
                   </span>
-                  <span className="nav-text">WX</span>
+                  <span className="nav-text">Weather</span>
                 </a>
                 <a
                   href="#/guide"
@@ -172,19 +172,19 @@ function App() {
                   <span className="nav-icon">
                     <Icon name="compass" />
                   </span>
-                  <span className="nav-text">GUIDE</span>
+                  <span className="nav-text">Guide</span>
                 </a>
                 <a
                   href="#/about"
                   className="nav-link"
                   id="nav-link-about"
-                  data-section="mission"
+                  data-section="about"
                   onClick={closeMobileMenu}
                 >
                   <span className="nav-icon">
                     <Icon name="clipboard" />
                   </span>
-                  <span className="nav-text">MISSION</span>
+                  <span className="nav-text">About</span>
                 </a>
               </div>
 
@@ -206,31 +206,26 @@ function App() {
 
           {/* Status Bar */}
           <div className="status-bar" id="status-bar">
-          <div className="status-indicator">
-            <span className="status-dot active"></span>
-            <span className="status-text">SYSTEM OPERATIONAL</span>
-          </div>
-          {installPromptEvent && (
-            <button
-              className="btn btn-secondary text-xs px-3 py-1"
-              id="install-app-button"
-              onClick={handleInstallApp}
-              type="button"
-            >
-              <Icon name="arrowRight" className="mr-1" />
-              Install App
-            </button>
-          )}
-          <div className="app-version" id="app-version">
-            VERSION CTRL: {APP_VERSION}
-          </div>
+            {installPromptEvent && (
+              <button
+                className="btn btn-secondary text-xs px-3 py-1"
+                id="install-app-button"
+                onClick={handleInstallApp}
+                type="button"
+              >
+                <Icon name="arrowRight" className="mr-1" />
+                Install App
+              </button>
+            )}
+            <div className="app-version" id="app-version">
+              v{APP_VERSION}
+            </div>
             <div className="timestamp" id="status-timestamp">
               {new Date().toLocaleTimeString("en-US", {
                 hour12: false,
                 hour: "2-digit",
                 minute: "2-digit",
-              })}{" "}
-              LOCAL
+              })}
             </div>
           </div>
         </div>
@@ -257,8 +252,8 @@ function App() {
                   <span className="nav-icon">
                     <Icon name="home" />
                   </span>
-                  <span className="nav-text">INTEL HUB</span>
-                  <span className="nav-description">Mission Control</span>
+                  <span className="nav-text">Home</span>
+                  <span className="nav-description">Plan a forecast</span>
                 </a>
                 <a
                   href="#/wx"
@@ -269,8 +264,8 @@ function App() {
                   <span className="nav-icon">
                     <Icon name="weather" />
                   </span>
-                  <span className="nav-text">WX LINKS</span>
-                  <span className="nav-description">Weather Resources</span>
+                  <span className="nav-text">Weather</span>
+                  <span className="nav-description">Official sources</span>
                 </a>
                 <a
                   href="#/guide"
@@ -281,8 +276,8 @@ function App() {
                   <span className="nav-icon">
                     <Icon name="compass" />
                   </span>
-                  <span className="nav-text">GUIDE</span>
-                  <span className="nav-description">Survival Tips</span>
+                  <span className="nav-text">Guide</span>
+                  <span className="nav-description">Field tips</span>
                 </a>
                 <a
                   href="#/about"
@@ -293,8 +288,8 @@ function App() {
                   <span className="nav-icon">
                     <Icon name="clipboard" />
                   </span>
-                  <span className="nav-text">MISSION BRIEF</span>
-                  <span className="nav-description">System Info</span>
+                  <span className="nav-text">About</span>
+                  <span className="nav-description">How it works</span>
                 </a>
               </nav>
             </div>

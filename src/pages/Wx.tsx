@@ -3,11 +3,10 @@ export default function Wx() {
     <div className="max-w-4xl mx-auto px-4 py-8" id="wx-page">
       <div className="text-center mb-8" id="wx-intro">
         <h1 className="text-2xl font-bold text-gray-900 mb-4" id="wx-title">
-          WX Intel Hub
+          Weather resources
         </h1>
         <p className="text-lg text-gray-600" id="wx-subtitle">
-          Critical weather resources for situational awareness and field
-          preparedness
+          Official weather resources for planning and safety.
         </p>
       </div>
 
@@ -87,8 +86,8 @@ export default function Wx() {
             className="text-gray-600 leading-relaxed mb-4"
             id="wx-preparedness-intro"
           >
-            Pre-mission checklists and safety planning resources for severe
-            weather readiness.
+            Checklists and safety planning resources for severe weather
+            readiness.
           </p>
           <ul
             className="text-sm text-gray-600 space-y-3"
@@ -153,8 +152,7 @@ export default function Wx() {
             className="text-gray-600 leading-relaxed mb-4"
             id="wx-awareness-intro"
           >
-            Build your weather IQ with training programs and operational
-            awareness guides.
+            Free training programs to build your weather knowledge.
           </p>
           <ul
             className="text-sm text-gray-600 space-y-3"
@@ -218,9 +216,9 @@ export default function Wx() {
           id="wx-disclaimer"
         >
           <strong className="text-primary" id="wx-disclaimer-label">
-            Mission Reminder:
+            Reminder:
           </strong>{" "}
-          These external resources supplement the Fishing Forecast intel. Always
+          These external resources supplement this app's forecasts. Always
           consult official warnings and follow local emergency directives.
         </div>
       </div>

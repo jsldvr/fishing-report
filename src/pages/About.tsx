@@ -128,11 +128,11 @@ export default function About() {
             className="text-xl font-semibold mb-4"
             id="source-spec-sheet-heading"
           >
-            Source Spec Sheet
+            Run it yourself
           </h2>
           <div className="space-y-4" id="source-spec-sheet-content">
             <p className="text-gray-600 leading-relaxed" id="source-spec-intro">
-              Treat this field brief as your survival guide for the{" "}
+              This app is open source at{" "}
               <a
                 className="text-info font-medium"
                 id="source-spec-link"
@@ -141,9 +141,8 @@ export default function About() {
                 rel="noreferrer"
               >
                 jsldvr/fishing-report
-              </a>{" "}
-              codebase. Follow the checkpoints below to clone, fork, and deploy
-              your own instance.
+              </a>
+              . Follow the steps below to clone it and run your own copy.
             </p>
             <ul
               className="text-sm text-gray-600 space-y-3"
@@ -154,19 +153,18 @@ export default function About() {
                   className="font-medium text-gray-900"
                   id="source-spec-step-1-label"
                 >
-                  Deploy Beacon:
+                  Fork:
                 </span>{" "}
-                Fork the repository from GitHub so your squad has a safe staging
-                ground.
+                Fork the repository on GitHub.
               </li>
               <li className="leading-relaxed" id="source-spec-step-2">
                 <span
                   className="font-medium text-gray-900"
                   id="source-spec-step-2-label"
                 >
-                  Secure Local Copy:
+                  Clone:
                 </span>{" "}
-                Clone the fork with{" "}
+                Clone your fork with{" "}
                 <code
                   className="bg-gray-100 px-1 rounded"
                   id="source-spec-step-2-command"
@@ -174,14 +172,14 @@ export default function About() {
                   git clone
                   https://github.com/&lt;your-handle&gt;/fishing-report.git
                 </code>{" "}
-                and navigate into the project folder.
+                and open the project folder.
               </li>
               <li className="leading-relaxed" id="source-spec-step-3">
                 <span
                   className="font-medium text-gray-900"
                   id="source-spec-step-3-label"
                 >
-                  Resupply Dependencies:
+                  Install:
                 </span>{" "}
                 Run{" "}
                 <code
@@ -190,14 +188,14 @@ export default function About() {
                 >
                   npm install
                 </code>{" "}
-                to provision all mission-critical packages.
+                to install dependencies.
               </li>
               <li className="leading-relaxed" id="source-spec-step-4">
                 <span
                   className="font-medium text-gray-900"
                   id="source-spec-step-4-label"
                 >
-                  Launch Field Ops:
+                  Run:
                 </span>{" "}
                 Use{" "}
                 <code
@@ -206,19 +204,18 @@ export default function About() {
                 >
                   npm run dev
                 </code>{" "}
-                to activate the local dev server, or{" "}
+                for a local dev server, or{" "}
                 <code
                   className="bg-gray-100 px-1 rounded"
                   id="source-spec-step-4b-command"
                 >
                   npm run build
                 </code>{" "}
-                for a production-ready kit.
+                for a production build.
               </li>
             </ul>
             <p className="text-xs text-gray-500" id="source-spec-outro">
-              Field intel: the project relies on Vite + React 18 with
-              TypeScript, so keep Node 18+ in your go-bag.
+              Built with Vite + React 18 and TypeScript. Requires Node 18+.
             </p>
           </div>
         </div>

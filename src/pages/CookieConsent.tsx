@@ -2,24 +2,24 @@ import type { FC } from "react";
 
 const sections = [
   {
-    title: "Mission-Critical Cookie Usage",
+    title: "Cookie Usage",
     paragraphs: [
-      "This Cookie Consent Statement explains, in direct operational terms, that Tactical Fishing Intel deploys narrowly-scoped functional cookies to keep the mission console active. These cookies lock in navigation preferences, remember instrumentation settings, and prevent redundant loading cycles.",
-      "No marketing pixels or behavioral dossiers are created. Functional cookies are the lone assets, and their deployment is aligned with the site’s entertainment briefing charter.",
+      "This Cookie Consent Statement explains that Fishing Report uses narrowly-scoped functional cookies to keep the app working. These cookies remember navigation preferences, unit settings, and prevent redundant loading.",
+      "No marketing pixels or behavioral profiles are created. Functional cookies are the only ones used, consistent with the site's entertainment purpose.",
     ],
   },
   {
-    title: "Control Over Your Console",
+    title: "Control Over Cookies",
     paragraphs: [
-      "You may tailor cookie behavior using your browser’s security panel, clearing, disabling, or tightening controls at any time. Doing so may degrade elements of the interface and could disrupt the persistence of preferred units or saved waypoints.",
-      "For full functionality, we recommend allowing the default functional cookies to remain active so that the tactical experience remains synchronized across sessions.",
+      "You can adjust cookie behavior using your browser's settings, clearing, disabling, or restricting them at any time. Doing so may degrade parts of the interface, including saved unit preferences or saved spots.",
+      "For full functionality, we recommend allowing the default functional cookies to remain active so preferences stay in sync across sessions.",
     ],
   },
   {
     title: "Additional Information",
     paragraphs: [
-      "Should you require clarifications or wish to transmit a cookie-related request, contact nospam@sldvr.com. Communications will receive a formal acknowledgement and response consistent with governing privacy obligations.",
-      "This statement operates alongside our Privacy Policy, which expands on data minimization and disclosure practices. Both documents should be reviewed for complete situational awareness.",
+      "If you have questions or a cookie-related request, contact nospam@sldvr.com. Communications will receive an acknowledgement and response consistent with governing privacy obligations.",
+      "This statement works alongside our Privacy Policy, which expands on data minimization and disclosure practices. Both documents should be reviewed together.",
     ],
   },
 ];
@@ -31,8 +31,8 @@ const CookieConsent: FC = () => (
         Cookie Consent
       </h1>
       <p className="legal-summary" id="cookie-summary">
-        Tactical Fishing Intel uses functional cookies exclusively to sustain
-        the console experience. No auxiliary tracking is deployed.
+        Fishing Report uses functional cookies exclusively to run the app. No
+        other tracking is used.
       </p>
     </header>
     {sections.map((section, index) => (

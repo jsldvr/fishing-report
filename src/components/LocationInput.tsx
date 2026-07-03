@@ -135,7 +135,7 @@ export default function LocationInput({
           `- Common city format: "Oklahoma City, OK"\n` +
           `- Coordinates: "35.3383, -97.4867"\n` +
           `- Use the coordinate fields below\n` +
-          `- Try the "Use Current Location" button`
+          `- Try the "Use my location" button`
       );
     } catch (error) {
       console.error("Geocoding error:", error);
@@ -380,8 +380,8 @@ export default function LocationInput({
   return (
     <div className="card p-6">
       <h2 className="text-xl font-semibold mb-4 text-primary flex items-center gap-2">
-        <Icon name="target" />
-        Target Coordinates
+        <Icon name="mapPin" />
+        Location
       </h2>
 
       <div className="grid gap-4">
@@ -391,14 +391,14 @@ export default function LocationInput({
             htmlFor="location-name"
             className="block text-sm font-medium mb-2"
           >
-            Location Intel Search
+            Search
           </label>
           <div className="flex gap-2">
             <input
               id="location-name"
               type="text"
               className="input flex-1"
-              placeholder="e.g., Oklahoma City, OK or 35.3383, -97.4867"
+              placeholder="City, lake, or coordinates"
               value={locationName}
               onChange={(e) => setLocationName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleGeocodeLocation()}
@@ -413,14 +413,13 @@ export default function LocationInput({
               ) : (
                 <>
                   <Icon name="search" className="mr-2" />
-                  Recon
+                  Search
                 </>
               )}
             </button>
           </div>
           <p className="text-xs text-muted mt-1">
-            Enter target designation or precise coordinates (lat, lon). Multiple
-            search vectors available for target acquisition.
+            Coordinates improve marine and local weather matching.
           </p>
         </div>
 
@@ -474,12 +473,12 @@ export default function LocationInput({
           {isGeolocating ? (
             <>
               <span className="spinner"></span>
-              Acquiring Position...
+              Finding your location…
             </>
           ) : (
             <>
               <Icon name="locationTarget" className="mr-2" />
-              GPS Lock
+              Use my location
             </>
           )}
         </button>
@@ -487,8 +486,7 @@ export default function LocationInput({
         {!isValid && (
           <p className="text-sm text-error mt-2">
             <Icon name="warning" className="mr-2" />
-            Invalid coordinates. AO must be within North America (Lat:
-            14-83°N, Lon: -180 to -50°W)
+            Enter a location within North America (14–83°N, -180 to -50°W).
           </p>
         )}
       </div>
