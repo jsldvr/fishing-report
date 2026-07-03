@@ -174,7 +174,8 @@ describe("weather validation: source selection", () => {
 
   it("classifies US bounds correctly", () => {
     expect(isUSLocation(DENVER.lat, DENVER.lon)).toBe(true);
-    expect(isUSLocation(21.3045, -157.8557)).toBe(false); // Honolulu is below the 24N rough bound
+    expect(isUSLocation(21.3045, -157.8557)).toBe(true); // Honolulu, HI
+    expect(isUSLocation(49.2827, -123.1207)).toBe(false); // Vancouver, BC
     expect(isUSLocation(PARIS.lat, PARIS.lon)).toBe(false);
     expect(isUSLocation(19.4326, -99.1332)).toBe(false); // Mexico City
   });

@@ -50,7 +50,7 @@ const LOCATIONS: LocationCase[] = [
   { name: "Corpus Christi, TX", lat: 27.7793, lon: -97.5114, expectUS: true, expectMarineEligible: true },
   { name: "Seattle, WA", lat: 47.6062, lon: -122.3321, expectUS: true, expectMarineEligible: true },
   { name: "San Diego, CA", lat: 32.7157, lon: -117.1611, expectUS: true, expectMarineEligible: true },
-  { name: "Honolulu, HI", lat: 21.3045, lon: -157.8557, expectUS: false, expectMarineEligible: true },
+  { name: "Honolulu, HI", lat: 21.3045, lon: -157.8557, expectUS: true, expectMarineEligible: true },
   { name: "Anchorage, AK", lat: 61.2181, lon: -149.9003, expectUS: true, expectMarineEligible: false },
   { name: "Oklahoma City, OK", lat: 35.4676, lon: -97.5164, expectUS: true, expectMarineEligible: false },
   { name: "Salt Lake City, UT", lat: 40.7608, lon: -111.891, expectUS: true, expectMarineEligible: false },
@@ -61,8 +61,10 @@ const LOCATIONS: LocationCase[] = [
   { name: "Boise, ID", lat: 43.615, lon: -116.2023, expectUS: true, expectMarineEligible: true },
   { name: "Kansas City, MO", lat: 39.0997, lon: -94.5786, expectUS: true, expectMarineEligible: false },
   { name: "Atlanta, GA", lat: 33.749, lon: -84.388, expectUS: true, expectMarineEligible: true },
+  // Toronto sits south of Detroit's latitude, inside the Great Lakes
+  // peninsula a bounding box can't carve out; documents the known limitation.
   { name: "Toronto, ON", lat: 43.6532, lon: -79.3832, expectUS: true, expectMarineEligible: true },
-  { name: "Vancouver, BC", lat: 49.2827, lon: -123.1207, expectUS: true, expectMarineEligible: false },
+  { name: "Vancouver, BC", lat: 49.2827, lon: -123.1207, expectUS: false, expectMarineEligible: false },
   { name: "Mexico City, MX", lat: 19.4326, lon: -99.1332, expectUS: false, expectMarineEligible: false },
   { name: "Cancun, MX", lat: 21.1619, lon: -86.8515, expectUS: false, expectMarineEligible: false },
   { name: "Paris, FR", lat: 48.8566, lon: 2.3522, expectUS: false, expectMarineEligible: false },
@@ -243,7 +245,7 @@ console.log(`Checks: ${passed}/${total} passed`);
 console.log(`Pass rate: ${passRate}%`);
 console.log(`Blocked unsafe/missing forecasts: ${blockedRate}%`);
 console.log(
-  "Known limitations: precipitation amount unavailable from NWS grid PoP; Open-Meteo provides no source update timestamp (freshness UNKNOWN); US bounds are rough (Hawaii routes to Open-Meteo)"
+  "Known limitations: precipitation amount unavailable from NWS grid PoP; Open-Meteo provides no source update timestamp (freshness UNKNOWN); US bounds are rough rectangles (southern Ontario/Quebec near the Great Lakes still routes to NWS)"
 );
 
 if (failed > 0) {

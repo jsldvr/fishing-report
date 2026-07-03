@@ -33,9 +33,25 @@ export type EnhancedWeatherResult =
       reason: string;
     };
 
-/** Rough US bounds used to decide whether NWS is the primary weather source. */
+/**
+ * Rough NWS-coverage regions used to decide whether NWS is the primary
+ * weather source. NWS only covers the US; a single lat/lon rectangle spanning
+ * the CONUS lat range also swallows most of Canada, which caused Canadian
+ * locations to be tried against NWS, fail, and get penalized as an
+ * Open-Meteo "fallback" instead of being treated as Open-Meteo-primary.
+ *
+ * These three boxes (CONUS, Alaska, Hawaii) fix that for the common case and
+ * correctly include Hawaii (previously excluded despite being a US state).
+ * The CONUS box still can't cleanly separate the Great Lakes peninsula
+ * (e.g. Toronto sits south of Detroit's latitude), so a thin strip of
+ * southern Ontario/Quebec remains misclassified as NWS-primary. Fixing that
+ * needs a real border polygon, not a bounding box.
+ */
 export function isUSLocation(lat: number, lon: number): boolean {
-  return lat >= 24.0 && lat <= 71.0 && lon >= -179.0 && lon <= -66.0;
+  const conus = lat >= 24.5 && lat <= 49.0 && lon >= -124.8 && lon <= -66.9;
+  const alaska = lat >= 51.0 && lat <= 71.5 && lon >= -179.0 && lon <= -129.0;
+  const hawaii = lat >= 18.5 && lat <= 22.5 && lon >= -160.5 && lon <= -154.5;
+  return conus || alaska || hawaii;
 }
 
 /**
