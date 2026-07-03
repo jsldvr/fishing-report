@@ -1,4 +1,19 @@
-# Changelog
+﻿# Changelog
+
+## 2026-07-03
+
+### Weather Trust and Accuracy Overhaul
+
+- **Removed** all synthetic/default weather fallbacks (20C / 10 km/h / 50% clouds / 1013.25 hPa) from `enhancedWeather.ts` and `openMeteo.ts`; weather fetchers now throw or report UNAVAILABLE instead of fabricating data
+- **Changed** `fetchEnhancedWeather` to return a discriminated result (`OK` / `FALLBACK` / `UNAVAILABLE`); total source failure blocks the bite score
+- **Added** `buildUnavailableForecast` in `forecast.ts` producing a blocked forecast (safety UNKNOWN, score suppressed) and a degraded ScoreCard state ("Forecast unavailable / Check official weather before fishing")
+- **Fixed** NWS precipitation semantics: grid `probabilityOfPrecipitation` is now `precipProbabilityPct` (0-100), never converted to or displayed as a rain amount; `precipMm` is optional and NWS leaves it unset
+- **Fixed** NWS unit conversions with uom-aware converters (`windSpeed` km/h no longer multiplied by 3.6; pressure Pa->hPa; temperature degF->degC) and Open-Meteo wind requested explicitly in km/h
+- **Changed** reliability timestamps to use source-reported update times (NWS grid `updateTime`); freshness is UNKNOWN when the source provides none, and `forecastGeneratedIso` is tracked separately
+- **Renamed** user-facing "Confidence" to "Data Quality" in ScoreCard and Home copy; internal `confidenceLevel`/`confidenceScore` field names retained
+- **Added** result-card trust summary (outlook + safety, best solunar window, why, data quality) above metrics; unavailable-days banner on Results page
+- **Changed** safety score penalty (DANGEROUS -> 0) to apply regardless of weather source
+- **Added** validation harness: `npm run validate:weather` (25-location deterministic report) and `tests/weatherValidation.test.ts` covering source selection, fallback, blocking, unit conversion, precipitation semantics, safety overrides, and data-quality rules
 
 ## 2025-11-19 v1.3.0
 

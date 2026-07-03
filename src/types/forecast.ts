@@ -21,7 +21,14 @@ export interface SolunarTimes {
 export interface WeatherData {
   tempC: number;
   windKph: number;
-  precipMm: number;
+  /**
+   * Measured/forecast precipitation amount in millimeters.
+   * Undefined when the source only provides a probability (e.g., NWS grid PoP).
+   * Never substitute probability values here.
+   */
+  precipMm?: number;
+  /** Probability of precipitation 0..100. Undefined when the source has no PoP. */
+  precipProbabilityPct?: number;
   cloudPct: number;
   pressureHpa?: number;
 }
@@ -30,6 +37,8 @@ export interface AlmanacData {
   rating01?: number; // 0..1, undefined if unavailable
   notes?: string;
 }
+
+export type ForecastAvailability = "OK" | "WEATHER_UNAVAILABLE";
 
 export interface ForecastScore {
   date: string; // ISO date
@@ -40,6 +49,13 @@ export interface ForecastScore {
   components: Record<string, number>;
   astronomical?: AstronomicalTimes;
   solunar?: SolunarTimes;
+  /**
+   * "WEATHER_UNAVAILABLE" means no verified weather could be fetched; the bite
+   * score is not valid and must not be rendered as a normal forecast.
+   */
+  forecastStatus?: ForecastAvailability;
+  /** Human-readable reason when forecastStatus is not OK. */
+  unavailableReason?: string;
 }
 
 export interface DayInputs {
@@ -99,6 +115,9 @@ export interface MarineWeatherData {
   windDirectionText?: string;
 }
 
+// Internal field names retain "confidence" for compatibility; all user-facing
+// copy must present these as "Data Quality" (source/freshness/completeness),
+// never as proven prediction accuracy.
 export type ForecastConfidenceLevel = "HIGH" | "MEDIUM" | "LOW";
 export type FreshnessLevel = "FRESH" | "AGING" | "STALE" | "UNKNOWN";
 export type MarineDataStatus = "AVAILABLE" | "UNAVAILABLE" | "NOT_APPLICABLE";
@@ -110,12 +129,15 @@ export interface ForecastReliability {
   weatherFreshness: FreshnessLevel;
   marineFreshness: FreshnessLevel;
   marineStatus: MarineDataStatus;
+  /** When the app generated this forecast (fetch/build time). */
+  forecastGeneratedIso?: string;
+  /** When the weather SOURCE last updated its data. Unset when the source provides no timestamp. */
   weatherLastUpdatedIso?: string;
   marineLastUpdatedIso?: string;
 }
 
 export interface SafetyAssessment {
-  rating: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "DANGEROUS";
+  rating: "EXCELLENT" | "GOOD" | "FAIR" | "POOR" | "DANGEROUS" | "UNKNOWN";
   activeAlerts: NWSAlert[];
   recommendations: string[];
   riskFactors: string[];
@@ -126,7 +148,9 @@ export interface EnhancedWeatherData extends WeatherData {
   marine?: MarineWeatherData;
   safety: SafetyAssessment;
   barometricTrend: "RISING" | "FALLING" | "STEADY";
-  source: "NWS" | "OPEN_METEO" | "FUSED";
+  source: "NWS" | "OPEN_METEO" | "FUSED" | "UNAVAILABLE";
+  /** Timestamp the SOURCE reports for its own data (e.g., NWS grid updateTime). */
+  sourceUpdatedIso?: string;
   reliability?: ForecastReliability;
   localOffice?: LocalWeatherOfficeInfo;
 }

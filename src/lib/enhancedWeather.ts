@@ -23,26 +23,40 @@ interface MarinePrefilterResult {
   reason: MarinePrefilterReason;
 }
 
+export type EnhancedWeatherResult =
+  | {
+      status: "OK" | "FALLBACK";
+      weather: EnhancedWeatherData;
+    }
+  | {
+      status: "UNAVAILABLE";
+      reason: string;
+    };
+
+/** Rough US bounds used to decide whether NWS is the primary weather source. */
+export function isUSLocation(lat: number, lon: number): boolean {
+  return lat >= 24.0 && lat <= 71.0 && lon >= -179.0 && lon <= -66.0;
+}
+
 /**
- * Enhanced weather fetcher that prioritizes NWS for US locations
- * and falls back to Open-Meteo for international or on failure
+ * Enhanced weather fetcher that prioritizes NWS for US locations and falls
+ * back to Open-Meteo for international locations or on NWS failure.
+ *
+ * Never fabricates weather: when every source fails, the result is
+ * UNAVAILABLE and the caller must block the bite score.
  */
 export async function fetchEnhancedWeather(
   day: DayInputs
-): Promise<EnhancedWeatherData> {
+): Promise<EnhancedWeatherResult> {
   let weather: EnhancedWeatherData | null = null;
+  let usedFallbackSource = false;
   const marinePrefilter = evaluateMarinePrefilter(day.lat, day.lon);
   const marineEligible = marinePrefilter.eligible;
   const shouldLogMarineDiagnostics = import.meta.env.DEV;
 
-  // Check if location is in the US (rough bounds)
-  const isUSLocation =
-    day.lat >= 24.0 &&
-    day.lat <= 71.0 && // Alaska to Florida
-    day.lon >= -179.0 &&
-    day.lon <= -66.0; // Hawaii to Maine
+  const nwsIsPrimary = isUSLocation(day.lat, day.lon);
 
-  if (isUSLocation) {
+  if (nwsIsPrimary) {
     try {
       // Try NWS first for US locations
       console.log(`Fetching NWS weather data for ${day.lat}, ${day.lon}`);
@@ -58,6 +72,7 @@ export async function fetchEnhancedWeather(
       console.log(`Fetching Open-Meteo weather data for ${day.lat}, ${day.lon}`);
       const openMeteoData = await fetchOpenMeteoWeather(day);
 
+      usedFallbackSource = nwsIsPrimary;
       weather = {
         ...openMeteoData,
         safety: {
@@ -68,24 +83,14 @@ export async function fetchEnhancedWeather(
         },
         barometricTrend: "STEADY",
         source: "OPEN_METEO",
+        // Open-Meteo does not report a model-run timestamp; freshness stays UNKNOWN
+        sourceUpdatedIso: undefined,
       };
     } catch (error) {
       console.error("Both NWS and Open-Meteo failed:", error);
-
-      weather = {
-        tempC: 20.0,
-        windKph: 10.0,
-        precipMm: 0.0,
-        cloudPct: 50,
-        pressureHpa: 1013.25,
-        safety: {
-          rating: "FAIR",
-          activeAlerts: [],
-          recommendations: ["Weather data unavailable - use caution"],
-          riskFactors: ["Unable to fetch current weather conditions"],
-        },
-        barometricTrend: "STEADY",
-        source: "OPEN_METEO",
+      return {
+        status: "UNAVAILABLE",
+        reason: "Current weather could not be verified from any source",
       };
     }
   }
@@ -138,41 +143,23 @@ export async function fetchEnhancedWeather(
     }
   }
 
-  const reliabilityTimestampIso = new Date().toISOString();
+  const forecastGeneratedIso = new Date().toISOString();
 
-  if (!weather) {
-    const fallback: EnhancedWeatherData = {
-      tempC: 20.0,
-      windKph: 10.0,
-      precipMm: 0.0,
-      cloudPct: 50,
-      pressureHpa: 1013.25,
-      safety: {
-        rating: "FAIR",
-        activeAlerts: [],
-        recommendations: ["Weather data unavailable - use caution"],
-        riskFactors: ["Unable to fetch current weather conditions"],
-      },
-      barometricTrend: "STEADY",
-      source: "OPEN_METEO",
-    };
-    return {
-      ...fallback,
-      reliability: buildForecastReliability(fallback, {
-        isMarineEligible: marineEligible,
-        nowIso: reliabilityTimestampIso,
-        weatherLastUpdatedIso: reliabilityTimestampIso,
-      }),
-    };
-  }
-
-  return {
+  const weatherWithReliability: EnhancedWeatherData = {
     ...weather,
     reliability: buildForecastReliability(weather, {
       isMarineEligible: marineEligible,
-      nowIso: reliabilityTimestampIso,
-      weatherLastUpdatedIso: reliabilityTimestampIso,
+      isFallbackSource: usedFallbackSource,
+      nowIso: forecastGeneratedIso,
+      forecastGeneratedIso,
+      // Source-reported timestamp only; never the app fetch time.
+      weatherLastUpdatedIso: weather.sourceUpdatedIso,
     }),
+  };
+
+  return {
+    status: usedFallbackSource ? "FALLBACK" : "OK",
+    weather: weatherWithReliability,
   };
 }
 
@@ -266,7 +253,7 @@ export function getOptimalFishingTimes(weather: EnhancedWeatherData): string[] {
     : ["Standard fishing conditions"];
 }
 
-function adjustSafetyWithMarine(
+export function adjustSafetyWithMarine(
   existingSafety: SafetyAssessment,
   marine: MarineWeatherData,
   isoDate: string

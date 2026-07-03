@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "build:data": "tsx scripts/build-data.ts",
     "diagnose:noaa": "tsx scripts/noaa-diagnostics.ts",
+    "validate:weather": "tsx scripts/validate-weather.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

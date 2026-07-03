@@ -8,8 +8,17 @@ import type {
 
 interface ReliabilityContext {
   isMarineEligible: boolean;
+  /**
+   * True when the weather came from a fallback source (e.g., Open-Meteo for a
+   * US location after NWS failed). Open-Meteo as the primary source for
+   * non-US locations is not a fallback.
+   */
+  isFallbackSource?: boolean;
   nowIso?: string;
+  /** Source-reported update time. Leave unset (freshness UNKNOWN) when the source provides none. */
   weatherLastUpdatedIso?: string;
+  /** When the app generated the forecast; distinct from source update time. */
+  forecastGeneratedIso?: string;
 }
 
 export function buildForecastReliability(
@@ -24,7 +33,7 @@ export function buildForecastReliability(
   const weatherFreshness = freshnessFromIso(weatherLastUpdatedIso, now);
   score = applyFreshnessPenalty(score, weatherFreshness, "weather", reasons);
 
-  if (weather.source === "OPEN_METEO") {
+  if (context.isFallbackSource) {
     score -= 30;
     reasons.push("Using Open-Meteo fallback instead of NWS primary feed");
   }
@@ -79,6 +88,7 @@ export function buildForecastReliability(
     weatherFreshness,
     marineFreshness,
     marineStatus,
+    forecastGeneratedIso: context.forecastGeneratedIso,
     weatherLastUpdatedIso,
     marineLastUpdatedIso,
   };
