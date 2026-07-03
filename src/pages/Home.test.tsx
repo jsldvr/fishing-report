@@ -91,7 +91,7 @@ describe("Home", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByLabelText("Waypoint name"), {
+    fireEvent.change(screen.getByLabelText("Spot name"), {
       target: { value: "Milton Launch" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -115,7 +115,7 @@ describe("Home", () => {
     fireEvent.click(screen.getByRole("button", { name: "Set Milton Location" }));
     fireEvent.click(screen.getByRole("button", { name: "Set Mission Date" }));
 
-    fireEvent.change(screen.getByLabelText("Waypoint name"), {
+    fireEvent.change(screen.getByLabelText("Spot name"), {
       target: { value: "Milton Mission" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -140,13 +140,13 @@ describe("Home", () => {
     fireEvent.click(screen.getByRole("button", { name: "Set Zero Location" }));
     fireEvent.click(screen.getByRole("button", { name: "Set Mission Date" }));
 
-    fireEvent.change(screen.getByLabelText("Waypoint name"), {
+    fireEvent.change(screen.getByLabelText("Spot name"), {
       target: { value: "Zero Point" },
     });
 
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
     expect(
-      screen.getByRole("button", { name: "Execute Mission Brief" })
+      screen.getByRole("button", { name: "Get fishing outlook" })
     ).toBeEnabled();
   });
 });

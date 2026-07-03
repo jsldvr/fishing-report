@@ -38,7 +38,7 @@ export default function DateRangePicker({
   const timelineContentId = "mission-timeline-content";
 
   return (
-    <div className="card p-6">
+    <div className="hero-panel__section">
       <h2
         className="text-xl font-semibold text-primary mission-timeline-toggle"
         id="mission-timeline-toggle"
@@ -52,7 +52,7 @@ export default function DateRangePicker({
       >
         <span className="inline-flex items-center gap-2">
           <Icon name="stopwatch" />
-          Mission Timeline
+          Forecast window
         </span>
         <span
           className="mission-toggle-indicator"
@@ -75,7 +75,7 @@ export default function DateRangePicker({
             htmlFor="start-date"
             className="block text-sm font-medium mb-2"
           >
-            Operation Commencement
+            Start date
           </label>
           <input
             id="start-date"
@@ -92,7 +92,7 @@ export default function DateRangePicker({
             Duration: {days} Day{days !== 1 ? "s" : ""}
           </label>
           <input
-            className="range-input w-full accent-forest-600"
+            className="range-input w-full"
             id="num-days"
             type="range"
             min="1"
@@ -101,7 +101,7 @@ export default function DateRangePicker({
             value={days.toString()}
             onChange={(e) => setDays(parseInt(e.target.value, 10))}
             style={{
-              background: `linear-gradient(to right, var(--color-forest-500) 0%, var(--color-forest-500) ${
+              background: `linear-gradient(to right, var(--river-green) 0%, var(--river-green) ${
                 (days / maxDays) * 100
               }%, var(--border-primary) ${
                 (days / maxDays) * 100
@@ -109,14 +109,14 @@ export default function DateRangePicker({
             }}
           />
           <div className="flex justify-between text-sm text-muted mt-1">
-            <span>Short Op</span>
-            <span>Extended Mission</span>
+            <span>1 day</span>
+            <span>{maxDays} days</span>
           </div>
         </div>
 
         <div className="bg-accent p-3 rounded-lg border border-primary">
           <p className="text-sm text-secondary">
-            <strong className="text-primary">Mission Window:</strong>{" "}
+            <strong className="text-primary">Forecast window:</strong>{" "}
             {startDate}
             <Icon name="arrowRight" className="mx-2" />
             {endDate}
@@ -124,7 +124,7 @@ export default function DateRangePicker({
           <p className="text-xs text-muted mt-1">
             <span className="inline-flex items-center gap-2">
               <Icon name="calendar" />
-              {days} day operational period with tactical assessment intervals
+              {days}-day outlook, updated daily
             </span>
           </p>
         </div>

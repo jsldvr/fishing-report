@@ -1,18 +1,10 @@
 /*
-████████╗ █████╗  ██████╗████████╗██╗ ██████╗ █████╗ ██╗     
-╚══██╔══╝██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██╔══██╗██║     
-   ██║   ███████║██║        ██║   ██║██║     ███████║██║     
-   ██║   ██╔══██║██║        ██║   ██║██║     ██╔══██║██║     
-   ██║   ██║  ██║╚██████╗   ██║   ██║╚██████╗██║  ██║███████╗
-   ╚═╝   ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝
-
-TACTICAL FISHING INTELLIGENCE SYSTEM
-MILITARY-GRADE STYLING FOR FIELD OPERATIONS
-CLASSIFICATION: UNCLASSIFIED
+Fishing Report
+Design tokens: Deep Water, River Green, Fog, Sand, Storm, Alert Red
 */
 
 /* ===========================================
-   TACTICAL RESET & NORMALIZE
+   RESET & NORMALIZE
    =========================================== */
 *,
 *::before,
@@ -29,141 +21,115 @@ html {
 }
 
 body {
-  font-family: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code",
-    "Roboto Mono", Consolas, monospace;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum", "zero";
-  font-weight: 400;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: 0.5px;
   overflow-x: hidden;
-  transition: all 0.3s ease;
 }
 
 /* ===========================================
-   TACTICAL COLOR SYSTEM
+   DESIGN TOKENS
    =========================================== */
 :root {
-  /* Ranger Green - Primary Tactical */
-  --ranger-50: #f0f4f0;
-  --ranger-100: #dce7dc;
-  --ranger-200: #b9cfb9;
-  --ranger-300: #94b394;
-  --ranger-400: #6f9a6f;
-  --ranger-500: #4a7c4a;
-  --ranger-600: #3d6b3d;
-  --ranger-700: #2f5a2f;
-  --ranger-800: #1f4a1f;
-  --ranger-900: #0f3a0f;
+  /* Brand palette */
+  --deep-water: #102820;
+  --river-green: #2f5d50;
+  --river-green-dark: #234539;
+  --fog: #eef3ef;
+  --sand: #d8c7a3;
+  --storm: #475569;
+  --alert-red: #b42318;
 
-  /* Coyote Tan - Secondary */
-  --coyote-50: #faf9f7;
-  --coyote-100: #f5f3ef;
-  --coyote-200: #ebe7df;
-  --coyote-300: #ddd7cb;
-  --coyote-400: #ccc2b0;
-  --coyote-500: #b8a688;
-  --coyote-600: #a08a68;
-  --coyote-700: #8a7356;
-  --coyote-800: #6d5c47;
-  --coyote-900: #574a3a;
+  /* Supporting neutrals (derived, used for surfaces/borders) */
+  --neutral-0: #ffffff;
+  --neutral-50: #f7f9f7;
+  --neutral-100: var(--fog);
+  --neutral-200: #dde5e0;
+  --neutral-300: #c3cfc8;
+  --neutral-700: var(--storm);
+  --neutral-800: #263238;
+  --neutral-900: #14231d;
 
-  /* Steel Gray - Neutral */
-  --steel-50: #f8f9fa;
-  --steel-100: #e9ecef;
-  --steel-200: #dee2e6;
-  --steel-300: #ced4da;
-  --steel-400: #adb5bd;
-  --steel-500: #6c757d;
-  --steel-600: #495057;
-  --steel-700: #343a40;
-  --steel-800: #212529;
-  --steel-900: #0d1117;
+  /* Status colors (mapped onto the brand palette) */
+  --status-go: #2f7d5c;
+  --status-caution: #b7791f;
+  --status-stop: var(--alert-red);
+  --status-info: #2563a8;
 
-  /* Status Colors */
-  --status-go: #4caf50;
-  --status-caution: #ff9800;
-  --status-stop: #f44336;
-  --status-info: #2196f3;
+  /* Typography */
+  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "URW Palladio L",
+    serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono",
+    Consolas, monospace;
 }
 
-/* LIGHT MODE - Day Operations */
+/* LIGHT MODE */
 :root {
-  --bg-primary: var(--coyote-50);
-  --bg-secondary: #ffffff;
-  --bg-tertiary: var(--coyote-100);
-  --bg-surface: var(--ranger-50);
-  --bg-card: rgba(255, 255, 255, 0.95);
-  --bg-overlay: rgba(250, 249, 247, 0.9);
+  --bg-primary: var(--fog);
+  --bg-secondary: var(--neutral-0);
+  --bg-tertiary: var(--neutral-100);
+  --bg-surface: var(--neutral-50);
+  --bg-card: rgba(255, 255, 255, 0.97);
+  --bg-overlay: rgba(238, 243, 239, 0.92);
 
-  --text-primary: var(--steel-800);
-  --text-secondary: var(--steel-600);
-  --text-tertiary: var(--steel-500);
-  --text-accent: var(--ranger-700);
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--storm);
+  --text-tertiary: #64748b;
+  --text-accent: var(--river-green);
   --text-inverse: #ffffff;
 
-  --border-primary: var(--steel-200);
-  --border-secondary: var(--steel-300);
-  --border-focus: var(--ranger-500);
+  --border-primary: var(--neutral-200);
+  --border-secondary: var(--neutral-300);
+  --border-focus: var(--river-green);
 
-  --button-primary: var(--ranger-600);
-  --button-primary-hover: var(--ranger-700);
-  --button-secondary: var(--steel-100);
-  --button-secondary-hover: var(--steel-200);
+  --button-primary: var(--river-green);
+  --button-primary-hover: var(--river-green-dark);
+  --button-secondary: var(--neutral-100);
+  --button-secondary-hover: var(--neutral-200);
 
-  --shadow-tactical: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-command: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 3px rgba(16, 40, 32, 0.08);
+  --shadow-md: 0 6px 20px rgba(16, 40, 32, 0.1);
 
-  --gradient-primary: linear-gradient(
-    135deg,
-    var(--coyote-50) 0%,
-    var(--ranger-50) 100%
-  );
-  --gradient-tactical: linear-gradient(
-    45deg,
-    var(--ranger-100) 0%,
-    var(--coyote-100) 100%
-  );
+  --gradient-primary: linear-gradient(180deg, var(--fog) 0%, var(--neutral-50) 100%);
 }
 
-/* DARK MODE - Night Operations */
+/* DARK MODE */
 [data-theme="dark"] {
-  --bg-primary: var(--steel-900);
-  --bg-secondary: var(--steel-800);
-  --bg-tertiary: var(--steel-700);
-  --bg-surface: var(--ranger-900);
-  --bg-card: rgba(33, 37, 41, 0.95);
-  --bg-overlay: rgba(13, 17, 23, 0.9);
+  --bg-primary: var(--neutral-900);
+  --bg-secondary: #1a2a24;
+  --bg-tertiary: #22342c;
+  --bg-surface: #16241e;
+  --bg-card: rgba(26, 42, 36, 0.95);
+  --bg-overlay: rgba(16, 40, 32, 0.92);
 
-  --text-primary: var(--steel-100);
-  --text-secondary: var(--steel-300);
-  --text-tertiary: var(--steel-400);
-  --text-accent: var(--ranger-400);
+  --text-primary: #eef3ef;
+  --text-secondary: #b8c4bd;
+  --text-tertiary: #8fa298;
+  --text-accent: #6fae95;
   --text-inverse: #ffffff;
+  --status-info: #8fc7ff;
 
-  --border-primary: var(--steel-600);
-  --border-secondary: var(--steel-500);
-  --border-focus: var(--ranger-400);
+  --border-primary: #2c4238;
+  --border-secondary: #38544a;
+  --border-focus: #6fae95;
 
-  --button-primary: var(--ranger-600);
-  --button-primary-hover: var(--ranger-500);
-  --button-secondary: var(--steel-700);
-  --button-secondary-hover: var(--steel-600);
+  --button-primary: #3d715f;
+  --button-primary-hover: #4a8571;
+  --button-secondary: #22342c;
+  --button-secondary-hover: #2c4238;
 
-  --shadow-tactical: 0 2px 8px rgba(0, 0, 0, 0.5);
-  --shadow-command: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
 
-  --gradient-primary: linear-gradient(
-    135deg,
-    var(--steel-900) 0%,
-    var(--ranger-900) 100%
-  );
-  --gradient-tactical: linear-gradient(
-    45deg,
-    var(--ranger-800) 0%,
-    var(--steel-800) 100%
-  );
+  --gradient-primary: linear-gradient(180deg, var(--neutral-900) 0%, #16241e 100%);
+}
+
+/* Backwards-compatible aliases used by a few older selectors */
+:root {
+  --shadow-tactical: var(--shadow-sm);
+  --shadow-command: var(--shadow-md);
 }
 
 /* ===========================================
@@ -173,6 +139,13 @@ body {
   background: var(--gradient-primary);
   color: var(--text-primary);
   min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-sans);
 }
 
 /* Typography Scale */
@@ -200,16 +173,27 @@ body {
   line-height: 1.7;
 }
 
+/* Tabular/data font -- weather numbers, timestamps, coordinates, data-quality badges */
+.font-data,
+.forecast-card__metric-value,
+.forecast-card__reliability-item,
+.forecast-card__score-value,
+input[type="number"],
+input[type="date"] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ===========================================
    WX OUTLOOK CARD ENHANCEMENTS
    =========================================== */
 .wx-outlook-day-card {
   background: var(--bg-card);
-  border: 2px solid rgba(34, 43, 34, 0.18);
-  border-radius: 0.9rem;
-  box-shadow: 0 18px 32px rgba(12, 18, 12, 0.18);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm);
   padding: 1rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 @media (min-width: 1024px) {
@@ -226,14 +210,12 @@ body {
 
 .wx-outlook-day-card:hover {
   border-color: var(--border-focus);
-  box-shadow: 0 22px 40px rgba(12, 18, 12, 0.22);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 [data-theme="dark"] .wx-outlook-day-card {
-  background: rgba(17, 24, 20, 0.92);
-  border-color: rgba(148, 163, 154, 0.35);
-  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.55);
+  background: var(--bg-card);
+  border-color: var(--border-primary);
 }
 
 /* Mobile-specific enhancements for weather cards */
@@ -252,7 +234,7 @@ body {
   .wx-outlook-day-metrics {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(34, 43, 34, 0.1);
+    border-top: 1px solid var(--border-primary);
     min-width: 0; /* Allow shrinking */
   }
 
@@ -282,10 +264,6 @@ body {
   .wx-outlook-day-metrics > div {
     min-width: 0;
     flex-shrink: 1;
-  }
-
-  [data-theme="dark"] .wx-outlook-day-metrics {
-    border-top-color: rgba(148, 163, 154, 0.2);
   }
 }
 
@@ -520,7 +498,7 @@ div#wx-outlook-controls {
 
 @media (min-width: 768px) {
   .wx-outlook-day-metrics {
-    border-left: 1px solid rgba(76, 94, 76, 0.2);
+    border-left: 1px solid var(--border-primary);
     padding-left: 1.5rem;
   }
 }
@@ -531,6 +509,14 @@ div#wx-outlook-controls {
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
+}
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
 }
 
 /* Font Weights */
@@ -665,6 +651,18 @@ div#wx-outlook-controls {
   padding-top: 3rem;
   padding-bottom: 3rem;
 }
+.py-16 {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+.px-12 {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+.px-16 {
+  padding-left: 4rem;
+  padding-right: 4rem;
+}
 .mt-1 {
   margin-top: 0.25rem;
 }
@@ -694,6 +692,30 @@ div#wx-outlook-controls {
 }
 .mr-2 {
   margin-right: 0.5rem;
+}
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.my-12 {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+.my-16 {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+.mx-8 {
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+.mx-12 {
+  margin-left: 3rem;
+  margin-right: 3rem;
+}
+.mx-16 {
+  margin-left: 4rem;
+  margin-right: 4rem;
 }
 
 /* Flexbox & Grid */
@@ -746,7 +768,7 @@ div#wx-outlook-controls {
   display: block;
 }
 
-/* Mission Timeline Toggle */
+/* Collapsible toggle (forecast window, NWS office info) */
 .mission-timeline-toggle {
   display: flex;
   align-items: center;
@@ -852,53 +874,15 @@ div#wx-outlook-controls {
 }
 
 /* ===========================================
-   TACTICAL HEADER SYSTEM
+   HEADER
    =========================================== */
-
-/* Header Container */
 .header {
-  background: linear-gradient(
-    135deg,
-    rgba(15, 58, 15, 0.95) 0%,
-    rgba(31, 74, 31, 0.9) 50%,
-    rgba(15, 58, 15, 0.95) 100%
-  );
-  backdrop-filter: blur(20px) saturate(150%);
-  border-bottom: 3px solid var(--ranger-600);
-  box-shadow: var(--shadow-command), 0 0 20px rgba(74, 124, 74, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--deep-water);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 100;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.header::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    var(--ranger-500) 0%,
-    var(--coyote-500) 25%,
-    var(--ranger-400) 50%,
-    var(--coyote-500) 75%,
-    var(--ranger-500) 100%
-  );
-  animation: tactical-pulse 3s ease-in-out infinite;
-}
-
-@keyframes tactical-pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
 }
 
 .header-container {
@@ -924,19 +908,8 @@ div#wx-outlook-controls {
 }
 
 .brand-icon {
-  font-size: 2rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
+  font-size: 1.5rem;
+  color: var(--sand);
 }
 
 .brand-text {
@@ -946,23 +919,20 @@ div#wx-outlook-controls {
 }
 
 .brand-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--coyote-100);
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.01em;
   margin: 0;
-  font-family: "Courier New", monospace;
 }
 
 .brand-subtitle {
-  font-size: 0.625rem;
-  font-weight: 600;
-  color: var(--ranger-300);
-  letter-spacing: 1px;
-  margin-top: 2px;
-  text-transform: uppercase;
-  opacity: 0.9;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgba(238, 243, 239, 0.7);
+  letter-spacing: 0.02em;
+  margin-top: 3px;
 }
 
 /* Navigation */
@@ -975,71 +945,40 @@ div#wx-outlook-controls {
 .nav-primary {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  color: var(--coyote-200);
+  padding: 0.625rem 0.875rem;
+  color: rgba(238, 243, 239, 0.85);
   text-decoration: none;
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 1px;
+  font-weight: 500;
+  font-size: 0.875rem;
   border-radius: 6px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  text-transform: uppercase;
-  font-family: "Courier New", monospace;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.nav-link::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(74, 124, 74, 0.3),
-    transparent
-  );
-  transition: left 0.5s ease;
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.nav-link:hover::before {
-  left: 100%;
-}
-
-.nav-link:hover {
-  color: var(--coyote-50);
-  background: rgba(74, 124, 74, 0.2);
-  border-color: var(--ranger-500);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 124, 74, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.nav-link:active {
-  transform: translateY(0);
+.nav-link:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 2px;
 }
 
 .nav-icon {
-  font-size: 1rem;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  font-size: 0.95rem;
 }
 
 .nav-text {
-  font-size: 0.7rem;
-  letter-spacing: 0.5px;
+  font-size: 0.85rem;
 }
 
 /* Mobile Menu Toggle */
@@ -1050,17 +989,16 @@ div#wx-outlook-controls {
   align-items: center;
   width: 2.5rem;
   height: 2.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--ranger-600);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   gap: 3px;
 }
 
 .mobile-menu-toggle:hover {
-  background: rgba(74, 124, 74, 0.2);
-  border-color: var(--ranger-500);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .mobile-menu-toggle.active .hamburger-line:nth-child(1) {
@@ -1078,9 +1016,9 @@ div#wx-outlook-controls {
 .hamburger-line {
   width: 16px;
   height: 2px;
-  background: var(--coyote-200);
+  background: rgba(238, 243, 239, 0.85);
   border-radius: 1px;
-  transition: all 0.3s ease;
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
 /* Mobile Menu Overlay */
@@ -1089,28 +1027,10 @@ div#wx-outlook-controls {
   top: 100%;
   left: 0;
   right: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(15, 58, 15, 0.98) 0%,
-    rgba(31, 74, 31, 0.95) 100%
-  );
-  backdrop-filter: blur(20px) saturate(150%);
-  border-bottom: 3px solid var(--ranger-600);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  animation: slideDown 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: var(--deep-water);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-md);
   z-index: 99;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .mobile-menu-content {
@@ -1127,95 +1047,56 @@ div#wx-outlook-controls {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  color: var(--coyote-200);
+  padding: 0.875rem 1rem;
+  color: rgba(238, 243, 239, 0.9);
   text-decoration: none;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(74, 124, 74, 0.2);
-  transition: all 0.3s ease;
-  font-family: "Courier New", monospace;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background-color 0.2s ease;
 }
 
 .mobile-nav-link:hover {
-  background: rgba(74, 124, 74, 0.15);
-  border-color: var(--ranger-500);
-  color: var(--coyote-50);
-  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.09);
+  color: #ffffff;
 }
 
 .mobile-nav-link .nav-icon {
-  font-size: 1.25rem;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  font-size: 1.1rem;
 }
 
 .mobile-nav-link .nav-text {
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .mobile-nav-link .nav-description {
   font-size: 0.75rem;
-  color: var(--ranger-300);
+  color: rgba(238, 243, 239, 0.6);
   margin-left: auto;
-  opacity: 0.8;
 }
 
 /* Status Bar */
 .status-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-top: 1px solid rgba(74, 124, 74, 0.3);
-  margin-top: 0.5rem;
-  font-family: "Courier New", monospace;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0.4rem;
 }
 
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ranger-600);
-  transition: all 0.3s ease;
-}
-
-.status-dot.active {
-  background: var(--ranger-400);
-  box-shadow: 0 0 8px var(--ranger-400);
-  animation: status-blink 2s ease-in-out infinite;
-}
-
-@keyframes status-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.status-text {
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: var(--ranger-300);
-  letter-spacing: 0.5px;
+.app-version {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: rgba(238, 243, 239, 0.55);
 }
 
 .timestamp {
-  font-size: 0.6rem;
-  font-weight: 500;
-  color: var(--coyote-400);
-  letter-spacing: 0.5px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: rgba(238, 243, 239, 0.55);
 }
 
 /* ===========================================
@@ -1229,29 +1110,28 @@ div#wx-outlook-controls {
   }
 
   .brand-title {
-    font-size: 1.1rem;
-    letter-spacing: 1.5px;
+    font-size: 1.15rem;
   }
 
   .brand-subtitle {
-    font-size: 0.55rem;
+    font-size: 0.6rem;
   }
 
   .nav-primary {
-    gap: 0.25rem;
+    gap: 0.125rem;
   }
 
   .nav-link {
-    padding: 0.625rem 0.75rem;
-    font-size: 0.7rem;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8rem;
   }
 
   .nav-text {
-    font-size: 0.65rem;
+    font-size: 0.8rem;
   }
 
   .status-bar {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
   }
 }
 
@@ -1270,16 +1150,14 @@ div#wx-outlook-controls {
   }
 
   .brand-icon {
-    font-size: 1.75rem;
+    font-size: 1.35rem;
   }
 
   .brand-title {
-    font-size: 0.95rem;
-    letter-spacing: 1px;
+    font-size: 1rem;
   }
 
   .brand-subtitle {
-    font-size: 0.5rem;
     display: none; /* Hide subtitle on very small screens */
   }
 
@@ -1292,13 +1170,13 @@ div#wx-outlook-controls {
   }
 
   .status-bar {
-    padding: 0.375rem 0;
-    margin-top: 0.375rem;
+    padding: 0.3rem 0;
+    margin-top: 0.3rem;
   }
 
-  .status-text,
+  .app-version,
   .timestamp {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
   }
 }
 
@@ -1309,11 +1187,11 @@ div#wx-outlook-controls {
   }
 
   .brand-title {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
   .brand-icon {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
 
   .mobile-menu-toggle {
@@ -1323,16 +1201,6 @@ div#wx-outlook-controls {
 
   .hamburger-line {
     width: 14px;
-  }
-
-  .status-bar {
-    flex-direction: column;
-    gap: 0.25rem;
-    align-items: flex-start;
-  }
-
-  .timestamp {
-    align-self: flex-end;
   }
 
   .theme-toggle {
@@ -1357,62 +1225,28 @@ div#wx-outlook-controls {
   .brand-subtitle {
     display: none;
   }
-} /* High DPI Displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .header {
-    backdrop-filter: blur(30px) saturate(180%);
-  }
-
-  .nav-link {
-    backdrop-filter: blur(15px);
-  }
 }
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .header,
-  .nav-link,
-  .brand-icon,
-  .status-dot {
-    animation: none;
+  .nav-link {
     transition: none;
-  }
-
-  .nav-link::before {
-    display: none;
   }
 }
 
 /* Cards */
 .card {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
   border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  box-shadow: var(--shadow-tactical);
+  border-radius: 0.6rem;
+  box-shadow: var(--shadow-sm);
   position: relative;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--ranger-500),
-    var(--coyote-500),
-    var(--ranger-500)
-  );
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-command);
+  box-shadow: var(--shadow-md);
   border-color: var(--border-focus);
 }
 
@@ -1539,7 +1373,7 @@ div#wx-outlook-controls {
   width: 100%;
   height: 0.75rem;
   border-radius: 9999px;
-  background: rgba(148, 163, 184, 0.35);
+  background: var(--border-primary);
   overflow: hidden;
 }
 
@@ -1550,23 +1384,70 @@ div#wx-outlook-controls {
 }
 
 .forecast-card__metric-fill--moon {
-  background: #2563eb;
+  background: var(--status-info);
 }
 
 .forecast-card__metric-fill--weather {
-  background: #16a34a;
+  background: var(--river-green);
 }
 
 .forecast-card__metric-fill--almanac {
-  background: #9333ea;
+  background: #7c5cbf;
 }
 
 .forecast-card__callout {
   padding: 1rem;
-  border-radius: 0.75rem;
-  background: rgba(249, 250, 251, 0.9);
+  border-radius: 0.6rem;
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-primary);
   color: var(--text-secondary);
+}
+
+/* Signature element: the "today's outlook" field-card ledger */
+.forecast-card__summary {
+  border: 1px solid var(--border-primary);
+  border-left: 3px solid var(--sand);
+  /* Left corners stay square so the accent spine meets a straight edge
+     instead of poking past a rounded corner it doesn't share a radius with. */
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: var(--bg-tertiary);
+  padding: 1rem 1.15rem;
+}
+
+.forecast-card__summary-heading {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.5rem;
+}
+
+.forecast-card__summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding: 0.2rem 0;
+}
+
+.forecast-card__summary-label {
+  color: var(--text-secondary);
+}
+
+.forecast-card__summary-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.forecast-card__summary-why {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border-secondary);
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
 }
 
 .forecast-card__reliability {
@@ -1575,14 +1456,13 @@ div#wx-outlook-controls {
   margin: 0.6rem 0 0.85rem;
   padding: 0.65rem 0.75rem;
   border-radius: 0.5rem;
-  background: rgba(148, 163, 184, 0.12);
+  background: var(--bg-tertiary);
   color: var(--text-secondary);
 }
 
 .forecast-card__reliability-item {
   font-size: 0.8rem;
   line-height: 1.45;
-  letter-spacing: 0.01em;
 }
 
 .forecast-card .marine-conditions {
@@ -1605,18 +1485,6 @@ div#wx-outlook-controls {
   font-weight: 500;
 }
 
-[data-theme="dark"] .forecast-card__metric-track {
-  background: rgba(148, 163, 184, 0.25);
-}
-
-[data-theme="dark"] .forecast-card__callout {
-  background: rgba(55, 65, 81, 0.45);
-}
-
-[data-theme="dark"] .forecast-card__reliability {
-  background: rgba(71, 85, 105, 0.25);
-}
-
 @media (max-width: 640px) {
   .forecast-card__header {
     flex-direction: column;
@@ -1634,85 +1502,49 @@ div#wx-outlook-controls {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.7rem 1.4rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.4rem;
   font-family: inherit;
   font-weight: 600;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease;
   text-decoration: none;
 }
 
-.btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left 0.4s ease;
-}
-
-.btn:hover::before {
-  left: 100%;
+.btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .btn-primary {
   background: var(--button-primary);
   color: var(--text-inverse);
-  box-shadow: var(--shadow-tactical);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
   background: var(--button-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-command);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
 }
 
 .btn-primary:disabled {
   background: var(--border-secondary);
   color: var(--text-tertiary);
   cursor: not-allowed;
-  transform: none;
   box-shadow: none;
-}
-
-.btn-primary:disabled::before {
-  display: none;
 }
 
 .btn-secondary {
   background: transparent;
   color: var(--text-primary);
-  border: 2px solid var(--border-primary);
-  box-shadow: var(--shadow-tactical);
+  border: 1px solid var(--border-primary);
 }
 
 .btn-secondary:hover {
-  background: var(--bg-card);
-  transform: translateY(-1px);
+  background: var(--bg-tertiary);
   border-color: var(--border-focus);
-  box-shadow: var(--shadow-command);
-}
-
-.btn-secondary:active {
-  transform: translateY(0);
 }
 
 /* Enhanced Button Sizes */
@@ -1720,213 +1552,24 @@ div#wx-outlook-controls {
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   min-height: 2rem;
-  border-radius: 0.25rem;
-  letter-spacing: 0.25px;
+  border-radius: 0.3rem;
 }
 
 .btn-lg {
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-  min-height: 3.5rem;
-  border-radius: 0.5rem;
+  padding: 0.9rem 1.75rem;
+  font-size: 1.05rem;
+  min-height: 3rem;
+  border-radius: 0.45rem;
 }
 
 .btn-xl {
-  padding: 1.25rem 2.5rem;
-  font-size: 1.25rem;
-  min-height: 4rem;
-  border-radius: 0.625rem;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  min-height: 3.25rem;
+  border-radius: 0.5rem;
 }
 
-.btn-2xl {
-  padding: 1.5rem 3rem;
-  font-size: 1.375rem;
-  min-height: 4.5rem;
-  border-radius: 0.75rem;
-}
-
-/* Mission Button - Special Tactical Element */
-.btn-mission {
-  padding: 1.5rem 3rem !important;
-  font-size: 1.5rem !important;
-  font-weight: 700 !important;
-  min-height: 5rem !important;
-  margin: 2rem auto !important;
-  border-radius: 0.75rem !important;
-  box-shadow: var(--shadow-command), 0 0 20px rgba(74, 124, 74, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  background: linear-gradient(
-    135deg,
-    var(--ranger-600),
-    var(--ranger-700)
-  ) !important;
-  position: relative;
-  overflow: hidden;
-  transform-style: preserve-3d;
-  display: block !important;
-  width: auto !important;
-  max-width: 400px !important;
-}
-
-/* Massive Command Button - For when you need REALLY BIG */
-.btn-command {
-  padding: 2rem 4rem !important;
-  font-size: 2rem !important;
-  font-weight: 800 !important;
-  min-height: 6rem !important;
-  margin: 3rem auto !important;
-  border-radius: 1rem !important;
-  box-shadow: var(--shadow-command), 0 0 30px rgba(74, 124, 74, 0.4),
-    0 0 60px rgba(74, 124, 74, 0.2), inset 0 2px 0 rgba(255, 255, 255, 0.15) !important;
-  background: linear-gradient(
-    135deg,
-    var(--ranger-600),
-    var(--ranger-700),
-    var(--ranger-800)
-  ) !important;
-  position: relative;
-  overflow: hidden;
-  transform-style: preserve-3d;
-  display: block !important;
-  width: auto !important;
-  max-width: 500px !important;
-  letter-spacing: 2px !important;
-  text-transform: uppercase !important;
-}
-
-.btn-mission::before {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-  transition: left 0.6s ease;
-}
-
-.btn-mission::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at center,
-    transparent 60%,
-    rgba(74, 124, 74, 0.1)
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.btn-mission:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 30px rgba(74, 124, 74, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.btn-mission:hover::after {
-  opacity: 1;
-}
-
-.btn-mission:active {
-  transform: translateY(-1px) scale(1.01);
-}
-
-.btn-command::before {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.5),
-    transparent
-  ) !important;
-  transition: left 0.8s ease;
-}
-
-.btn-command::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at center,
-    transparent 50%,
-    rgba(74, 124, 74, 0.15)
-  );
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.btn-command:hover {
-  transform: translateY(-4px) scale(1.03) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 0 40px rgba(74, 124, 74, 0.6),
-    0 0 80px rgba(74, 124, 74, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.25) !important;
-}
-
-.btn-command:hover::after {
-  opacity: 1;
-}
-
-.btn-command:active {
-  transform: translateY(-2px) scale(1.02) !important;
-}
-
-/* Margin Utilities for Large Elements */
-.my-8 {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-}
-.my-12 {
-  margin-top: 3rem;
-  margin-bottom: 3rem;
-}
-.my-16 {
-  margin-top: 4rem;
-  margin-bottom: 4rem;
-}
-.mx-8 {
-  margin-left: 2rem;
-  margin-right: 2rem;
-}
-.mx-12 {
-  margin-left: 3rem;
-  margin-right: 3rem;
-}
-.mx-16 {
-  margin-left: 4rem;
-  margin-right: 4rem;
-}
-
-/* Padding Utilities for Large Elements */
-.py-12 {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
-}
-.py-16 {
-  padding-top: 4rem;
-  padding-bottom: 4rem;
-}
-.px-12 {
-  padding-left: 3rem;
-  padding-right: 3rem;
-}
-.px-16 {
-  padding-left: 4rem;
-  padding-right: 4rem;
-}
-
-/* Text Size Extensions */
-.text-4xl {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-}
-.text-5xl {
-  font-size: 3rem;
-  line-height: 1;
-}
+/* Margin/padding utilities kept for large elements (defined above with the rest) */
 
 /* Inputs & Forms */
 label {
@@ -1934,34 +1577,37 @@ label {
   font-weight: 600;
   font-size: 0.875rem;
   color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .input {
   display: block;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 0.9rem;
   background: var(--bg-secondary);
-  border: 2px solid var(--border-primary);
-  border-radius: 0.375rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.4rem;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--text-primary);
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .input::placeholder {
   color: var(--text-tertiary);
-  font-style: italic;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(74, 124, 74, 0.2);
+  box-shadow: 0 0 0 3px rgba(47, 93, 80, 0.18);
   background: var(--bg-card);
+}
+
+.input:disabled {
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
 }
 
 /* Range Inputs */
@@ -1973,12 +1619,16 @@ input[type="range"] {
   border-radius: 3px;
   background: var(--border-primary);
   outline: none;
-  transition: all 0.2s ease;
+}
+
+input[type="range"]:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 3px;
 }
 
 .range-input {
   height: 12px;
-  border: 2px solid var(--border-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 9999px;
   background-clip: padding-box;
   background-color: var(--bg-secondary);
@@ -2014,13 +1664,13 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--button-primary);
   cursor: pointer;
   border: 2px solid var(--bg-secondary);
-  box-shadow: var(--shadow-tactical);
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
   background: var(--button-primary-hover);
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 /* Theme Toggle */
@@ -2032,22 +1682,20 @@ input[type="range"]::-webkit-slider-thumb:hover {
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
-  border: 2px solid var(--border-primary);
+  border: 1px solid var(--border-primary);
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  box-shadow: var(--shadow-tactical);
+  font-size: 1.15rem;
+  box-shadow: var(--shadow-sm);
   color: var(--text-primary);
 }
 
 .theme-toggle:hover {
-  transform: scale(1.1) rotate(180deg);
-  box-shadow: var(--shadow-command);
+  box-shadow: var(--shadow-md);
   border-color: var(--border-focus);
 }
 
@@ -2070,13 +1718,13 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* Animations */
 .animate-slide-in {
-  animation: slideInUp 0.6s ease-out;
+  animation: slideIn 0.3s ease-out;
 }
 
-@keyframes slideInUp {
+@keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(0.5rem);
   }
   to {
     opacity: 1;
@@ -2109,41 +1757,25 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* Score Status Classes */
 .score-excellent {
-  background: linear-gradient(
-    135deg,
-    rgba(76, 175, 80, 0.1),
-    rgba(76, 175, 80, 0.05)
-  );
+  background: rgba(47, 125, 92, 0.08);
   border-left: 4px solid var(--status-go);
   color: var(--status-go);
 }
 
 .score-good {
-  background: linear-gradient(
-    135deg,
-    rgba(74, 124, 74, 0.1),
-    rgba(74, 124, 74, 0.05)
-  );
-  border-left: 4px solid var(--ranger-500);
-  color: var(--ranger-600);
+  background: rgba(47, 93, 80, 0.08);
+  border-left: 4px solid var(--river-green);
+  color: var(--river-green);
 }
 
 .score-fair {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 152, 0, 0.1),
-    rgba(255, 152, 0, 0.05)
-  );
+  background: rgba(183, 121, 31, 0.08);
   border-left: 4px solid var(--status-caution);
   color: var(--status-caution);
 }
 
 .score-poor {
-  background: linear-gradient(
-    135deg,
-    rgba(244, 67, 54, 0.1),
-    rgba(244, 67, 54, 0.05)
-  );
+  background: rgba(180, 35, 24, 0.08);
   border-left: 4px solid var(--status-stop);
   color: var(--status-stop);
 }
@@ -2203,6 +1835,72 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 /* ===========================================
+   HERO / TRUST STRIP (Home page)
+   =========================================== */
+.hero-panel {
+  padding: 1.75rem;
+  border-radius: 0.75rem;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0;
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 1.6rem;
+  }
+}
+
+.hero-tagline {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 40rem;
+}
+
+/* Location + forecast window live inside one hero card; a single divider
+   separates them instead of each nesting its own bordered card. The grid's
+   own gap provides base spacing -- this only adds the dividing line. */
+@media (max-width: 1023px) {
+  .hero-panel__section + .hero-panel__section {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-primary);
+  }
+}
+
+.trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.6rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.trust-strip__label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.trust-strip__sources {
+  font-family: var(--font-mono);
+}
+
+.trust-strip__note {
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+}
+
+/* ===========================================
    ACCESSIBILITY & PERFORMANCE
    =========================================== */
 @media (prefers-reduced-motion: reduce) {
@@ -2218,7 +1916,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 @media (prefers-contrast: high) {
   :root {
     --border-primary: currentColor;
-    --shadow-tactical: 0 0 0 1px currentColor;
+    --shadow-sm: 0 0 0 1px currentColor;
   }
 }
 
@@ -2234,190 +1932,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border: 0;
 }
 
-/* Specific Button Override - Maximum Tactical Impact */
-button.btn.btn-primary.text-lg.px-8.py-3 {
-  width: 100% !important;
-  font-size: 2rem !important;
-  line-height: 3rem !important;
-  margin-bottom: 2rem !important;
-  padding: 2rem 3rem !important;
-  min-height: 5rem !important;
-  border-radius: 0.75rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 1px !important;
-  box-shadow: var(--shadow-command), 0 0 25px rgba(74, 124, 74, 0.4),
-    0 0 50px rgba(74, 124, 74, 0.2) !important;
-  background: linear-gradient(
-    135deg,
-    var(--ranger-600),
-    var(--ranger-700)
-  ) !important;
-  transform-style: preserve-3d;
-}
-
-button.btn.btn-primary.text-lg.px-8.py-3:hover {
-  transform: translateY(-3px) scale(1.02) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 35px rgba(74, 124, 74, 0.6),
-    0 0 70px rgba(74, 124, 74, 0.3) !important;
-}
-
-button.btn.btn-primary.text-lg.px-8.py-3:active {
-  transform: translateY(-1px) scale(1.01) !important;
-}
-
 /* ===========================================
-   LEGAL BRIEFINGS
-   =========================================== */
-.legal-page {
-  max-width: 60rem;
-  margin: 0 auto;
-  padding: 3rem 1.5rem 4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.legal-header {
-  background: var(--bg-card);
-  backdrop-filter: blur(18px);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-command);
-  padding: 2.5rem 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.legal-header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at top right,
-    rgba(74, 124, 74, 0.2),
-    transparent 55%
-  );
-  pointer-events: none;
-}
-
-.legal-header::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--ranger-500),
-    var(--coyote-500),
-    var(--ranger-400)
-  );
-}
-
-.legal-title {
-  font-size: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-primary);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-.legal-summary {
-  margin-top: 1rem;
-  font-size: 1rem;
-  color: var(--text-secondary);
-  line-height: 1.8;
-  max-width: 48rem;
-}
-
-.legal-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-left: 4px solid var(--ranger-500);
-  border-radius: 0.75rem;
-  padding: 2rem 2.25rem;
-  box-shadow: var(--shadow-tactical);
-  position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.legal-section::before {
-  content: "";
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  width: 3px;
-  height: calc(100% - 3rem);
-  background: linear-gradient(
-    180deg,
-    rgba(74, 124, 74, 0.65),
-    rgba(74, 124, 74, 0)
-  );
-  opacity: 0.7;
-}
-
-.legal-section:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-command);
-  border-color: var(--border-focus);
-}
-
-.legal-heading {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  letter-spacing: 1px;
-}
-
-.legal-paragraph {
-  color: var(--text-secondary);
-  line-height: 1.9;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-}
-
-.legal-paragraph:last-of-type {
-  margin-bottom: 0;
-}
-
-@media (max-width: 768px) {
-  .legal-page {
-    padding: 2rem 1rem 3rem;
-  }
-
-  .legal-header {
-    padding: 2rem 1.5rem;
-  }
-
-  .legal-title {
-    font-size: 1.75rem;
-  }
-
-  .legal-section {
-    padding: 1.5rem 1.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .legal-section::before {
-    display: none;
-  }
-
-  .legal-section {
-    border-left-width: 3px;
-    padding: 1.5rem;
-  }
-}
-
-/* ===========================================
-   TACTICAL FOOTER
+   FOOTER
    =========================================== */
 .site-footer {
-  background: rgba(15, 58, 15, 0.85);
-  border-top: 3px solid var(--ranger-600);
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
+  background: var(--deep-water);
   padding: 2rem 1.5rem;
   margin-top: 3rem;
   text-align: center;
@@ -2432,10 +1951,8 @@ button.btn.btn-primary.text-lg.px-8.py-3:active {
 }
 
 .footer-link {
-  color: var(--coyote-200);
-  font-size: 0.875rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  color: rgba(238, 243, 239, 0.8);
+  font-size: 0.85rem;
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: color 0.2s ease, border-color 0.2s ease;
@@ -2443,16 +1960,14 @@ button.btn.btn-primary.text-lg.px-8.py-3:active {
 
 .footer-link:hover,
 .footer-link:focus-visible {
-  color: var(--coyote-50);
-  border-color: var(--ranger-500);
+  color: #ffffff;
+  border-color: var(--sand);
   outline: none;
 }
 
 .footer-disclaimer {
   font-size: 0.75rem;
-  color: var(--coyote-300);
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  color: rgba(238, 243, 239, 0.55);
 }
 
 @media (max-width: 640px) {
@@ -2461,48 +1976,6 @@ button.btn.btn-primary.text-lg.px-8.py-3:active {
   }
 
   .footer-link {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 }
-
-/* Mobile Optimization for Tactical Button */
-@media (max-width: 639px) {
-  button.btn.btn-primary.text-lg.px-8.py-3 {
-    font-size: 1.5rem !important;
-    line-height: 2rem !important;
-    padding: 1.5rem 2rem !important;
-    min-height: 4rem !important;
-    margin-bottom: 1.5rem !important;
-    letter-spacing: 0.5px !important;
-    border-radius: 0.5rem !important;
-  }
-
-  button.btn.btn-primary.text-lg.px-8.py-3:hover {
-    transform: translateY(-2px) scale(1.01) !important;
-  }
-}
-
-@media (max-width: 479px) {
-  button.btn.btn-primary.text-lg.px-8.py-3 {
-    font-size: 1.25rem !important;
-    line-height: 1.75rem !important;
-    padding: 1.25rem 1.5rem !important;
-    min-height: 3.5rem !important;
-    margin-bottom: 1rem !important;
-    letter-spacing: 0.25px !important;
-  }
-}
-
-/* Tablet Optimization */
-@media (min-width: 640px) and (max-width: 1023px) {
-  button.btn.btn-primary.text-lg.px-8.py-3 {
-    font-size: 1.75rem !important;
-    line-height: 2.5rem !important;
-    padding: 1.75rem 2.5rem !important;
-    min-height: 4.5rem !important;
-  }
-}
-
-/* ===========================================
-   END TACTICAL STYLESHEET
-   =========================================== */

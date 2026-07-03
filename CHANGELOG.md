@@ -2,6 +2,11 @@
 
 ## 2026-07-03
 
+### Version Bump to 1.5.1
+
+- **Updated** package.json and package-lock.json to version 1.5.1
+- **Verified** App.tsx continues to display the version from package.json
+
 ### Weather Trust and Accuracy Overhaul
 
 - **Removed** all synthetic/default weather fallbacks (20C / 10 km/h / 50% clouds / 1013.25 hPa) from `enhancedWeather.ts` and `openMeteo.ts`; weather fetchers now throw or report UNAVAILABLE instead of fabricating data

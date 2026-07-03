@@ -211,32 +211,56 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-4">
-          Tactical Fishing Intel
-        </h1>
-        <p className="text-lg text-secondary mb-2">
-          Military-grade precision for North American fishing operations
+      <div className="card hero-panel mb-6">
+        <h1 className="hero-title mb-2">Fishing Report</h1>
+        <p className="hero-tagline mb-6">
+          Plan around verified weather, water, and solunar conditions.
         </p>
-        <p className="text-sm text-muted">
-          Advanced algorithms combining lunar cycles, meteorological data, and
-          field intelligence
-        </p>
+
+        <div className="grid gap-6 lg:grid-cols-2 mb-6">
+          <LocationInput
+            onLocationChange={handleLocationChange}
+            initialLat={location.lat}
+            initialLon={location.lon}
+            initialName={location.name}
+            prefillToken={prefillToken}
+          />
+
+          <DateRangePicker
+            onDateRangeChange={handleDateRangeChange}
+            maxDays={7}
+          />
+        </div>
+
+        <div className="text-center">
+          <button
+            className="btn btn-primary btn-lg"
+            id="generate-forecast-button"
+            onClick={handleGenerateForecast}
+            disabled={!isValid}
+          >
+            <Icon name="fish" className="mr-2" />
+            Get fishing outlook
+          </button>
+
+          {!isValid && (
+            <p className="text-sm text-muted mt-2">
+              <Icon name="warning" className="mr-2" />
+              Choose a location and forecast window to continue.
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 mb-8">
-        <LocationInput
-          onLocationChange={handleLocationChange}
-          initialLat={location.lat}
-          initialLon={location.lon}
-          initialName={location.name}
-          prefillToken={prefillToken}
-        />
-
-        <DateRangePicker
-          onDateRangeChange={handleDateRangeChange}
-          maxDays={7}
-        />
+      <div className="trust-strip mb-8" id="trust-strip">
+        <span className="trust-strip__label">Sources checked:</span>
+        <span className="trust-strip__sources">
+          NWS &middot; Open-Meteo &middot; NOAA marine &middot; Alerts
+        </span>
+        <span className="trust-strip__note">
+          Every forecast shows its data quality plainly — never a false
+          100%. If weather can't be verified, we say so instead of guessing.
+        </span>
       </div>
 
       <div className="card p-6 mb-8 mission-panel" id="mission-panel">
@@ -244,16 +268,17 @@ export default function Home() {
           <div>
             <h2 className="text-lg font-semibold mb-3 text-primary">
               <Icon name="mapPin" className="mr-2" />
-              Saved Waypoints
+              Saved spots
             </h2>
             <p className="text-sm text-secondary mb-3">
-              Save repeat targets and launch briefs with one click.
+              Save the spots you fish often and jump straight to their
+              outlook.
             </p>
             <label
               className="block text-sm font-medium mb-2"
               htmlFor="waypoint-name-input"
             >
-              Waypoint name
+              Spot name
             </label>
             <div className="flex gap-2 mb-2">
               <input
@@ -262,7 +287,7 @@ export default function Home() {
                 type="text"
                 value={waypointNameDraft}
                 onChange={(event) => setWaypointNameDraft(event.target.value)}
-                placeholder="Waypoint name"
+                placeholder="Spot name"
               />
               <button
                 className="btn btn-primary mission-panel__save-waypoint-btn"
@@ -274,14 +299,14 @@ export default function Home() {
               </button>
             </div>
             <p className="text-xs text-muted mb-4">
-              Current target: {selectedLocationLabel}
+              Selected location: {selectedLocationLabel}
             </p>
             {waypointError && (
               <p className="text-sm text-error mb-3">{waypointError}</p>
             )}
 
             {missionState.waypoints.length === 0 ? (
-              <p className="text-sm text-muted">No waypoints saved yet.</p>
+              <p className="text-sm text-muted">No saved spots yet.</p>
             ) : (
               <ul className="grid gap-2" id="waypoint-list">
                 {missionState.waypoints.map((waypoint) => (
@@ -337,13 +362,13 @@ export default function Home() {
           <div>
             <h2 className="text-lg font-semibold mb-3 text-primary">
               <Icon name="book" className="mr-2" />
-              Recent Mission History
+              Recent forecasts
             </h2>
             <p className="text-sm text-secondary mb-3">
-              Latest 5 runs shown. Full history is retained up to 10 missions.
+              Your last 5 forecasts. Up to 10 are kept.
             </p>
             {recentHistory.length === 0 ? (
-              <p className="text-sm text-muted">No mission history yet.</p>
+              <p className="text-sm text-muted">No recent forecasts yet.</p>
             ) : (
               <ul className="grid gap-2" id="mission-history-list">
                 {recentHistory.map((historyItem) => (
@@ -380,33 +405,15 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="text-center">
-        <button
-          className="btn btn-primary text-lg px-8 py-3"
-          onClick={handleGenerateForecast}
-          disabled={!isValid}
-        >
-          <Icon name="target" className="mr-2" />
-          Execute Mission Brief
-        </button>
-
-        {!isValid && (
-          <p className="text-sm text-muted mt-2">
-            <Icon name="warning" className="mr-2" />
-            Coordinates and operational window required for intel generation
-          </p>
-        )}
-      </div>
-
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="card p-6 text-center">
           <div className="text-3xl mb-3">
             <Icon name="moon" className="text-3xl" />
           </div>
-          <h3 className="font-semibold mb-2 text-primary">Lunar Intel</h3>
+          <h3 className="font-semibold mb-2 text-primary">Moon phase</h3>
           <p className="text-sm text-secondary">
-            Solunar theory deployment: moon phase tracking and illumination
-            analysis for optimal engagement windows
+            Solunar theory: moon phase and illumination help predict when fish
+            feed most actively.
           </p>
         </div>
 
@@ -414,21 +421,25 @@ export default function Home() {
           <div className="text-3xl mb-3">
             <Icon name="storm" className="text-3xl" />
           </div>
-          <h3 className="font-semibold mb-2 text-primary">Weather Recon</h3>
+          <h3 className="font-semibold mb-2 text-primary">
+            Weather conditions
+          </h3>
           <p className="text-sm text-secondary">
-            Live meteorological surveillance: temperature, wind vectors,
-            precipitation, and cloud cover assessment
+            Live temperature, wind, precipitation, and cloud cover from NWS
+            and Open-Meteo.
           </p>
         </div>
 
         <div className="card p-6 text-center">
           <div className="text-3xl mb-3">
-            <Icon name="target" className="text-3xl" />
+            <Icon name="chart" className="text-3xl" />
           </div>
-          <h3 className="font-semibold mb-2 text-primary">Tactical Analysis</h3>
+          <h3 className="font-semibold mb-2 text-primary">
+            Combined outlook
+          </h3>
           <p className="text-sm text-secondary">
-            Multi-factor algorithmic assessment providing precision strike
-            recommendations with data quality metrics
+            Moon and weather combined into one score, with data quality shown
+            plainly.
           </p>
         </div>
       </div>

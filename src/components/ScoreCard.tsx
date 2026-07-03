@@ -156,24 +156,24 @@ export default function ScoreCard({
   };
 
   const getOutlookLabel = (score: number) => {
-    if (score >= 75) return "Good fishing";
-    if (score >= 50) return "Fair fishing";
-    return "Slow fishing";
+    if (score >= 75) return "Good";
+    if (score >= 50) return "Fair";
+    return "Slow";
   };
 
   const getSafetyLabel = (rating: SafetyAssessment["rating"]) => {
     switch (rating) {
       case "EXCELLENT":
       case "GOOD":
-        return "Good safety";
+        return "Good";
       case "FAIR":
-        return "Fair safety";
+        return "Fair";
       case "POOR":
-        return "Poor safety";
+        return "Poor";
       case "DANGEROUS":
-        return "Dangerous conditions";
+        return "Dangerous";
       default:
-        return "Safety unknown";
+        return "Unknown";
     }
   };
 
@@ -330,7 +330,9 @@ export default function ScoreCard({
               name={getScoreIconName(forecast.biteScore0100)}
               className="mr-2"
             />
-            {forecast.biteScore0100}
+            <span className="forecast-card__score-value">
+              {forecast.biteScore0100}
+            </span>
           </div>
           <p
             className="text-xs forecast-card__score-label"
@@ -342,17 +344,36 @@ export default function ScoreCard({
       </div>
 
       <div
-        className="forecast-card__section forecast-card__summary text-sm space-y-1"
+        className="forecast-card__section forecast-card__summary"
         id={`${cardId}-summary`}
         data-testid="score-card-summary"
       >
-        <p className="font-semibold">
-          {getOutlookLabel(forecast.biteScore0100)},{" "}
-          {getSafetyLabel(safety.rating)}
-        </p>
-        {bestWindow && <p>Best window: {bestWindow}</p>}
-        <p>Why: {buildWhySummary()}</p>
-        <p>Data quality: {buildDataQualitySummary()}</p>
+        <p className="forecast-card__summary-heading">Today's outlook</p>
+        <div className="forecast-card__summary-row">
+          <span className="forecast-card__summary-label">Fishing</span>
+          <span className="forecast-card__summary-value">
+            {getOutlookLabel(forecast.biteScore0100)}
+          </span>
+        </div>
+        <div className="forecast-card__summary-row">
+          <span className="forecast-card__summary-label">Safety</span>
+          <span className="forecast-card__summary-value">
+            {getSafetyLabel(safety.rating)}
+          </span>
+        </div>
+        {bestWindow && (
+          <div className="forecast-card__summary-row">
+            <span className="forecast-card__summary-label">Best window</span>
+            <span className="forecast-card__summary-value">{bestWindow}</span>
+          </div>
+        )}
+        <div className="forecast-card__summary-row">
+          <span className="forecast-card__summary-label">Data quality</span>
+          <span className="forecast-card__summary-value">
+            {buildDataQualitySummary()}
+          </span>
+        </div>
+        <p className="forecast-card__summary-why">Why: {buildWhySummary()}</p>
       </div>
 
       <div className="forecast-card__section" id={`${cardId}-score-breakdown`}>
