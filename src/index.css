@@ -1872,19 +1872,29 @@ input[type="range"]::-webkit-slider-thumb:hover {
   }
 }
 
-/* Latitude, longitude, and "Use my location" share one row at >=640px;
-   align-items: end keeps the button's bottom edge level with the inputs'
-   bottom edge even though the inputs have a label above them and the
-   button doesn't. */
+/* Latitude and longitude stay side by side at all widths (prior behavior);
+   "Use my location" spans that row below them until >=640px, where all
+   three join a single row. align-items: end keeps the button's bottom
+   edge level with the inputs' bottom edge even though the inputs have a
+   label above them and the button doesn't. */
 .location-row {
   display: grid;
   gap: 1rem;
   align-items: end;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.location-row > button {
+  grid-column: 1 / -1;
 }
 
 @media (min-width: 640px) {
   .location-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .location-row > button {
+    grid-column: auto;
   }
 }
 
