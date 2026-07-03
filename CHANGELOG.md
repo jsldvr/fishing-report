@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-03 v1.5.2
+
+### Version Bump to 1.5.2
+
+- **Updated** package.json and package-lock.json to version 1.5.2
+
+### Home Page Location Row Layout
+
+- **Changed** the Home page Location card so Latitude, Longitude, and "Use my location" render in a single row at viewport widths >=640px, instead of the coordinate fields on one row and the button on its own row below
+- **Fixed** a mobile regression from the initial change: Latitude and Longitude now stay side by side below 640px (matching prior behavior) instead of stacking into three separate rows
+
 ## 2026-07-03
 
 ### Version Bump to 1.5.1
