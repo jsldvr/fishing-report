@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-30
+
+### Single-Row Full-Width Header
+
+- **Consolidated** the header into one responsive row: `.brand-title`, app version, `#status-timestamp`, and the conditional Install App control now render inline in that order inside `.header-brand`, with navigation kept at the opposite end of the same `.header-content` row
+- **Removed** the `.brand-icon` fish glyph, the `.brand-subtitle` tagline, and the `#status-bar` second-row wrapper from `src/App.tsx`
+- **Removed** the 1280px `max-width` cap from `.header-container` so inner header content spans the available viewport width, subject to the existing responsive horizontal padding
+- **Removed** obsolete `.brand-icon`, `.brand-subtitle`, `.brand-text`, and `.status-bar` rules, including the landscape rule that hid the status bar
+- **Tuned** mobile brand gaps, typography, and Install App button sizing (down to the 480px breakpoint) so the row stays on one line without horizontal overflow when the Install App control is visible; version and timestamp are never hidden to fit
+- **Preserved** the `APP_VERSION` source, timestamp formatting, `beforeinstallprompt` handling, navigation destinations, and mobile-menu behavior
+- **Added** `src/App.test.tsx` covering removed elements, approved DOM order, conditional Install App rendering and activation, mobile-menu operation, and theme toggling
+
 ## 2026-07-03 v1.5.2
 
 ### Version Bump to 1.5.2

@@ -124,15 +124,28 @@ function App() {
           <div className="header-content">
             {/* Brand */}
             <div className="header-brand">
-              <div className="brand-icon">
-                <Icon name="fish" />
+              <h1 className="brand-title">Fishing Report</h1>
+              <div className="app-version" id="app-version">
+                v{APP_VERSION}
               </div>
-              <div className="brand-text">
-                <h1 className="brand-title">Fishing Report</h1>
-                <span className="brand-subtitle">
-                  Weather-aware fishing outlook
-                </span>
+              <div className="timestamp" id="status-timestamp">
+                {new Date().toLocaleTimeString("en-US", {
+                  hour12: false,
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
+              {installPromptEvent && (
+                <button
+                  className="btn btn-secondary text-xs px-3 py-1"
+                  id="install-app-button"
+                  onClick={handleInstallApp}
+                  type="button"
+                >
+                  <Icon name="arrowRight" className="mr-1" />
+                  Install App
+                </button>
+              )}
             </div>
 
             {/* Navigation Controls */}
@@ -202,31 +215,6 @@ function App() {
                 <span className="hamburger-line"></span>
               </button>
             </nav>
-          </div>
-
-          {/* Status Bar */}
-          <div className="status-bar" id="status-bar">
-            {installPromptEvent && (
-              <button
-                className="btn btn-secondary text-xs px-3 py-1"
-                id="install-app-button"
-                onClick={handleInstallApp}
-                type="button"
-              >
-                <Icon name="arrowRight" className="mr-1" />
-                Install App
-              </button>
-            )}
-            <div className="app-version" id="app-version">
-              v{APP_VERSION}
-            </div>
-            <div className="timestamp" id="status-timestamp">
-              {new Date().toLocaleTimeString("en-US", {
-                hour12: false,
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
           </div>
         </div>
 
