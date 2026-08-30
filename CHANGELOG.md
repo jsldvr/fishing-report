@@ -1,6 +1,10 @@
 # Changelog
 
-## 2026-08-30
+## 2026-08-30 v1.5.3
+
+### Version Bump to 1.5.3
+
+- **Updated** package.json and package-lock.json to version 1.5.3
 
 ### Single-Row Full-Width Header
 
