@@ -85,5 +85,9 @@ export default defineConfig({
     setupFiles: "./tests/setup.ts",
     // Playwright specs under e2e/ are run by `npm run test:e2e`, not Vitest.
     exclude: [...configDefaults.exclude, "e2e/**"],
+    coverage: {
+      // playwright.config.ts is test-runner config, not unit-testable code.
+      exclude: [...configDefaults.coverage.exclude, "playwright.config.ts"],
+    },
   },
 });
