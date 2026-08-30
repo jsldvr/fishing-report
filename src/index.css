@@ -1181,23 +1181,31 @@ div#wx-outlook-controls {
     padding: 0 0.375rem;
   }
 
-  .header-brand {
+  /* Tighten every horizontal contributor at 320px so the Install App button and
+     the menu toggle keep measurable clearance on the wider serif/mono fallbacks
+     used by Firefox and WebKit on Linux, not just the ~2px seen on Windows. */
+  .header-content {
     gap: 0.3rem;
   }
 
+  .header-brand {
+    gap: 0.25rem;
+  }
+
   .brand-title {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
+    letter-spacing: 0;
   }
 
   .app-version,
   .timestamp {
-    font-size: 0.58rem;
-    padding: 0.05rem 0.28rem;
+    font-size: 0.57rem;
+    padding: 0.05rem 0.24rem;
   }
 
   .header-brand .btn {
-    padding: 0.2rem 0.4rem;
-    font-size: 0.6rem;
+    padding: 0.2rem 0.32rem;
+    font-size: 0.59rem;
   }
 
   .header-brand .btn svg {

@@ -17,6 +17,7 @@
 - **Added** `src/App.test.tsx` covering removed elements, approved DOM order, conditional Install App rendering and activation, mobile-menu operation, and theme toggling
 - **Styled** `#app-version` and `#status-timestamp` as a matching pair of compact, neutral pills: a subtle translucent light background, a low-contrast translucent border, fully rounded corners, and tight padding derived from the existing `rgba(238, 243, 239, ...)` header palette; monospace typography, text content, IDs, and order are unchanged, and pill padding tightens at the 640px and 480px breakpoints to keep the header on one row
 - **Fixed** a tablet-width overlap: when `beforeinstallprompt` exposes the Install App control, the inline desktop nav now collapses to the menu toggle from 960px down (via `.header-content:has(.header-brand .btn)`), so the `nowrap` brand group no longer overruns `.header-nav` across roughly 641-888px; without the Install App button the inline nav still shows at those widths
+- **Fixed** a cross-browser 320px regression: tightened the `<=480px` header gaps, brand-title and pill typography, and Install App button padding so the Install App button and menu toggle keep ~18px of measured clearance in Chromium, Firefox, and WebKit (up from the prior ~2px that held only on Windows and overlapped on Linux Firefox/WebKit); all five controls stay visible, ordered, on one row, contained, and free of horizontal overflow
 
 ### React Router 7 Migration Cleanup
 
@@ -28,6 +29,12 @@
 - **Added** `.github/workflows/playwright.yml` with tiered execution: Chromium on every pull request to `main`, plus Firefox and WebKit on `release/*` pull requests, a weekly schedule, and manual dispatch; each job installs only the browser it needs and uploads no reports or artifacts
 - **Scoped out** screenshots, visual baselines, video, traces, HTML/blob reports, codegen/debug/UI scripts, axe, Lighthouse, and broad end-to-end flows; the config runs against the Vite dev server so browser-layout verification does not depend on the production `tsc` build step
 - **Documented** the narrow Playwright policy in `AGENTS.md` and the local commands in `README.md`, noting that Playwright's WebKit and Chromium are engine proxies, not exact Safari or Edge coverage
+- **Made** the synthetic `beforeinstallprompt` dispatch deterministic: the spec now waits for the app's mounted `window.addEventListener("beforeinstallprompt", ...)` registration (recorded via an init-script wrapper) before dispatching, removing a WebKit race, with no fixed sleeps; setup is shared by the mobile and tablet cases
+- **Improved** overlap diagnostics: pairwise checks now name the affected controls and report their x ranges and the measured gap, and an explicit assertion requires >=4px of Install App / menu-toggle clearance with the per-engine measurement logged
+
+### GitHub Actions Runtime Warning Cleanup
+
+- **Updated** `actions/checkout` and `actions/setup-node` from `@v4` to `@v7` across `playwright.yml`, `validate-release.yml`, `release.yml`, and `pages.yml` to clear the deprecated action-runtime warnings; the application `node-version` stays `20` and no triggers, permissions, jobs, matrices, or commands changed
 
 ## 2026-07-03 v1.5.2
 

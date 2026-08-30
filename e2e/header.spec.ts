@@ -7,11 +7,23 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
  * basic mobile-menu operation. Nothing else about the app is exercised here.
  */
 
+declare global {
+  interface Window {
+    /** Set by trackInstallPromptListener() once the app subscribes. */
+    __installPromptListenerReady?: boolean;
+  }
+}
+
 interface Box {
   x: number;
   y: number;
   width: number;
   height: number;
+}
+
+interface NamedBox {
+  name: string;
+  box: Box;
 }
 
 interface PillStyle {
@@ -29,6 +41,12 @@ interface PillStyle {
 // at least a line height (~18px+); real single-row centering differs by ~1px.
 const ROW_ALIGNMENT_TOLERANCE_PX = 6;
 
+// Minimum horizontal clearance between the Install App button and the menu
+// toggle at 320px. The prior layout left ~2px, which held on Windows Chromium
+// but collapsed to an overlap on Linux Firefox/WebKit (wider serif/mono
+// fallbacks). Verified locally with generous headroom in all three engines.
+const MIN_INSTALL_MENU_GAP_PX = 4;
+
 async function boxOf(locator: Locator): Promise<Box> {
   const box = await locator.boundingBox();
   expect(box, "element should have a bounding box").not.toBeNull();
@@ -37,6 +55,16 @@ async function boxOf(locator: Locator): Promise<Box> {
 
 function verticalCenter(box: Box): number {
   return box.y + box.height / 2;
+}
+
+function describeBox(box: Box): string {
+  return `x=${box.x.toFixed(1)}..${(box.x + box.width).toFixed(1)} (w=${box.width.toFixed(1)})`;
+}
+
+/** Signed horizontal gap: positive means `a` ends before `b` starts. */
+function horizontalGap(a: Box, b: Box): number {
+  const [left, right] = a.x <= b.x ? [a, b] : [b, a];
+  return right.x - (left.x + left.width);
 }
 
 /**
@@ -51,11 +79,6 @@ function onRowWith(reference: Box, item: Box): boolean {
   );
 }
 
-function horizontallyDisjoint(a: Box, b: Box): boolean {
-  const tolerance = 0.5;
-  return a.x + a.width <= b.x + tolerance || b.x + b.width <= a.x + tolerance;
-}
-
 function contains(outer: Box, inner: Box): boolean {
   const tolerance = 1;
   return (
@@ -66,15 +89,36 @@ function contains(outer: Box, inner: Box): boolean {
   );
 }
 
-function expectNoPairOverlaps(boxes: Box[]): void {
-  for (let i = 0; i < boxes.length; i += 1) {
-    for (let j = i + 1; j < boxes.length; j += 1) {
+/**
+ * Assert no two named controls overlap horizontally. On failure the message
+ * names both controls and reports their x ranges and the (negative) gap.
+ */
+function expectNoPairOverlaps(items: NamedBox[]): void {
+  for (let i = 0; i < items.length; i += 1) {
+    for (let j = i + 1; j < items.length; j += 1) {
+      const a = items[i];
+      const b = items[j];
+      const gap = horizontalGap(a.box, b.box);
       expect(
-        horizontallyDisjoint(boxes[i], boxes[j]),
-        `header items ${i} and ${j} overlap horizontally`
-      ).toBe(true);
+        gap,
+        `"${a.name}" [${describeBox(a.box)}] and "${b.name}" [${describeBox(b.box)}] overlap: gap=${gap.toFixed(2)}px`
+      ).toBeGreaterThanOrEqual(-0.5);
     }
   }
+}
+
+/**
+ * Assert practical clearance between two adjacent controls and return the
+ * measured gap so the caller can report it per engine.
+ */
+function expectClearance(left: NamedBox, right: NamedBox, minPx: number): number {
+  const gap = horizontalGap(left.box, right.box);
+  expect(
+    gap,
+    `expected >= ${minPx}px between "${left.name}" [${describeBox(left.box)}] and ` +
+      `"${right.name}" [${describeBox(right.box)}]; measured ${gap.toFixed(2)}px`
+  ).toBeGreaterThanOrEqual(minPx);
+  return gap;
 }
 
 function noElementOverflow(page: Page, selector: string): Promise<boolean> {
@@ -119,6 +163,53 @@ function isNonTransparent(color: string): boolean {
   return parts.length < 4 || parseFloat(parts[3]) > 0;
 }
 
+/**
+ * Must run before page.goto(). Wraps window.addEventListener so the page records
+ * exactly when the app subscribes to `beforeinstallprompt`, letting the test
+ * dispatch the synthetic event only after React has mounted and registered its
+ * handler (a real race on WebKit otherwise).
+ */
+function trackInstallPromptListener(page: Page): Promise<void> {
+  return page.addInitScript(() => {
+    window.__installPromptListenerReady = false;
+    const nativeAddEventListener = window.addEventListener;
+    window.addEventListener = function trackedAddEventListener(
+      this: Window,
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ) {
+      if (type === "beforeinstallprompt") {
+        window.__installPromptListenerReady = true;
+      }
+      return nativeAddEventListener.call(this, type, listener, options);
+    } as typeof window.addEventListener;
+  });
+}
+
+/**
+ * Wait for the app's `beforeinstallprompt` listener, then dispatch one synthetic
+ * event of the same shape the real platform provides. Deterministic: no fixed
+ * sleeps, polls only on the observable listener-ready flag.
+ */
+async function dispatchInstallPrompt(page: Page): Promise<void> {
+  await page.waitForFunction(() => window.__installPromptListenerReady === true);
+  await page.evaluate(() => {
+    const event = Object.assign(new Event("beforeinstallprompt"), {
+      prompt: async () => {},
+      userChoice: Promise.resolve({ outcome: "dismissed" as const }),
+    });
+    window.dispatchEvent(event);
+  });
+}
+
+async function openHeader(page: Page, width: number, height: number): Promise<void> {
+  await trackInstallPromptListener(page);
+  await page.setViewportSize({ width, height });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".header-content")).toBeVisible();
+}
+
 test("desktop header is one contained row with matching metadata pills", async ({
   page,
 }) => {
@@ -154,7 +245,12 @@ test("desktop header is one contained row with matching metadata pills", async (
   for (const item of [versionBox, timestampBox, navBox]) {
     expect(onRowWith(titleBox, item)).toBe(true);
   }
-  expectNoPairOverlaps([titleBox, versionBox, timestampBox, navBox]);
+  expectNoPairOverlaps([
+    { name: "brand title", box: titleBox },
+    { name: "app version", box: versionBox },
+    { name: "status timestamp", box: timestampBox },
+    { name: "header nav", box: navBox },
+  ]);
 
   // Navigation sits at the opposite end and everything stays inside the header.
   expect(navBox.x).toBeGreaterThan(titleBox.x + titleBox.width);
@@ -181,21 +277,13 @@ test("desktop header is one contained row with matching metadata pills", async (
 
 test("narrow mobile header keeps one row with Install App and a working menu", async ({
   page,
-}) => {
-  await page.setViewportSize({ width: 320, height: 568 });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+}, testInfo) => {
+  await openHeader(page, 320, 568);
 
   const headerContent = page.locator(".header-content");
   const headerBrand = page.locator(".header-brand");
-  await expect(headerContent).toBeVisible();
 
-  await page.evaluate(() => {
-    const event = Object.assign(new Event("beforeinstallprompt"), {
-      prompt: async () => {},
-      userChoice: Promise.resolve({ outcome: "dismissed" as const }),
-    });
-    window.dispatchEvent(event);
-  });
+  await dispatchInstallPrompt(page);
 
   const title = headerBrand.getByRole("heading", { name: "Fishing Report" });
   const version = headerBrand.locator(".app-version");
@@ -211,22 +299,34 @@ test("narrow mobile header keeps one row with Install App and a working menu", a
 
   const contentBox = await boxOf(headerContent);
   const titleBox = await boxOf(title);
-  const orderedBoxes = [
-    titleBox,
-    await boxOf(version),
-    await boxOf(timestamp),
-    await boxOf(installButton),
-    await boxOf(menuToggle),
+  const items: NamedBox[] = [
+    { name: "brand title", box: titleBox },
+    { name: "app version", box: await boxOf(version) },
+    { name: "status timestamp", box: await boxOf(timestamp) },
+    { name: "Install App button", box: await boxOf(installButton) },
+    { name: "menu toggle", box: await boxOf(menuToggle) },
   ];
 
   // Every control shares the brand title's row; a wrap moves a control's center
   // far past ROW_ALIGNMENT_TOLERANCE_PX and fails here even though horizontal
   // spacing and page overflow would still look fine.
-  for (const item of orderedBoxes) {
-    expect(onRowWith(titleBox, item)).toBe(true);
-    expect(contains(contentBox, item)).toBe(true);
+  for (const { name, box } of items) {
+    expect(onRowWith(titleBox, box), `"${name}" left the title's row`).toBe(true);
+    expect(contains(contentBox, box), `"${name}" is not contained by the header`).toBe(
+      true
+    );
   }
-  expectNoPairOverlaps(orderedBoxes);
+  expectNoPairOverlaps(items);
+
+  const installMenuGap = expectClearance(
+    { name: "Install App button", box: items[3].box },
+    { name: "menu toggle", box: items[4].box },
+    MIN_INSTALL_MENU_GAP_PX
+  );
+  // Surfaced per engine in the test report.
+  console.log(
+    `[${testInfo.project.name}] 320px Install App -> menu toggle gap: ${installMenuGap.toFixed(2)}px`
+  );
 
   expect(await noElementOverflow(page, ".header-content")).toBe(true);
   expect(await noDocumentOverflow(page)).toBe(true);
@@ -241,25 +341,17 @@ test("narrow mobile header keeps one row with Install App and a working menu", a
 
 test("tablet-width header with Install App visible never overlaps navigation", async ({
   page,
-}) => {
+}, testInfo) => {
   // Mid-width regression: inline desktop nav is shown above 640px, and a fired
   // beforeinstallprompt widens the brand group. Without the guard the nowrap
   // brand items overrun .header-nav across ~641-888px.
-  await page.setViewportSize({ width: 800, height: 900 });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await openHeader(page, 800, 900);
 
   const headerContent = page.locator(".header-content");
   const headerBrand = page.locator(".header-brand");
   const headerNav = page.locator(".header-nav");
-  await expect(headerContent).toBeVisible();
 
-  await page.evaluate(() => {
-    const event = Object.assign(new Event("beforeinstallprompt"), {
-      prompt: async () => {},
-      userChoice: Promise.resolve({ outcome: "dismissed" as const }),
-    });
-    window.dispatchEvent(event);
-  });
+  await dispatchInstallPrompt(page);
 
   const installButton = page.getByRole("button", { name: /install app/i });
   await expect(installButton).toBeVisible();
@@ -276,8 +368,19 @@ test("tablet-width header with Install App visible never overlaps navigation", a
   const navBox = await boxOf(headerNav);
   const installBox = await boxOf(installButton);
 
-  expect(horizontallyDisjoint(brandBox, navBox)).toBe(true);
-  expect(horizontallyDisjoint(installBox, navBox)).toBe(true);
+  expectNoPairOverlaps([
+    { name: "header brand", box: brandBox },
+    { name: "header nav", box: navBox },
+  ]);
+  const brandNavGap = expectClearance(
+    { name: "Install App button", box: installBox },
+    { name: "header nav", box: navBox },
+    MIN_INSTALL_MENU_GAP_PX
+  );
+  console.log(
+    `[${testInfo.project.name}] 800px Install App -> header nav gap: ${brandNavGap.toFixed(2)}px`
+  );
+
   expect(contains(contentBox, brandBox)).toBe(true);
   expect(contains(contentBox, navBox)).toBe(true);
   expect(await noElementOverflow(page, ".header-content")).toBe(true);
