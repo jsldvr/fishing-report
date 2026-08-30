@@ -1089,6 +1089,21 @@ div#wx-outlook-controls {
    RESPONSIVE DESIGN
    =========================================== */
 
+/* When the conditional Install App control is present, the brand row needs the
+   width the inline desktop links would otherwise occupy. Collapse those links
+   to the menu toggle from tablet width down so nowrap brand items never overlap
+   navigation. Without the Install App button the inline nav still fits and
+   stays visible at these widths. */
+@media (max-width: 960px) {
+  .header-content:has(.header-brand .btn) .nav-primary {
+    display: none;
+  }
+
+  .header-content:has(.header-brand .btn) .mobile-menu-toggle {
+    display: flex;
+  }
+}
+
 /* Tablet Breakpoint */
 @media (max-width: 768px) {
   .header-container {

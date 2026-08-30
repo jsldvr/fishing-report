@@ -238,3 +238,48 @@ test("narrow mobile header keeps one row with Install App and a working menu", a
   await menuToggle.click();
   await expect(page.locator(".mobile-menu-overlay")).toHaveCount(0);
 });
+
+test("tablet-width header with Install App visible never overlaps navigation", async ({
+  page,
+}) => {
+  // Mid-width regression: inline desktop nav is shown above 640px, and a fired
+  // beforeinstallprompt widens the brand group. Without the guard the nowrap
+  // brand items overrun .header-nav across ~641-888px.
+  await page.setViewportSize({ width: 800, height: 900 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const headerContent = page.locator(".header-content");
+  const headerBrand = page.locator(".header-brand");
+  const headerNav = page.locator(".header-nav");
+  await expect(headerContent).toBeVisible();
+
+  await page.evaluate(() => {
+    const event = Object.assign(new Event("beforeinstallprompt"), {
+      prompt: async () => {},
+      userChoice: Promise.resolve({ outcome: "dismissed" as const }),
+    });
+    window.dispatchEvent(event);
+  });
+
+  const installButton = page.getByRole("button", { name: /install app/i });
+  await expect(installButton).toBeVisible();
+
+  // With Install App present at tablet width the inline links collapse to the
+  // menu toggle so the brand group has room.
+  await expect(page.locator(".nav-primary")).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: /toggle navigation/i })
+  ).toBeVisible();
+
+  const contentBox = await boxOf(headerContent);
+  const brandBox = await boxOf(headerBrand);
+  const navBox = await boxOf(headerNav);
+  const installBox = await boxOf(installButton);
+
+  expect(horizontallyDisjoint(brandBox, navBox)).toBe(true);
+  expect(horizontallyDisjoint(installBox, navBox)).toBe(true);
+  expect(contains(contentBox, brandBox)).toBe(true);
+  expect(contains(contentBox, navBox)).toBe(true);
+  expect(await noElementOverflow(page, ".header-content")).toBe(true);
+  expect(await noDocumentOverflow(page)).toBe(true);
+});

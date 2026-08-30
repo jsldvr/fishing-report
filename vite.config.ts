@@ -86,8 +86,13 @@ export default defineConfig({
     // Playwright specs under e2e/ are run by `npm run test:e2e`, not Vitest.
     exclude: [...configDefaults.exclude, "e2e/**"],
     coverage: {
-      // playwright.config.ts is test-runner config, not unit-testable code.
-      exclude: [...configDefaults.coverage.exclude, "playwright.config.ts"],
+      // Non-unit-testable files: playwright.config.ts is test-runner config, and
+      // src/main.tsx is the ReactDOM bootstrap (createRoot().render()).
+      exclude: [
+        ...configDefaults.coverage.exclude,
+        "playwright.config.ts",
+        "src/main.tsx",
+      ],
     },
   },
 });
