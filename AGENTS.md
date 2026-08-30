@@ -23,6 +23,7 @@
 - Integration: component tests for new FE functionality.
 - Accessibility: axe-core checks must pass; no new WCAG 2.2 AA violations.
 - Performance: Lighthouse CI. No new regressions; LCP ≤2.5s on test env.
+- Browser layout: Playwright (`npm run test:e2e`) covers only browser-dependent critical layout or interaction that jsdom cannot establish (currently the responsive header). Chromium runs on pull requests to `main`; Firefox and WebKit run on `release/*` pull requests, the weekly schedule, and manual dispatch. Playwright is not the single source of truth, and not every UI flow requires an E2E test.
 
 ## 5. Agent Behavior
 - TBD based on agent type; follow best practices for reliability, latency, and resource use.

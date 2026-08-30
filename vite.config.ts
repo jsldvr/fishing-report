@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
@@ -82,5 +83,16 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: "./tests/setup.ts",
+    // Playwright specs under e2e/ are run by `npm run test:e2e`, not Vitest.
+    exclude: [...configDefaults.exclude, "e2e/**"],
+    coverage: {
+      // Non-unit-testable files: playwright.config.ts is test-runner config, and
+      // src/main.tsx is the ReactDOM bootstrap (createRoot().render()).
+      exclude: [
+        ...configDefaults.coverage.exclude,
+        "playwright.config.ts",
+        "src/main.tsx",
+      ],
+    },
   },
 });

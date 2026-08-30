@@ -1,6 +1,6 @@
 {
   "name": "fishing-report",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Production-ready React + TypeScript fishing forecast app",
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "validate:weather": "tsx scripts/validate-weather.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit"
   },
@@ -23,11 +24,12 @@
     "@fortawesome/react-fontawesome": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
+    "react-router-dom": "^7.18.3",
     "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^13.4.0",
     "@types/node": "^24.9.1",
