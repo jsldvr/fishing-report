@@ -11,6 +11,7 @@
 - **Tuned** mobile brand gaps, typography, and Install App button sizing (down to the 480px breakpoint) so the row stays on one line without horizontal overflow when the Install App control is visible; version and timestamp are never hidden to fit
 - **Preserved** the `APP_VERSION` source, timestamp formatting, `beforeinstallprompt` handling, navigation destinations, and mobile-menu behavior
 - **Added** `src/App.test.tsx` covering removed elements, approved DOM order, conditional Install App rendering and activation, mobile-menu operation, and theme toggling
+- **Styled** `#app-version` and `#status-timestamp` as a matching pair of compact, neutral pills: a subtle translucent light background, a low-contrast translucent border, fully rounded corners, and tight padding derived from the existing `rgba(238, 243, 239, ...)` header palette; monospace typography, text content, IDs, and order are unchanged, and pill padding tightens at the 640px and 480px breakpoints to keep the header on one row
 
 ## 2026-07-03 v1.5.2
 

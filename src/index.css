@@ -1063,13 +1063,21 @@ div#wx-outlook-controls {
 }
 
 /* Brand metadata (version, timestamp, install control) render inline
-   after the brand title in the single header row. */
+   after the brand title in the single header row. Version and timestamp
+   share one restrained neutral pill treatment, subordinate to the title. */
 .app-version,
 .timestamp {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  color: rgba(238, 243, 239, 0.55);
+  line-height: 1.4;
+  color: rgba(238, 243, 239, 0.6);
   white-space: nowrap;
+  padding: 0.1rem 0.45rem;
+  background: rgba(238, 243, 239, 0.08);
+  border: 1px solid rgba(238, 243, 239, 0.16);
+  border-radius: 9999px;
 }
 
 .header-brand .btn {
@@ -1143,6 +1151,7 @@ div#wx-outlook-controls {
   .app-version,
   .timestamp {
     font-size: 0.6rem;
+    padding: 0.08rem 0.35rem;
   }
 
   .header-brand .btn {
@@ -1168,6 +1177,7 @@ div#wx-outlook-controls {
   .app-version,
   .timestamp {
     font-size: 0.58rem;
+    padding: 0.05rem 0.28rem;
   }
 
   .header-brand .btn {
