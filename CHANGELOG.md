@@ -13,6 +13,13 @@
 - **Added** `src/App.test.tsx` covering removed elements, approved DOM order, conditional Install App rendering and activation, mobile-menu operation, and theme toggling
 - **Styled** `#app-version` and `#status-timestamp` as a matching pair of compact, neutral pills: a subtle translucent light background, a low-contrast translucent border, fully rounded corners, and tight padding derived from the existing `rgba(238, 243, 239, ...)` header palette; monospace typography, text content, IDs, and order are unchanged, and pill padding tightens at the 640px and 480px breakpoints to keep the header on one row
 
+### Minimal Playwright Header Verification
+
+- **Added** a deliberately small Playwright setup (`@playwright/test` dev dependency only, one `test:e2e` script, a minimal `playwright.config.ts`, and a single `e2e/header.spec.ts` smoke spec) that verifies the responsive header in a real browser: desktop and 320px mobile layout, matching version/timestamp pill treatment, the conditional Install App state, a single header row with no clipping/overlap/horizontal overflow, and basic mobile-menu operation
+- **Added** `.github/workflows/playwright.yml` with tiered execution: Chromium on every pull request to `main`, plus Firefox and WebKit on `release/*` pull requests, a weekly schedule, and manual dispatch; each job installs only the browser it needs and uploads no reports or artifacts
+- **Scoped out** screenshots, visual baselines, video, traces, HTML/blob reports, codegen/debug/UI scripts, axe, Lighthouse, and broad end-to-end flows; the config runs against the Vite dev server so the pre-existing `src/main.tsx` build error does not block browser-layout verification
+- **Documented** the narrow Playwright policy in `AGENTS.md` and the local commands in `README.md`, noting that Playwright's WebKit and Chromium are engine proxies, not exact Safari or Edge coverage
+
 ## 2026-07-03 v1.5.2
 
 ### Version Bump to 1.5.2

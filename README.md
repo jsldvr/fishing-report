@@ -45,6 +45,25 @@ npm run build
 # Optimized static assets ready for deployment
 ```
 
+### Browser Verification (Playwright)
+
+A deliberately small Playwright smoke suite verifies the responsive header in a
+real browser (layout jsdom cannot check). It is not broad end-to-end coverage.
+
+```bash
+# One-time local browser install (binaries live outside the repo)
+npx playwright install chromium
+
+# Run the header smoke suite against a Vite dev server (auto-started)
+npm run test:e2e -- --project=chromium
+```
+
+Firefox and WebKit are lower-frequency CI engine checks that run on `release/*`
+pull requests, the weekly schedule, and manual workflow dispatch; install them
+locally with `npx playwright install firefox webkit` if you need to run those
+projects. Playwright's WebKit and Chromium are engine proxies -- they are not
+exact coverage for branded Safari or Edge.
+
 ### Production Deployment Options
 
 #### GitHub Pages (Recommended)
