@@ -4,6 +4,7 @@ import { faMoon } from "@fortawesome/free-regular-svg-icons";
 import {
   faArrowRightLong,
   faBan,
+  faBars,
   faBed,
   faBolt,
   faBook,
@@ -58,6 +59,7 @@ const ICONS = {
   bolt: faBolt,
   building: faBuilding,
   caret: faChevronDown,
+  hamburger: faBars,
   mapPin: faLocationDot,
   map: faMap,
   phone: faPhone,

@@ -5,15 +5,36 @@ import Icon from "./Icon";
 interface DateRangePickerProps {
   onDateRangeChange: (startDate: string, days: number) => void;
   maxDays?: number;
+  /** Controlled start date. When provided, it is the source of truth. */
+  startDate?: string;
+  /** Controlled duration in days. When provided, it is the source of truth. */
+  days?: number;
 }
 
 export default function DateRangePicker({
   onDateRangeChange,
   maxDays = 7,
+  startDate: startDateProp,
+  days: daysProp,
 }: DateRangePickerProps) {
-  const [startDate, setStartDate] = useState(getCurrentDateISO());
-  const [days, setDays] = useState(3);
+  const [startDate, setStartDate] = useState(
+    startDateProp ?? getCurrentDateISO()
+  );
+  const [days, setDays] = useState(daysProp ?? 3);
   const [isTimelineOpen, setTimelineOpen] = useState(false);
+
+  // Synchronize down when a controlling parent supplies new values.
+  useEffect(() => {
+    if (startDateProp !== undefined) {
+      setStartDate(startDateProp);
+    }
+  }, [startDateProp]);
+
+  useEffect(() => {
+    if (daysProp !== undefined) {
+      setDays(daysProp);
+    }
+  }, [daysProp]);
 
   useEffect(() => {
     onDateRangeChange(startDate, days);

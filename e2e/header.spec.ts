@@ -219,13 +219,21 @@ test("desktop header is one contained row with matching metadata pills", async (
   const headerContent = page.locator(".header-content");
   const headerBrand = page.locator(".header-brand");
   const headerNav = page.locator(".header-nav");
+  const drawerToggle = headerBrand.getByTestId("mission-drawer-toggle");
   const title = headerBrand.getByRole("heading", { name: "Fishing Report" });
   const version = headerBrand.locator(".app-version");
   const timestamp = headerBrand.locator(".timestamp");
 
+  await expect(drawerToggle).toBeVisible();
   await expect(title).toBeVisible();
   await expect(version).toBeVisible();
   await expect(timestamp).toBeVisible();
+
+  // The always-visible drawer hamburger sits immediately before the title.
+  const drawerToggleBox = await boxOf(drawerToggle);
+  const titleLeadBox = await boxOf(title);
+  expect(drawerToggleBox.x).toBeLessThan(titleLeadBox.x);
+  expect(onRowWith(titleLeadBox, drawerToggleBox)).toBe(true);
 
   const versionStyle = await pillStyle(version);
   const timestampStyle = await pillStyle(timestamp);
@@ -285,12 +293,14 @@ test("narrow mobile header keeps one row with Install App and a working menu", a
 
   await dispatchInstallPrompt(page);
 
+  const drawerToggle = headerBrand.getByTestId("mission-drawer-toggle");
   const title = headerBrand.getByRole("heading", { name: "Fishing Report" });
   const version = headerBrand.locator(".app-version");
   const timestamp = headerBrand.locator(".timestamp");
   const installButton = page.getByRole("button", { name: /install app/i });
   const menuToggle = page.getByRole("button", { name: /toggle navigation/i });
 
+  await expect(drawerToggle).toBeVisible();
   await expect(title).toBeVisible();
   await expect(installButton).toBeVisible();
   await expect(version).toBeVisible();
@@ -299,12 +309,15 @@ test("narrow mobile header keeps one row with Install App and a working menu", a
 
   const contentBox = await boxOf(headerContent);
   const titleBox = await boxOf(title);
+  // Order matters: items[3]/items[4] are asserted as Install App / menu toggle
+  // below, so the added hamburger goes last.
   const items: NamedBox[] = [
     { name: "brand title", box: titleBox },
     { name: "app version", box: await boxOf(version) },
     { name: "status timestamp", box: await boxOf(timestamp) },
     { name: "Install App button", box: await boxOf(installButton) },
     { name: "menu toggle", box: await boxOf(menuToggle) },
+    { name: "drawer hamburger", box: await boxOf(drawerToggle) },
   ];
 
   // Every control shares the brand title's row; a wrap moves a control's center

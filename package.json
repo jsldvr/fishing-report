@@ -1,6 +1,6 @@
 {
   "name": "fishing-report",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "Production-ready React + TypeScript fishing forecast app",
   "type": "module",
   "scripts": {
@@ -28,6 +28,7 @@
     "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.3",
     "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.1.4",
