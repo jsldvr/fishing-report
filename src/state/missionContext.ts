@@ -43,6 +43,14 @@ export interface MissionContextValue {
   updateMissionState: (updater: (state: MissionState) => MissionState) => void;
   draft: ForecastDraft;
   locationPrefillToken: number;
+  /**
+   * Shared saved-spot name draft. A named location (typed search or selected
+   * waypoint) prefills it, the drawer's Spot name field is bound to it, and the
+   * primary Home forecast uses it as the forecast-name fallback -- the behavior
+   * the inline Home panel had before the move.
+   */
+  waypointNameDraft: string;
+  setWaypointNameDraft: (name: string) => void;
   setDraftLocation: (lat: number, lon: number, name?: string) => void;
   setDraftDateRange: (startDate: string, days: number) => void;
   applyDraft: (next: Partial<ForecastDraft>, options?: ApplyDraftOptions) => void;

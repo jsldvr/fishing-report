@@ -13,6 +13,7 @@ import ComplianceStatement from "./pages/ComplianceStatement";
 import Icon from "./components/Icon";
 import MissionDrawer from "./components/MissionDrawer";
 import ResultsDraftSync from "./state/ResultsDraftSync";
+import { MissionProvider } from "./state/MissionProvider";
 
 const APP_VERSION = (packageJson as { version: string }).version;
 
@@ -22,6 +23,14 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 function App() {
+  return (
+    <MissionProvider>
+      <AppShell />
+    </MissionProvider>
+  );
+}
+
+function AppShell() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -130,7 +139,12 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br" id="app-shell" ref={appShellRef}>
+    <div
+      className="min-h-screen bg-gradient-to-br"
+      id="app-shell"
+      data-testid="app-shell"
+      ref={appShellRef}
+    >
       <ResultsDraftSync />
       {/* Theme Toggle Button */}
       <button
@@ -241,6 +255,7 @@ function App() {
               <button
                 className="mobile-menu-toggle"
                 id="mobile-menu-toggle"
+                data-testid="mobile-menu-toggle"
                 onClick={toggleMobileMenu}
                 aria-label="Toggle navigation"
                 aria-expanded={mobileMenuOpen}
@@ -260,6 +275,7 @@ function App() {
           <div
             className="mobile-menu-overlay"
             id="mobile-menu-overlay"
+            data-testid="mobile-menu-overlay"
             onClick={closeMobileMenu}
           >
             <div

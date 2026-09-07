@@ -52,10 +52,21 @@ async function openDrawer(page: Page) {
   await expect(page.getByRole("dialog")).toBeVisible();
 }
 
+/**
+ * The app uses HashRouter, so a non-root route lives under the URL hash
+ * (`/#/guide`), never the path (`/guide`, which renders Home).
+ */
 async function gotoRoute(page: Page, route: string, width = 1280, height = 900) {
   await page.setViewportSize({ width, height });
-  await page.goto(route, { waitUntil: "domcontentloaded" });
+  const url = route === "/" ? "/" : `/#${route}`;
+  await page.goto(url, { waitUntil: "domcontentloaded" });
   await expect(page.locator(".header-content")).toBeVisible();
+  if (route !== "/") {
+    await page.waitForFunction(
+      (expected) => window.location.hash === `#${expected}`,
+      route
+    );
+  }
 }
 
 test.describe("mission drawer", () => {
@@ -109,6 +120,11 @@ test.describe("mission drawer", () => {
 
   test("is reachable from a non-home route", async ({ page }) => {
     await gotoRoute(page, "/guide");
+    // Confirm the Guide route actually rendered (not Home via a bad path).
+    await expect(
+      page.getByRole("heading", { name: "Field safety guide" })
+    ).toBeVisible();
+
     await openDrawer(page);
     await expect(
       page.getByRole("dialog", { name: /saved spots and recent forecasts/i })
@@ -124,29 +140,69 @@ test.describe("mission drawer", () => {
     await trigger.press("Enter");
     await expect(page.getByRole("dialog")).toBeVisible();
 
-    const focusInPanel = await page.evaluate(() => {
-      const panel = document.querySelector(
-        '[data-testid="mission-drawer-panel"]'
-      );
-      return !!panel && panel.contains(document.activeElement);
-    });
-    expect(focusInPanel).toBe(true);
-
-    // Tab many times: focus must never leave the panel.
-    for (let i = 0; i < 25; i += 1) {
-      await page.keyboard.press("Tab");
-      const stillInside = await page.evaluate(() => {
+    const focusInPanel = () =>
+      page.evaluate(() => {
         const panel = document.querySelector(
           '[data-testid="mission-drawer-panel"]'
         );
-        return !!panel && panel.contains(document.activeElement);
+        return (
+          !!panel &&
+          panel.contains(document.activeElement) &&
+          document.activeElement !== document.body
+        );
       });
-      expect(stillInside).toBe(true);
+
+    expect(await focusInPanel()).toBe(true);
+
+    // Reverse-tab straight off the freshly focused panel must not escape.
+    await page.keyboard.press("Shift+Tab");
+    expect(await focusInPanel()).toBe(true);
+
+    // Repeated forward and reverse traversal both stay contained.
+    for (let i = 0; i < 25; i += 1) {
+      await page.keyboard.press("Tab");
+      expect(await focusInPanel()).toBe(true);
+    }
+    for (let i = 0; i < 25; i += 1) {
+      await page.keyboard.press("Shift+Tab");
+      expect(await focusInPanel()).toBe(true);
     }
 
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(trigger).toBeFocused();
+  });
+
+  test("Save, Select, and Run drive the correct browser navigation", async ({
+    page,
+  }) => {
+    await gotoRoute(page, "/");
+
+    // Save a spot at the default location.
+    await openDrawer(page);
+    await page.getByTestId("waypoint-name-input").fill("Dockside");
+    await page.getByTestId("save-waypoint-button").click();
+    await expect(
+      page.getByTestId("waypoint-list").getByText("Dockside")
+    ).toBeVisible();
+
+    // Select returns Home with the drawer closed.
+    await page.getByRole("button", { name: "Select" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page).toHaveURL(/#\/$/);
+
+    // Run records history, closes, and navigates to Results.
+    await openDrawer(page);
+    await page.getByRole("button", { name: "Run" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page).toHaveURL(/#\/results\?.*name=Dockside/);
+
+    // Rerun from the recorded history entry navigates to Results again.
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await openDrawer(page);
+    await page.getByRole("button", { name: "Rerun" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page).toHaveURL(/#\/results\?/);
   });
 
   test("closes on Escape and on backdrop click but not on panel clicks", async ({
@@ -192,7 +248,7 @@ test.describe("mission drawer", () => {
   }) => {
     await gotoRoute(page, "/", 390, 844);
 
-    const navToggle = page.locator("#mobile-menu-toggle");
+    const navToggle = page.getByTestId("mobile-menu-toggle");
     await expect(navToggle).toHaveAttribute("data-open", "false");
     await expect(navToggle.locator(".mobile-menu-toggle__caret")).toBeVisible();
 
@@ -333,6 +389,9 @@ test.describe("mission drawer", () => {
     page,
   }) => {
     await gotoRoute(page, "/about");
+    await expect(
+      page.getByRole("heading", { name: "About Fishing Forecast" })
+    ).toBeVisible();
     await openDrawer(page);
 
     const drawerScoped = await new AxeBuilder({ page })

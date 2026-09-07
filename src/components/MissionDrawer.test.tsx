@@ -10,7 +10,6 @@ import {
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "../App";
-import { MissionProvider } from "../state/MissionProvider";
 import { missionStorage, type MissionRun } from "../lib/missionStorage";
 import { getCurrentDateISO } from "../lib/time";
 
@@ -26,9 +25,7 @@ vi.mock("react-router-dom", async () => {
 function renderApp(route = "/") {
   return render(
     <MemoryRouter initialEntries={[route]}>
-      <MissionProvider>
-        <App />
-      </MissionProvider>
+      <App />
     </MemoryRouter>
   );
 }
@@ -115,9 +112,46 @@ describe("MissionDrawer", () => {
     openDrawer();
     saveWaypoint("Test Spot");
 
-    const list = document.getElementById("waypoint-list") as HTMLElement;
+    const list = screen.getByTestId("waypoint-list");
     expect(within(list).getByText("Test Spot")).toBeInTheDocument();
     expect(within(list).getByText("40.7128, -74.0060")).toBeInTheDocument();
+  });
+
+  it("prefills the saved-spot name from a named location and can save it", () => {
+    renderApp();
+
+    fireEvent.change(screen.getByLabelText("Search"), {
+      target: { value: "Review Harbor" },
+    });
+    openDrawer();
+
+    const spotInput = screen.getByTestId(
+      "waypoint-name-input"
+    ) as HTMLInputElement;
+    expect(spotInput.value).toBe("Review Harbor");
+
+    fireEvent.click(screen.getByTestId("save-waypoint-button"));
+    expect(
+      within(screen.getByTestId("waypoint-list")).getByText("Review Harbor")
+    ).toBeInTheDocument();
+  });
+
+  it("uses a drawer-entered spot name as the Home forecast-name fallback", () => {
+    renderApp();
+    openDrawer();
+
+    fireEvent.change(screen.getByTestId("waypoint-name-input"), {
+      target: { value: "Harbor Alias" },
+    });
+    fireEvent.click(screen.getByTestId("mission-drawer-close"));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /get fishing outlook/i })
+    );
+
+    expect(navigateMock).toHaveBeenCalledWith(
+      `/results?lat=40.7128&lon=-74.006&startDate=${getCurrentDateISO()}&days=3&name=Harbor+Alias`
+    );
   });
 
   it("selects a saved spot: updates the draft, closes, and navigates Home", () => {
@@ -144,9 +178,7 @@ describe("MissionDrawer", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
 
     openDrawer();
-    const historyList = document.getElementById(
-      "mission-history-list"
-    ) as HTMLElement;
+    const historyList = screen.getByTestId("mission-history-list");
     expect(within(historyList).getByText("Dock B")).toBeInTheDocument();
   });
 
@@ -158,7 +190,7 @@ describe("MissionDrawer", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Rename" }));
 
-    const item = document.getElementById("waypoint-list") as HTMLElement;
+    const item = screen.getByTestId("waypoint-list");
     expect(within(item).getByText("Renamed Spot")).toBeInTheDocument();
   });
 
@@ -192,9 +224,7 @@ describe("MissionDrawer", () => {
     renderApp();
     openDrawer();
 
-    const historyList = document.getElementById(
-      "mission-history-list"
-    ) as HTMLElement;
+    const historyList = screen.getByTestId("mission-history-list");
     expect(historyList.querySelectorAll("li")).toHaveLength(5);
     expect(within(historyList).getByText("Seed 0")).toBeInTheDocument();
     expect(within(historyList).queryByText("Seed 5")).toBeNull();

@@ -63,7 +63,8 @@ export default function MissionDrawer({
   triggerRef,
   inertTargetRef,
 }: MissionDrawerProps) {
-  const { missionState, recentHistory, draft } = useMissionContext();
+  const { missionState, recentHistory, draft, waypointNameDraft, setWaypointNameDraft } =
+    useMissionContext();
   const {
     runWaypoint,
     rerunHistory,
@@ -74,7 +75,6 @@ export default function MissionDrawer({
   } = useMissionActions({ onClose });
 
   const panelRef = useRef<HTMLDivElement>(null);
-  const [waypointNameDraft, setWaypointNameDraft] = useState("");
   const [waypointError, setWaypointError] = useState<string | null>(null);
 
   const handleSave = useCallback(() => {
@@ -145,12 +145,17 @@ export default function MissionDrawer({
       }
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-      const outside = !panelRef.current.contains(active);
-      if (event.shiftKey && (active === first || outside)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (active === last || outside)) {
+      const active = document.activeElement as HTMLElement | null;
+      // The panel container itself (tabIndex -1) and anything outside the panel
+      // are both treated as being on the boundary, so Tab and Shift+Tab always
+      // land back on a control inside the dialog.
+      const onControl = active !== null && focusables.includes(active);
+      if (event.shiftKey) {
+        if (!onControl || active === first) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (!onControl || active === last) {
         event.preventDefault();
         first.focus();
       }
@@ -295,7 +300,11 @@ export default function MissionDrawer({
                 {missionState.waypoints.length === 0 ? (
                   <p className="text-sm text-muted">No saved spots yet.</p>
                 ) : (
-                  <ul className="grid gap-2" id="waypoint-list">
+                  <ul
+                    className="grid gap-2"
+                    id="waypoint-list"
+                    data-testid="waypoint-list"
+                  >
                     {missionState.waypoints.map((waypoint) => (
                       <li
                         className="bg-accent border border-primary rounded-lg p-3"
@@ -365,7 +374,11 @@ export default function MissionDrawer({
                 {recentHistory.length === 0 ? (
                   <p className="text-sm text-muted">No recent forecasts yet.</p>
                 ) : (
-                  <ul className="grid gap-2" id="mission-history-list">
+                  <ul
+                    className="grid gap-2"
+                    id="mission-history-list"
+                    data-testid="mission-history-list"
+                  >
                     {recentHistory.map((historyItem: MissionRun) => (
                       <li
                         className="bg-accent border border-primary rounded-lg p-3"

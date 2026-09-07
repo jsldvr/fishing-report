@@ -30,11 +30,13 @@ export function buildResultsQuery(run: MissionDraft): string {
   return params.toString();
 }
 
-function draftToRun(draft: ForecastDraft): MissionDraft {
+function draftToRun(draft: ForecastDraft, waypointNameDraft: string): MissionDraft {
   return {
     lat: draft.lat,
     lon: draft.lon,
-    name: draft.name.trim() || undefined,
+    // Mirror the inline Home panel: the location name wins, then the saved-spot
+    // name field, then no name.
+    name: draft.name.trim() || waypointNameDraft.trim() || undefined,
     startDate: draft.startDate,
     days: draft.days,
   };
@@ -46,7 +48,13 @@ function draftToRun(draft: ForecastDraft): MissionDraft {
  */
 export function useMissionActions(options: UseMissionActionsOptions = {}) {
   const { onClose } = options;
-  const { draft, updateMissionState, applyDraft } = useMissionContext();
+  const {
+    draft,
+    waypointNameDraft,
+    setWaypointNameDraft,
+    updateMissionState,
+    applyDraft,
+  } = useMissionContext();
   const navigate = useNavigate();
 
   const recordAndOpenResults = useCallback(
@@ -59,8 +67,8 @@ export function useMissionActions(options: UseMissionActionsOptions = {}) {
   );
 
   const runDraft = useCallback(() => {
-    recordAndOpenResults(draftToRun(draft));
-  }, [draft, recordAndOpenResults]);
+    recordAndOpenResults(draftToRun(draft, waypointNameDraft));
+  }, [draft, waypointNameDraft, recordAndOpenResults]);
 
   const runWaypoint = useCallback(
     (waypoint: Waypoint) => {
@@ -94,10 +102,11 @@ export function useMissionActions(options: UseMissionActionsOptions = {}) {
         { lat: waypoint.lat, lon: waypoint.lon, name: waypoint.name },
         { prefill: true }
       );
+      setWaypointNameDraft(waypoint.name);
       navigate("/");
       onClose?.();
     },
-    [applyDraft, navigate, onClose]
+    [applyDraft, navigate, onClose, setWaypointNameDraft]
   );
 
   const saveWaypoint = useCallback(

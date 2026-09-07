@@ -36,6 +36,7 @@ export function MissionProvider({ children }: MissionProviderProps) {
   const [missionState, setMissionState] = useState<MissionState>(loadMissionState);
   const [draft, setDraft] = useState<ForecastDraft>(createDefaultDraft);
   const [locationPrefillToken, setLocationPrefillToken] = useState(0);
+  const [waypointNameDraft, setWaypointNameDraft] = useState("");
   const lastSerializedRef = useRef<string>();
 
   useEffect(() => {
@@ -71,6 +72,10 @@ export function MissionProvider({ children }: MissionProviderProps) {
         }
         return { ...previous, lat, lon, name: nextName };
       });
+      // A named location prefills the saved-spot name, as the inline panel did.
+      if (name) {
+        setWaypointNameDraft(name);
+      }
     },
     []
   );
@@ -106,6 +111,8 @@ export function MissionProvider({ children }: MissionProviderProps) {
       updateMissionState,
       draft,
       locationPrefillToken,
+      waypointNameDraft,
+      setWaypointNameDraft,
       setDraftLocation,
       setDraftDateRange,
       applyDraft,
@@ -116,6 +123,7 @@ export function MissionProvider({ children }: MissionProviderProps) {
       updateMissionState,
       draft,
       locationPrefillToken,
+      waypointNameDraft,
       setDraftLocation,
       setDraftDateRange,
       applyDraft,

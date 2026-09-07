@@ -10,7 +10,6 @@ import {
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "./App";
-import { MissionProvider } from "./state/MissionProvider";
 import packageJson from "../package.json";
 
 const FOLLOWING = Node.DOCUMENT_POSITION_FOLLOWING;
@@ -24,9 +23,7 @@ interface InstallPromptOverrides {
 function renderApp(route = "/") {
   return render(
     <MemoryRouter initialEntries={[route]}>
-      <MissionProvider>
-        <App />
-      </MissionProvider>
+      <App />
     </MemoryRouter>
   );
 }
@@ -155,13 +152,11 @@ describe("App header", () => {
       expect(toggle).toBeInTheDocument();
 
       fireEvent.click(toggle);
-      const overlay = document.getElementById("mobile-menu-overlay");
+      const overlay = screen.getByTestId("mobile-menu-overlay");
       expect(overlay).toBeInTheDocument();
 
-      fireEvent.click(
-        within(overlay as HTMLElement).getByRole("link", { name: /home/i })
-      );
-      expect(document.getElementById("mobile-menu-overlay")).toBeNull();
+      fireEvent.click(within(overlay).getByRole("link", { name: /home/i }));
+      expect(screen.queryByTestId("mobile-menu-overlay")).toBeNull();
     },
     15000
   );
@@ -225,6 +220,28 @@ describe("App drawer trigger", () => {
     expect(getDrawerTrigger()).toHaveFocus();
   });
 
+  it("keeps Tab and Shift+Tab focus inside the panel, including immediately after opening", () => {
+    renderApp();
+    openDrawer();
+
+    const panel = screen.getByTestId("mission-drawer-panel");
+
+    // Reverse-tab straight off the freshly focused panel must not escape.
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(panel.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(document.body);
+
+    // Forward and reverse traversal both stay contained.
+    for (let i = 0; i < 8; i += 1) {
+      fireEvent.keyDown(document, { key: "Tab" });
+      expect(panel.contains(document.activeElement)).toBe(true);
+    }
+    for (let i = 0; i < 8; i += 1) {
+      fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+      expect(panel.contains(document.activeElement)).toBe(true);
+    }
+  });
+
   it("closes on Escape", () => {
     renderApp();
     openDrawer();
@@ -249,11 +266,11 @@ describe("App drawer trigger", () => {
     openDrawer();
 
     expect(document.body.style.overflow).toBe("hidden");
-    expect(document.getElementById("app-shell")).toHaveAttribute("inert");
+    expect(screen.getByTestId("app-shell")).toHaveAttribute("inert");
 
     fireEvent.click(screen.getByTestId("mission-drawer-close"));
     expect(document.body.style.overflow).toBe("");
-    expect(document.getElementById("app-shell")).not.toHaveAttribute("inert");
+    expect(screen.getByTestId("app-shell")).not.toHaveAttribute("inert");
   });
 
   it("keeps the mobile navigation and the drawer mutually exclusive", () => {
@@ -261,18 +278,16 @@ describe("App drawer trigger", () => {
 
     // Opening the drawer closes an open mobile menu.
     fireEvent.click(screen.getByRole("button", { name: /toggle navigation/i }));
-    expect(document.getElementById("mobile-menu-overlay")).toBeInTheDocument();
+    expect(screen.getByTestId("mobile-menu-overlay")).toBeInTheDocument();
 
     openDrawer();
-    expect(document.getElementById("mobile-menu-overlay")).toBeNull();
+    expect(screen.queryByTestId("mobile-menu-overlay")).toBeNull();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     // Toggling the mobile navigation clears any open drawer state.
-    fireEvent.click(
-      document.getElementById("mobile-menu-toggle") as HTMLElement
-    );
+    fireEvent.click(screen.getByTestId("mobile-menu-toggle"));
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(document.getElementById("mobile-menu-overlay")).toBeInTheDocument();
+    expect(screen.getByTestId("mobile-menu-overlay")).toBeInTheDocument();
   });
 
   it("shows a down caret when the mobile menu is closed and an up caret when open", () => {

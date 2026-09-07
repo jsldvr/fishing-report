@@ -11,6 +11,7 @@ function Probe() {
     draft,
     locationPrefillToken,
     recentHistory,
+    waypointNameDraft,
     setDraftLocation,
     setDraftDateRange,
     applyDraft,
@@ -24,6 +25,7 @@ function Probe() {
       </output>
       <output data-testid="token">{locationPrefillToken}</output>
       <output data-testid="recent-count">{recentHistory.length}</output>
+      <output data-testid="spot-name">{waypointNameDraft}</output>
       <button
         type="button"
         onClick={() => setDraftLocation(42.7754, -88.939, "Milton")}
@@ -92,6 +94,14 @@ describe("MissionProvider", () => {
     expect(screen.getByTestId("draft").textContent).toBe(
       "42.7754|-88.939|2026-02-25|5|Milton"
     );
+  });
+
+  it("prefills the shared saved-spot name from a named location", () => {
+    renderProvider();
+    expect(screen.getByTestId("spot-name").textContent).toBe("");
+
+    fireEvent.click(screen.getByText("set-location"));
+    expect(screen.getByTestId("spot-name").textContent).toBe("Milton");
   });
 
   it("bumps the location prefill token only when applyDraft asks for it", () => {
