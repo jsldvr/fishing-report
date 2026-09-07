@@ -173,9 +173,16 @@ test.describe("mission drawer", () => {
     await expect(trigger).toBeFocused();
   });
 
-  test("Save, Select, and Run drive the correct browser navigation", async ({
+  test("Save, Select, Run, and Rerun drive the correct browser navigation", async ({
     page,
   }) => {
+    // Keep this deterministic and off live weather services: the Run step lands
+    // on Results, which would otherwise fetch. Fail those requests fast.
+    await page.route(
+      /open-meteo\.com|weather\.gov|api\.weather\.gov|noaa\.gov|komoot\.io|ipapi\.co|ip-api\.com|ipinfo\.io/i,
+      (route) => route.abort()
+    );
+
     await gotoRoute(page, "/");
 
     // Save a spot at the default location.
@@ -197,8 +204,7 @@ test.describe("mission drawer", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(page).toHaveURL(/#\/results\?.*name=Dockside/);
 
-    // Rerun from the recorded history entry navigates to Results again.
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+    // The drawer is global: Rerun straight from the Results route, no reload.
     await openDrawer(page);
     await page.getByRole("button", { name: "Rerun" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
