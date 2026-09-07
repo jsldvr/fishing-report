@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-07 v1.5.4
+
+### Version Bump to 1.5.4
+
+- **Updated** package.json and package-lock.json to version 1.5.4
+
+### Results Forecast Card Section Order
+
+- **Moved** the score-breakdown `.forecast-card__section` (`#<cardId>-score-breakdown`) in `src/components/ScoreCard.tsx` so it renders immediately before the Today's outlook `.forecast-card__summary` block; the card header still precedes both and the two sections remain immediate siblings
+- **Preserved** all content, conditions, classes, ids, values, calculations, styling, and data sources for both sections; the only production change is DOM order plus one test hook
+- **Added** `data-testid="score-card-breakdown"` to the breakdown section so tests can assert order via `data-testid` rather than `id`, per `AGENTS.md`
+- **Added** `src/components/ScoreCard.test.tsx` cases: an explicit assertion that the breakdown's `nextElementSibling` is the outlook summary, plus focused component tests (astronomical/solunar detail sections, almanac metric and callout, Open-Meteo safety source, risk factors and recommendations, non-Fahrenheit/non-mph unit paths, low data-quality styling with relative timestamps, NWS pressure-trend badge, and further safety-rating labels) that raise `ScoreCard.tsx` line coverage from 71.85% to 97.05%
+- **Unchanged**: forecast types, API contracts, scoring logic, data flow, and CSS
+
 ## 2026-08-30 v1.5.3
 
 ### Version Bump to 1.5.3

@@ -344,39 +344,10 @@ export default function ScoreCard({
       </div>
 
       <div
-        className="forecast-card__section forecast-card__summary"
-        id={`${cardId}-summary`}
-        data-testid="score-card-summary"
+        className="forecast-card__section"
+        id={`${cardId}-score-breakdown`}
+        data-testid="score-card-breakdown"
       >
-        <p className="forecast-card__summary-heading">Today's outlook</p>
-        <div className="forecast-card__summary-row">
-          <span className="forecast-card__summary-label">Fishing</span>
-          <span className="forecast-card__summary-value">
-            {getOutlookLabel(forecast.biteScore0100)}
-          </span>
-        </div>
-        <div className="forecast-card__summary-row">
-          <span className="forecast-card__summary-label">Safety</span>
-          <span className="forecast-card__summary-value">
-            {getSafetyLabel(safety.rating)}
-          </span>
-        </div>
-        {bestWindow && (
-          <div className="forecast-card__summary-row">
-            <span className="forecast-card__summary-label">Best window</span>
-            <span className="forecast-card__summary-value">{bestWindow}</span>
-          </div>
-        )}
-        <div className="forecast-card__summary-row">
-          <span className="forecast-card__summary-label">Data quality</span>
-          <span className="forecast-card__summary-value">
-            {buildDataQualitySummary()}
-          </span>
-        </div>
-        <p className="forecast-card__summary-why">Why: {buildWhySummary()}</p>
-      </div>
-
-      <div className="forecast-card__section" id={`${cardId}-score-breakdown`}>
         <div className="forecast-card__metric" id={`${cardId}-metric-moon`}>
           <div
             className="forecast-card__metric-header"
@@ -483,6 +454,39 @@ export default function ScoreCard({
             </div>
           </div>
         )}
+      </div>
+
+      <div
+        className="forecast-card__section forecast-card__summary"
+        id={`${cardId}-summary`}
+        data-testid="score-card-summary"
+      >
+        <p className="forecast-card__summary-heading">Today's outlook</p>
+        <div className="forecast-card__summary-row">
+          <span className="forecast-card__summary-label">Fishing</span>
+          <span className="forecast-card__summary-value">
+            {getOutlookLabel(forecast.biteScore0100)}
+          </span>
+        </div>
+        <div className="forecast-card__summary-row">
+          <span className="forecast-card__summary-label">Safety</span>
+          <span className="forecast-card__summary-value">
+            {getSafetyLabel(safety.rating)}
+          </span>
+        </div>
+        {bestWindow && (
+          <div className="forecast-card__summary-row">
+            <span className="forecast-card__summary-label">Best window</span>
+            <span className="forecast-card__summary-value">{bestWindow}</span>
+          </div>
+        )}
+        <div className="forecast-card__summary-row">
+          <span className="forecast-card__summary-label">Data quality</span>
+          <span className="forecast-card__summary-value">
+            {buildDataQualitySummary()}
+          </span>
+        </div>
+        <p className="forecast-card__summary-why">Why: {buildWhySummary()}</p>
       </div>
 
       <div
