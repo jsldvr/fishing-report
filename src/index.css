@@ -1368,6 +1368,12 @@ div#wx-outlook-controls {
   min-width: 0;
 }
 
+/* Saved-spot and history names are unbounded user text; wrap arbitrary strings
+   (including a single unbroken token) so they never widen the scrolling body. */
+.mission-drawer__list-row > div > p {
+  overflow-wrap: anywhere;
+}
+
 .mission-drawer__waypoint-actions {
   display: flex;
   flex-wrap: wrap;

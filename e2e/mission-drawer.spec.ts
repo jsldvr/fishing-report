@@ -109,8 +109,10 @@ test.describe("mission drawer", () => {
   test("keeps a populated saved-spot card, backdrop, and no overflow at 390px and 320px", async ({
     page,
   }) => {
-    // Seed a saved waypoint so the four-action row is actually rendered.
-    await page.addInitScript(() => {
+    // Seed a saved waypoint whose name is a single unbroken token: names are
+    // unbounded user text and must wrap rather than widen the drawer body.
+    const longName = "Averyverylongunbrokenwaypointnamewithnospaces1234567890";
+    await page.addInitScript((name) => {
       localStorage.setItem(
         "fishing-report.mission-state.v1",
         JSON.stringify({
@@ -118,7 +120,7 @@ test.describe("mission drawer", () => {
           waypoints: [
             {
               id: "wp_seed",
-              name: "Seeded Spot",
+              name,
               lat: 41.2,
               lon: -72.1,
               createdAtIso: "2026-01-01T00:00:00.000Z",
@@ -128,11 +130,13 @@ test.describe("mission drawer", () => {
           history: [],
         })
       );
-    });
+    }, longName);
 
     for (const width of [390, 320]) {
       await gotoRoute(page, "/", width, 844);
       await openDrawer(page);
+
+      await expect(page.getByText(longName)).toBeVisible();
 
       const panelBox = await boxOf(page.getByTestId("mission-drawer-panel"));
       expect(
@@ -142,7 +146,7 @@ test.describe("mission drawer", () => {
       expect(await noDocumentOverflow(page)).toBe(true);
 
       // Every saved-spot action stays inside the panel (no clip) and the
-      // scrolling body has no horizontal overflow.
+      // scrolling body has no horizontal overflow, even with the long name.
       const panelRight = panelBox.x + panelBox.width;
       for (const label of ["Select", "Run", "Rename", "Delete"]) {
         const btnBox = await boxOf(page.getByRole("button", { name: label }));
