@@ -62,10 +62,10 @@ describe("Home", () => {
 
     expect(screen.queryByText("Saved spots")).toBeNull();
     expect(screen.queryByText("Recent forecasts")).toBeNull();
-    expect(document.getElementById("mission-panel")).toBeNull();
-    expect(document.getElementById("waypoint-list")).toBeNull();
-    expect(document.getElementById("mission-history-list")).toBeNull();
+    expect(screen.queryByTestId("waypoint-list")).toBeNull();
+    expect(screen.queryByTestId("mission-history-list")).toBeNull();
     expect(screen.queryByLabelText("Spot name")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
   });
 
   it("runs the primary forecast from the shared draft defaults", () => {

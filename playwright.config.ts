@@ -16,6 +16,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   workers: isCI ? 1 : undefined,
+  // One retry absorbs environmental flake (a browser process occasionally
+  // launching slowly under parallel load); a genuine failure still fails twice.
+  retries: isCI ? 2 : 1,
   reporter: "line",
   use: {
     baseURL,

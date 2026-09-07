@@ -311,7 +311,7 @@ export default function MissionDrawer({
                         id={`waypoint-item-${waypoint.id}`}
                         key={waypoint.id}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="mission-drawer__list-row">
                           <div>
                             <p className="font-semibold">{waypoint.name}</p>
                             <p className="text-xs text-muted">
@@ -319,9 +319,9 @@ export default function MissionDrawer({
                               {waypoint.lon.toFixed(4)}
                             </p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="mission-drawer__waypoint-actions">
                             <button
-                              className="btn btn-secondary mission-drawer__waypoint-select-btn"
+                              className="btn btn-sm btn-secondary mission-drawer__waypoint-select-btn"
                               id={`waypoint-select-${waypoint.id}`}
                               type="button"
                               onClick={() => selectWaypoint(waypoint)}
@@ -329,7 +329,7 @@ export default function MissionDrawer({
                               Select
                             </button>
                             <button
-                              className="btn btn-primary mission-drawer__waypoint-run-btn"
+                              className="btn btn-sm btn-primary mission-drawer__waypoint-run-btn"
                               id={`waypoint-run-${waypoint.id}`}
                               type="button"
                               onClick={() => runWaypoint(waypoint)}
@@ -337,7 +337,7 @@ export default function MissionDrawer({
                               Run
                             </button>
                             <button
-                              className="btn btn-secondary mission-drawer__waypoint-rename-btn"
+                              className="btn btn-sm btn-secondary mission-drawer__waypoint-rename-btn"
                               id={`waypoint-rename-${waypoint.id}`}
                               type="button"
                               onClick={() => handleRename(waypoint)}
@@ -345,7 +345,7 @@ export default function MissionDrawer({
                               Rename
                             </button>
                             <button
-                              className="btn btn-secondary mission-drawer__waypoint-delete-btn"
+                              className="btn btn-sm btn-secondary mission-drawer__waypoint-delete-btn"
                               id={`waypoint-delete-${waypoint.id}`}
                               type="button"
                               onClick={() => handleDelete(waypoint)}
@@ -385,7 +385,7 @@ export default function MissionDrawer({
                         id={`history-item-${historyItem.id}`}
                         key={historyItem.id}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="mission-drawer__list-row">
                           <div>
                             <p className="font-semibold">
                               {historyItem.name ||
@@ -398,7 +398,7 @@ export default function MissionDrawer({
                             </p>
                           </div>
                           <button
-                            className="btn btn-primary mission-drawer__history-rerun-btn"
+                            className="btn btn-sm btn-primary mission-drawer__history-rerun-btn"
                             id={`history-rerun-${historyItem.id}`}
                             type="button"
                             onClick={() => rerunHistory(historyItem)}

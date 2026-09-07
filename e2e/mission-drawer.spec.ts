@@ -50,6 +50,13 @@ async function noDocumentOverflow(page: Page): Promise<boolean> {
 async function openDrawer(page: Page) {
   await page.getByTestId("mission-drawer-toggle").click();
   await expect(page.getByRole("dialog")).toBeVisible();
+  // Wait for the slide-in animation to settle so geometry reads are stable.
+  await expect
+    .poll(async () => {
+      const box = await page.getByTestId("mission-drawer-panel").boundingBox();
+      return box ? box.x : -999;
+    })
+    .toBeGreaterThanOrEqual(-0.5);
 }
 
 /**
@@ -99,9 +106,30 @@ test.describe("mission drawer", () => {
     expect(await noDocumentOverflow(page)).toBe(true);
   });
 
-  test("leaves the backdrop visible and avoids horizontal overflow at 390px and 320px", async ({
+  test("keeps a populated saved-spot card, backdrop, and no overflow at 390px and 320px", async ({
     page,
   }) => {
+    // Seed a saved waypoint so the four-action row is actually rendered.
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "fishing-report.mission-state.v1",
+        JSON.stringify({
+          schemaVersion: 1,
+          waypoints: [
+            {
+              id: "wp_seed",
+              name: "Seeded Spot",
+              lat: 41.2,
+              lon: -72.1,
+              createdAtIso: "2026-01-01T00:00:00.000Z",
+              updatedAtIso: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+          history: [],
+        })
+      );
+    });
+
     for (const width of [390, 320]) {
       await gotoRoute(page, "/", width, 844);
       await openDrawer(page);
@@ -112,6 +140,25 @@ test.describe("mission drawer", () => {
         `panel should leave a backdrop strip at ${width}px`
       ).toBeLessThan(width - 16);
       expect(await noDocumentOverflow(page)).toBe(true);
+
+      // Every saved-spot action stays inside the panel (no clip) and the
+      // scrolling body has no horizontal overflow.
+      const panelRight = panelBox.x + panelBox.width;
+      for (const label of ["Select", "Run", "Rename", "Delete"]) {
+        const btnBox = await boxOf(page.getByRole("button", { name: label }));
+        expect(
+          btnBox.x,
+          `"${label}" starts left of the panel at ${width}px`
+        ).toBeGreaterThanOrEqual(panelBox.x - 1);
+        expect(
+          btnBox.x + btnBox.width,
+          `"${label}" is clipped by the panel edge at ${width}px`
+        ).toBeLessThanOrEqual(panelRight + 1);
+      }
+      const bodyContained = await page
+        .getByTestId("mission-drawer-body")
+        .evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+      expect(bodyContained, `drawer body overflows at ${width}px`).toBe(true);
 
       await page.getByTestId("mission-drawer-close").click();
       await expect(page.getByRole("dialog")).toHaveCount(0);

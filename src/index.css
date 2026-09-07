@@ -1353,6 +1353,28 @@ div#wx-outlook-controls {
   flex: 1 1 auto;
 }
 
+/* Saved-spot / recent rows wrap inside the narrow drawer instead of overflowing
+   (the project's utility CSS has no `flex-wrap` class, so it is set here). */
+.mission-drawer__list-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mission-drawer__list-row > div {
+  min-width: 0;
+}
+
+.mission-drawer__waypoint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 @keyframes mission-drawer-fade {
   from {
     opacity: 0;
@@ -1384,6 +1406,19 @@ div#wx-outlook-controls {
     gap: 1.5rem;
     padding: 1rem;
     padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Drop the saved-spot actions onto their own full-width row and lay them out
+     as an even 2-up grid so nothing is clipped by the panel edge. */
+  .mission-drawer__waypoint-actions {
+    flex-basis: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mission-drawer__waypoint-actions .btn {
+    min-width: 0;
   }
 }
 
