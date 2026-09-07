@@ -97,6 +97,53 @@ const mockForecastWithoutAlerts: ForecastScore = {
   },
 };
 
+const mockForecastFullDetails: ForecastScore = {
+  ...mockForecastWithMarine,
+  almanac: { notes: "Cool front approaching; fish the morning bite." },
+  components: { moon: 60, weather: 55, almanac: 70 },
+  astronomical: {
+    sunrise: "06:30",
+    sunset: "19:45",
+    solarNoon: "13:07",
+    moonrise: "20:15",
+    moonset: "07:05",
+  },
+  solunar: {
+    dayRating: 3,
+    majorPeriods: [
+      { start: "06:00", end: "08:00", type: "major" },
+      { start: "18:30", end: "20:30", type: "major" },
+    ],
+    minorPeriods: [{ start: "12:00", end: "13:00", type: "minor" }],
+  },
+  weather: {
+    ...mockForecastWithMarine.weather,
+    source: "OPEN_METEO",
+    barometricTrend: "FALLING",
+    precipMm: 2,
+    safety: {
+      rating: "FAIR",
+      activeAlerts: [],
+      riskFactors: ["Building afternoon wind", "Falling barometric pressure"],
+      recommendations: [
+        "Fish the morning solunar window",
+        "Monitor wind before heading out",
+      ],
+    },
+    reliability: {
+      confidenceLevel: "MEDIUM",
+      confidenceScore: 70,
+      reasons: ["Marine data available; weather source fresh"],
+      weatherFreshness: "FRESH",
+      marineFreshness: "FRESH",
+      marineStatus: "AVAILABLE",
+      forecastGeneratedIso: "2026-02-25T12:05:00Z",
+      weatherLastUpdatedIso: "2026-02-25T12:00:00Z",
+      marineLastUpdatedIso: "2026-02-25T11:30:00Z",
+    },
+  },
+};
+
 describe("ScoreCard", () => {
   it("renders marine section when marine data is present", () => {
     render(<ScoreCard forecast={mockForecastWithMarine} lat={40} lon={-74} />);
@@ -240,6 +287,155 @@ describe("ScoreCard", () => {
     expect(screen.getByText("Chance of rain: 40%")).toBeInTheDocument();
     expect(screen.getByText("Rain amount unavailable")).toBeInTheDocument();
     expect(screen.queryByText(/Rain amount: /)).not.toBeInTheDocument();
+  });
+
+  it("renders the score breakdown immediately before Today's outlook", () => {
+    render(<ScoreCard forecast={mockForecastWithMarine} lat={40} lon={-74} />);
+
+    const breakdown = screen.getByTestId("score-card-breakdown");
+    const summary = screen.getByTestId("score-card-summary");
+
+    expect(breakdown).toBeInTheDocument();
+    expect(summary).toBeInTheDocument();
+    expect(breakdown.nextElementSibling).toBe(summary);
+  });
+
+  it("keeps the breakdown section classes and id unchanged after the reorder", () => {
+    render(<ScoreCard forecast={mockForecastWithMarine} lat={40} lon={-74} />);
+
+    const breakdown = screen.getByTestId("score-card-breakdown");
+
+    expect(breakdown).toHaveClass("forecast-card__section");
+    expect(breakdown.id).toMatch(/-score-breakdown$/);
+  });
+
+  it("renders astronomical, solunar, almanac, and safety detail sections", () => {
+    render(
+      <ScoreCard
+        forecast={mockForecastFullDetails}
+        lat={40}
+        lon={-74}
+        useFahrenheit={false}
+        useMph={false}
+      />
+    );
+
+    // Almanac component metric and callout
+    expect(screen.getByText("Almanac")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Cool front approaching; fish the morning bite\./)
+    ).toBeInTheDocument();
+
+    // Astronomical + solunar section
+    expect(screen.getByText("Sunrise: 06:30")).toBeInTheDocument();
+    expect(screen.getByText("Sunset: 19:45")).toBeInTheDocument();
+    expect(screen.getByText("Solar Noon: 13:07")).toBeInTheDocument();
+    expect(screen.getByText("Rise: 20:15")).toBeInTheDocument();
+    expect(screen.getByText("Set: 07:05")).toBeInTheDocument();
+    expect(screen.getByText("Solunar Rating")).toBeInTheDocument();
+    expect(screen.getByText("3/4")).toBeInTheDocument();
+    // First major period appears in both the breakdown list and the best-window row
+    expect(screen.getAllByText("06:00 - 08:00").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("18:30 - 20:30")).toBeInTheDocument();
+    expect(screen.getByText("12:00 - 13:00")).toBeInTheDocument();
+
+    // Best window row derives from the first major solunar period
+    expect(screen.getByText("Best window")).toBeInTheDocument();
+
+    // Metric-only (non-Fahrenheit / non-mph) rendering paths
+    expect(screen.getByText("Temp: 20°C")).toBeInTheDocument();
+    expect(screen.getByText("Wind: 10 km/h")).toBeInTheDocument();
+    expect(screen.getByText("Pressure: 1013 hPa")).toBeInTheDocument();
+
+    // Open-Meteo safety source plus risk factors and recommendations
+    expect(screen.getByText("Fishing Safety: FAIR")).toBeInTheDocument();
+    expect(screen.getAllByText(/Open-Meteo/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Building afternoon wind")).toBeInTheDocument();
+    expect(
+      screen.getByText("Fish the morning solunar window")
+    ).toBeInTheDocument();
+  });
+
+  it("renders low data-quality styling and recent relative timestamps", () => {
+    const now = Date.now();
+    const forecast: ForecastScore = {
+      ...mockForecastWithoutMarine,
+      weather: {
+        ...mockForecastWithoutMarine.weather,
+        reliability: {
+          confidenceLevel: "LOW" as const,
+          confidenceScore: 30,
+          reasons: ["Weather source stale"],
+          weatherFreshness: "STALE" as const,
+          marineFreshness: "UNKNOWN" as const,
+          marineStatus: "NOT_APPLICABLE" as const,
+          forecastGeneratedIso: new Date(now - 5 * 60_000).toISOString(),
+          weatherLastUpdatedIso: new Date(now - 3 * 3_600_000).toISOString(),
+        },
+      },
+    };
+
+    render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
+
+    expect(screen.getByText("Data quality: LOW")).toBeInTheDocument();
+    expect(screen.getByText(/Forecast generated:\s*5 min ago/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Weather source updated:\s*3 hr ago/)
+    ).toBeInTheDocument();
+  });
+
+  it("renders an NWS pressure-trend badge when the trend is not steady", () => {
+    const forecast: ForecastScore = {
+      ...mockForecastWithoutMarine,
+      weather: {
+        ...mockForecastWithoutMarine.weather,
+        source: "NWS",
+        barometricTrend: "RISING",
+      },
+    };
+
+    render(<ScoreCard forecast={forecast} lat={40} lon={-74} />);
+
+    expect(screen.getAllByText(/rising pressure/).length).toBeGreaterThan(0);
+  });
+
+  it("renders each safety rating label and heading", () => {
+    const ratings: Array<{ rating: NonNullable<ForecastScore["weather"]["safety"]["rating"]>; label: string }> = [
+      { rating: "POOR", label: "Poor" },
+      { rating: "DANGEROUS", label: "Dangerous" },
+      { rating: "UNKNOWN", label: "Unknown" },
+    ];
+
+    for (const { rating, label } of ratings) {
+      const { unmount } = render(
+        <ScoreCard
+          forecast={{
+            ...mockForecastWithoutMarine,
+            weather: {
+              ...mockForecastWithoutMarine.weather,
+              safety: {
+                ...mockForecastWithoutMarine.weather.safety,
+                rating,
+              },
+            },
+          }}
+          lat={40}
+          lon={-74}
+        />
+      );
+
+      expect(screen.getByText(`Fishing Safety: ${rating}`)).toBeInTheDocument();
+      expect(
+        screen.getByText("Safety", { selector: ".forecast-card__summary-label" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(label, {
+          selector: ".forecast-card__summary-value",
+        })
+      ).toBeInTheDocument();
+
+      unmount();
+    }
   });
 });
 
