@@ -1,6 +1,10 @@
 # Changelog
 
-## 2026-09-07
+## 2026-09-07 v1.5.4
+
+### Version Bump to 1.5.4
+
+- **Updated** package.json and package-lock.json to version 1.5.4
 
 ### Results Forecast Card Section Order
 
