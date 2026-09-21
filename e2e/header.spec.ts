@@ -42,10 +42,13 @@ interface PillStyle {
 const ROW_ALIGNMENT_TOLERANCE_PX = 6;
 
 // Minimum horizontal clearance between the Install App button and the menu
-// toggle at 320px. The prior layout left ~2px, which held on Windows Chromium
-// but collapsed to an overlap on Linux Firefox/WebKit (wider serif/mono
-// fallbacks). Verified locally with generous headroom in all three engines.
-const MIN_INSTALL_MENU_GAP_PX = 4;
+// toggle at 320px. Ubuntu CI Firefox/WebKit (job 106188024827/106188024873)
+// measured only 2.25px/2.61px against the prior 4px floor -- their wider
+// serif/mono font fallbacks leave less real width than local Windows
+// rendering. The fix recovers real available width (container padding,
+// internal brand-row gap, pill and button padding), not just this assertion;
+// local Windows now measures ~25px of headroom above this 8px floor.
+const MIN_INSTALL_MENU_GAP_PX = 8;
 
 async function boxOf(locator: Locator): Promise<Box> {
   const box = await locator.boundingBox();
@@ -342,6 +345,12 @@ test("narrow mobile header keeps one row with Install App and a working menu", a
   );
 
   expect(await noElementOverflow(page, ".header-content")).toBe(true);
+  // .header-brand can, in principle, be forced narrower than its own
+  // children (flex-shrink with min-width: 0): scrollWidth would then exceed
+  // clientWidth even though every child individually still fits inside the
+  // larger .header-content box above, silently eating into the Install App /
+  // menu-toggle clearance just measured. Catch that case explicitly.
+  expect(await noElementOverflow(page, ".header-brand")).toBe(true);
   expect(await noDocumentOverflow(page)).toBe(true);
 
   await expect(page.locator(".nav-primary")).toBeHidden();

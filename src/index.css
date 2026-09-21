@@ -1203,7 +1203,13 @@ div#wx-outlook-controls {
 /* Extra Small Mobile */
 @media (max-width: 480px) {
   .header-container {
-    padding: 0 0.3rem;
+    /* Was 0.3rem: with justify-content: space-between and exactly two
+       .header-content children, the rendered Install App -> menu-toggle gap
+       equals (available width) - (header-brand content width) - (header-nav
+       width), independent of any explicit gap value on either container --
+       so recovering real available width here (not a gap number) is what
+       actually widens that clearance. */
+    padding: 0 0.2rem;
   }
 
   /* Tighten every horizontal contributor at 320px so the always-visible drawer
@@ -1215,7 +1221,12 @@ div#wx-outlook-controls {
   }
 
   .header-brand {
-    gap: 0.18rem;
+    /* Was 0.18rem. Shared by all five brand-row items, including the
+       drawer-toggle's own dedicated margin-right below (unchanged) that
+       guarantees its 8px minimum gap to the title -- shaving 0.04rem here
+       still leaves that gap at ~9.4px while recovering width from the other
+       three internal gaps too. */
+    gap: 0.14rem;
   }
 
   .brand-title {
@@ -1226,11 +1237,11 @@ div#wx-outlook-controls {
   .app-version,
   .timestamp {
     font-size: 0.53rem;
-    padding: 0.03rem 0.2rem;
+    padding: 0.03rem 0.15rem;
   }
 
   .header-brand .btn {
-    padding: 0.15rem 0.26rem;
+    padding: 0.15rem 0.2rem;
     font-size: 0.55rem;
   }
 
