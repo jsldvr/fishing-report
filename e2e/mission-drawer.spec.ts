@@ -47,6 +47,55 @@ async function noDocumentOverflow(page: Page): Promise<boolean> {
   );
 }
 
+interface BackgroundAlpha {
+  color: string;
+  alpha: number;
+}
+
+/**
+ * Resolves a locator's computed `background-color` to an alpha channel via a
+ * 1x1 canvas fill, so "fully transparent at rest" can be asserted without
+ * matching one engine's serialized string (e.g. Chromium/Firefox emit
+ * "rgba(0, 0, 0, 0)", WebKit builds can differ). An opaque red sentinel is
+ * set before assigning the computed color: if the browser cannot parse that
+ * color as a fillStyle, the sentinel silently survives and the painted pixel
+ * reads fully opaque, so an unparseable color fails the alpha-must-be-0
+ * assertion instead of passing quietly.
+ */
+async function backgroundAlpha(locator: Locator): Promise<BackgroundAlpha> {
+  return locator.evaluate((el) => {
+    const color = getComputedStyle(el).backgroundColor;
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("2d canvas context unavailable");
+    }
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = "rgb(255, 0, 0)";
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 1, 1);
+    const alpha = ctx.getImageData(0, 0, 1, 1).data[3];
+    return { color, alpha };
+  });
+}
+
+/**
+ * Whether a locator's element currently matches the CSS `:hover` / `:active`
+ * pseudo-classes. Playwright leaves its virtual pointer wherever the last
+ * mouse action placed it, so a "resting state" style read taken without
+ * confirming this can silently sample a hover/active rule instead.
+ */
+async function pointerPseudoState(
+  locator: Locator
+): Promise<{ hover: boolean; active: boolean }> {
+  return locator.evaluate((el) => ({
+    hover: el.matches(":hover"),
+    active: el.matches(":active"),
+  }));
+}
+
 async function openDrawer(page: Page) {
   await page.getByTestId("mission-drawer-toggle").click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -246,29 +295,77 @@ test.describe("mission drawer", () => {
     expect(box.x + box.width).toBeLessThanOrEqual(panelBox.x + panelBox.width + 1);
     expect(overlaps(titleBox, box)).toBe(false);
 
-    const restingStyle = await closeButton.evaluate((el) => {
-      const computed = getComputedStyle(el);
-      return {
-        backgroundColor: computed.backgroundColor,
-        borderWidth: computed.borderTopWidth,
-      };
-    });
-    // No generic large/bordered `.btn.btn-secondary` box at rest.
+    // Establish an actual resting state before sampling it: `openDrawer`
+    // clicked the header trigger, and Playwright leaves its virtual pointer
+    // wherever the last mouse action placed it, so without this move a
+    // sample could land while the close control still matches its own
+    // `:hover, :active { background: var(--bg-tertiary) }` rule (equal to
+    // `--fog`, rgb(238, 243, 239) in the light theme) instead of the
+    // true resting `transparent`. Move to a quiet spot in the panel body,
+    // away from the close control and every other interactive element.
+    await page.mouse.move(panelBox.x + 10, panelBox.y + panelBox.height - 10);
+    const pseudoState = await pointerPseudoState(closeButton);
     expect(
-      restingStyle.backgroundColor === "rgba(0, 0, 0, 0)" ||
-        restingStyle.backgroundColor === "transparent"
-    ).toBe(true);
-    expect(restingStyle.borderWidth).toBe("0px");
+      pseudoState.hover,
+      "close control should not be :hover before the resting-style check"
+    ).toBe(false);
+    expect(
+      pseudoState.active,
+      "close control should not be :active before the resting-style check"
+    ).toBe(false);
+
+    const restingBorderWidth = await closeButton.evaluate(
+      (el) => getComputedStyle(el).borderTopWidth
+    );
+    expect(restingBorderWidth).toBe("0px");
+
+    // No generic large/bordered `.btn.btn-secondary` box at rest: poll the
+    // rendered alpha, rather than reading it once, so a still-running 150ms
+    // background-color transition cannot be sampled mid-flight; and check
+    // the alpha itself, not one engine's serialized color string (Ubuntu
+    // WebKit CI job 106192124294 failed here comparing only against
+    // "rgba(0, 0, 0, 0)" / "transparent").
+    let restingBackground: BackgroundAlpha = { color: "", alpha: -1 };
+    try {
+      await expect
+        .poll(
+          async () => {
+            restingBackground = await backgroundAlpha(closeButton);
+            return restingBackground.alpha;
+          },
+          { timeout: 1000 }
+        )
+        .toBe(0);
+    } catch (error) {
+      throw new Error(
+        `close control should be fully transparent at rest; last computed ` +
+          `backgroundColor="${restingBackground.color}" parsed alpha=${restingBackground.alpha}. ` +
+          `${error instanceof Error ? error.message : String(error)}`
+      );
+    }
 
     // Keyboard-driven focus (not a programmatic .focus()) so :focus-visible
     // reliably applies across engines. The panel autofocuses on open; the
     // close button is the first focusable control after it in DOM order.
     await page.keyboard.press("Tab");
     await expect(closeButton).toBeFocused();
-    const focusOutline = await closeButton.evaluate(
-      (el) => getComputedStyle(el).outlineStyle
-    );
-    expect(focusOutline).not.toBe("none");
+    const focusOutline = await closeButton.evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return {
+        outlineStyle: computed.outlineStyle,
+        outlineWidth: computed.outlineWidth,
+        outlineColor: computed.outlineColor,
+      };
+    });
+    expect(
+      focusOutline.outlineStyle,
+      `expected a visible focus outline; got style=${focusOutline.outlineStyle} ` +
+        `width=${focusOutline.outlineWidth} color=${focusOutline.outlineColor}`
+    ).not.toBe("none");
+    expect(
+      parseFloat(focusOutline.outlineWidth),
+      `expected an outline at least 2px wide; got width=${focusOutline.outlineWidth}`
+    ).toBeGreaterThanOrEqual(2);
 
     await closeButton.click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
