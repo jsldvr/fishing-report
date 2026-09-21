@@ -15,7 +15,15 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: isCI,
+  // CI runs serially (workers: 1), which avoids the parallel browser-launch
+  // contention that causes local flake, so CI takes zero retries and any
+  // non-first-try failure blocks the release. Local dev keeps one retry purely
+  // to avoid re-running the whole suite over an occasional slow launch.
   workers: isCI ? 1 : undefined,
+  retries: isCI ? 0 : 1,
+  // A test that only passes on retry still fails the run -- never a green CI on
+  // an intermittent regression.
+  failOnFlakyTests: isCI,
   reporter: "line",
   use: {
     baseURL,

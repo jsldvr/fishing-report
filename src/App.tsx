@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 import packageJson from "../package.json";
 import Home from "./pages/Home";
 import Results from "./pages/Results";
@@ -11,6 +11,9 @@ import TermsOfService from "./pages/TermsOfService";
 import CookieConsent from "./pages/CookieConsent";
 import ComplianceStatement from "./pages/ComplianceStatement";
 import Icon from "./components/Icon";
+import MissionDrawer from "./components/MissionDrawer";
+import ResultsDraftSync from "./state/ResultsDraftSync";
+import { MissionProvider } from "./state/MissionProvider";
 
 const APP_VERSION = (packageJson as { version: string }).version;
 
@@ -20,11 +23,22 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 function App() {
+  return (
+    <MissionProvider>
+      <AppShell />
+    </MissionProvider>
+  );
+}
+
+function AppShell() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [installPromptEvent, setInstallPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
   const location = useLocation();
+  const drawerTriggerRef = useRef<HTMLButtonElement>(null);
+  const appShellRef = useRef<HTMLDivElement>(null);
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
@@ -47,15 +61,26 @@ function App() {
     localStorage.setItem("theme", newTheme);
   };
 
-  // Toggle mobile menu
+  // The mobile navigation menu and the Saved/Recent drawer are mutually
+  // exclusive: opening either overlay closes the other.
   const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+    setMobileMenuOpen((open) => !open);
+    setDrawerOpen(false);
   };
 
   // Close mobile menu when clicking nav links
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
+
+  const toggleDrawer = useCallback(() => {
+    setDrawerOpen((open) => !open);
+    setMobileMenuOpen(false);
+  }, []);
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+  }, []);
 
   // Listen for system theme changes
   useEffect(() => {
@@ -76,6 +101,12 @@ function App() {
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  // A route change must never leave either overlay in a stale open state.
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setDrawerOpen(false);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -108,7 +139,13 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br">
+    <div
+      className="min-h-screen bg-gradient-to-br"
+      id="app-shell"
+      data-testid="app-shell"
+      ref={appShellRef}
+    >
+      <ResultsDraftSync />
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
@@ -124,6 +161,19 @@ function App() {
           <div className="header-content">
             {/* Brand */}
             <div className="header-brand">
+              <button
+                className="header-brand__drawer-toggle"
+                id="mission-drawer-toggle"
+                data-testid="mission-drawer-toggle"
+                type="button"
+                onClick={toggleDrawer}
+                aria-label="Open My Forecasts"
+                aria-expanded={drawerOpen}
+                aria-controls="mission-drawer"
+                ref={drawerTriggerRef}
+              >
+                <Icon name="hamburger" />
+              </button>
               <h1 className="brand-title">Fishing Report</h1>
               <div className="app-version" id="app-version">
                 v{APP_VERSION}
@@ -201,18 +251,20 @@ function App() {
                 </a>
               </div>
 
-              {/* Mobile Menu Toggle */}
+              {/* Mobile Menu Toggle: a down caret when closed, up when open */}
               <button
-                className={`mobile-menu-toggle ${
-                  mobileMenuOpen ? "active" : ""
-                }`}
+                className="mobile-menu-toggle"
                 id="mobile-menu-toggle"
+                data-testid="mobile-menu-toggle"
                 onClick={toggleMobileMenu}
                 aria-label="Toggle navigation"
+                aria-expanded={mobileMenuOpen}
+                data-open={mobileMenuOpen}
               >
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
+                <Icon
+                  name="caret"
+                  className="mobile-menu-toggle__caret"
+                />
               </button>
             </nav>
           </div>
@@ -223,6 +275,7 @@ function App() {
           <div
             className="mobile-menu-overlay"
             id="mobile-menu-overlay"
+            data-testid="mobile-menu-overlay"
             onClick={closeMobileMenu}
           >
             <div
@@ -323,6 +376,13 @@ function App() {
           outcome is purely coincidental.
         </div>
       </footer>
+
+      <MissionDrawer
+        isOpen={drawerOpen}
+        onClose={closeDrawer}
+        triggerRef={drawerTriggerRef}
+        inertTargetRef={appShellRef}
+      />
     </div>
   );
 }

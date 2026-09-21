@@ -967,7 +967,34 @@ div#wx-outlook-controls {
   font-size: 0.85rem;
 }
 
-/* Mobile Menu Toggle */
+/* Header drawer trigger: always visible, immediately before the brand title */
+.header-brand__drawer-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: rgba(238, 243, 239, 0.9);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.header-brand__drawer-toggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.header-brand__drawer-toggle:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 2px;
+}
+
+/* Mobile Menu Toggle: a down caret when closed, an up caret when open */
 .mobile-menu-toggle {
   display: none;
   flex-direction: column;
@@ -978,33 +1005,21 @@ div#wx-outlook-controls {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
+  color: rgba(238, 243, 239, 0.85);
   cursor: pointer;
   transition: background-color 0.2s ease;
-  gap: 3px;
 }
 
 .mobile-menu-toggle:hover {
   background: rgba(255, 255, 255, 0.14);
 }
 
-.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
+.mobile-menu-toggle__caret {
+  transition: transform 0.25s ease;
 }
 
-.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
-  opacity: 0;
-}
-
-.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
-}
-
-.hamburger-line {
-  width: 16px;
-  height: 2px;
-  background: rgba(238, 243, 239, 0.85);
-  border-radius: 1px;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+.mobile-menu-toggle[data-open="true"] .mobile-menu-toggle__caret {
+  transform: rotate(180deg);
 }
 
 /* Mobile Menu Overlay */
@@ -1155,6 +1170,16 @@ div#wx-outlook-controls {
     font-size: 1rem;
   }
 
+  .header-brand__drawer-toggle {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.9rem;
+    /* Targeted separation from the brand title only: the shared `.header-brand`
+       `gap` sizes every brand-row item uniformly, so this adds to it just
+       between the trigger and the title rather than widening every gap. */
+    margin-right: 0.3rem;
+  }
+
   .nav-primary {
     display: none; /* Hide main nav on mobile, show hamburger */
   }
@@ -1178,34 +1203,46 @@ div#wx-outlook-controls {
 /* Extra Small Mobile */
 @media (max-width: 480px) {
   .header-container {
-    padding: 0 0.375rem;
+    /* Was 0.3rem: with justify-content: space-between and exactly two
+       .header-content children, the rendered Install App -> menu-toggle gap
+       equals (available width) - (header-brand content width) - (header-nav
+       width), independent of any explicit gap value on either container --
+       so recovering real available width here (not a gap number) is what
+       actually widens that clearance. */
+    padding: 0 0.2rem;
   }
 
-  /* Tighten every horizontal contributor at 320px so the Install App button and
-     the menu toggle keep measurable clearance on the wider serif/mono fallbacks
-     used by Firefox and WebKit on Linux, not just the ~2px seen on Windows. */
+  /* Tighten every horizontal contributor at 320px so the always-visible drawer
+     hamburger, the Install App button, and the menu toggle keep measurable
+     clearance on the wider serif/mono fallbacks used by Firefox and WebKit on
+     Linux, not just the ~2px seen on Windows. */
   .header-content {
-    gap: 0.3rem;
+    gap: 0.2rem;
   }
 
   .header-brand {
-    gap: 0.25rem;
+    /* Was 0.18rem. Shared by all five brand-row items, including the
+       drawer-toggle's own dedicated margin-right below (unchanged) that
+       guarantees its 8px minimum gap to the title -- shaving 0.04rem here
+       still leaves that gap at ~9.4px while recovering width from the other
+       three internal gaps too. */
+    gap: 0.14rem;
   }
 
   .brand-title {
-    font-size: 0.86rem;
+    font-size: 0.78rem;
     letter-spacing: 0;
   }
 
   .app-version,
   .timestamp {
-    font-size: 0.57rem;
-    padding: 0.05rem 0.24rem;
+    font-size: 0.53rem;
+    padding: 0.03rem 0.15rem;
   }
 
   .header-brand .btn {
-    padding: 0.2rem 0.32rem;
-    font-size: 0.59rem;
+    padding: 0.15rem 0.2rem;
+    font-size: 0.55rem;
   }
 
   .header-brand .btn svg {
@@ -1213,12 +1250,18 @@ div#wx-outlook-controls {
   }
 
   .mobile-menu-toggle {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 1.9rem;
+    height: 1.9rem;
   }
 
-  .hamburger-line {
-    width: 14px;
+  .header-brand__drawer-toggle {
+    width: 1.65rem;
+    height: 1.65rem;
+    font-size: 0.78rem;
+    /* Re-declared because the 640px rule's margin-right would otherwise be
+       paired with this narrower breakpoint's tighter `.header-brand` gap,
+       falling under the 8px minimum trigger-to-title separation. */
+    margin-right: 0.45rem;
   }
 
   .theme-toggle {
@@ -1240,7 +1283,211 @@ div#wx-outlook-controls {
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .header,
-  .nav-link {
+  .nav-link,
+  .mobile-menu-toggle__caret,
+  .header-brand__drawer-toggle,
+  .mission-drawer__backdrop,
+  .mission-drawer__panel {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ===========================================
+   MISSION DRAWER (global Saved spots / Recent forecasts)
+   =========================================== */
+.mission-drawer[hidden] {
+  display: none;
+}
+
+.mission-drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 16, 0.55);
+  z-index: 1000;
+  animation: mission-drawer-fade 0.18s ease;
+}
+
+.mission-drawer__panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  width: min(480px, calc(100vw - 3rem));
+  max-width: 480px;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+  outline: none;
+  animation: mission-drawer-slide 0.2s ease;
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.mission-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) 1.25rem 1rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.mission-drawer__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Icon-only X: a native button with no generic large/bordered `.btn` box, a
+   compact visible glyph inside a 44x44 pointer target, and existing design
+   tokens for hover, active, and focus-visible feedback. */
+.mission-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mission-drawer__close:hover,
+.mission-drawer__close:active {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.mission-drawer__close:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Saved spots and Recent forecasts are plain data lists, not menus: drop the
+   browser's default marker and indentation reserved for `ul`/`li`. */
+.mission-drawer__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mission-drawer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  flex: 1 1 auto;
+  padding: 1.25rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mission-drawer__section {
+  min-width: 0;
+}
+
+.mission-drawer__waypoint-input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* Saved-spot / recent rows wrap inside the narrow drawer instead of overflowing
+   (the project's utility CSS has no `flex-wrap` class, so it is set here). */
+.mission-drawer__list-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mission-drawer__list-row > div {
+  min-width: 0;
+}
+
+/* Saved-spot and history names are unbounded user text; wrap arbitrary strings
+   (including a single unbroken token) so they never widen the scrolling body. */
+.mission-drawer__list-row > div > p {
+  overflow-wrap: anywhere;
+}
+
+.mission-drawer__waypoint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+@keyframes mission-drawer-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mission-drawer-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .mission-drawer__panel {
+    width: calc(100vw - 2.5rem);
+  }
+
+  .mission-drawer__header {
+    padding: calc(0.875rem + env(safe-area-inset-top, 0px)) 1rem 0.875rem;
+  }
+
+  .mission-drawer__body {
+    gap: 1.5rem;
+    padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Drop the saved-spot actions onto their own full-width row and lay them out
+     as an even 2-up grid so nothing is clipped by the panel edge. */
+  .mission-drawer__waypoint-actions {
+    flex-basis: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mission-drawer__waypoint-actions .btn {
+    min-width: 0;
+  }
+}
+
+/* Declared after the drawer base rules so the no-motion override wins. */
+@media (prefers-reduced-motion: reduce) {
+  .mission-drawer__backdrop,
+  .mission-drawer__panel {
+    animation: none;
     transition: none;
   }
 }
