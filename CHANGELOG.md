@@ -29,6 +29,15 @@
 - **Tuned** `playwright.config.ts` for the browser release gate: CI runs serially with `retries: 0` and `failOnFlakyTests: true` so any non-first-try failure blocks release; local dev keeps `retries: 1` only to avoid re-running the whole suite over an occasional slow browser-process launch under parallel load
 - **Unchanged**: authentication, backend/cloud sync, the mission storage schema, forecast and weather calculations, Results validation rules, navigation destinations and copy, and the theme toggle
 
+### UAT Drawer Polish
+
+- **Renamed** the drawer title from "Saved spots and recent forecasts" to "My Forecasts" in `src/components/MissionDrawer.tsx`; aligned the hamburger trigger's accessible label ("Open My Forecasts" in `src/App.tsx`) and the close control's accessible label ("Close My Forecasts") to match; the internal "Saved spots" and "Recent forecasts" section headings and all saved/recent content, actions, storage, routing, and modal behavior are unchanged
+- **Removed** default browser list markers and indentation from the populated Saved spots and Recent forecasts lists with a new `.mission-drawer__list` reset (`list-style: none`, no margin, no padding) applied to both `<ul>` elements in `src/index.css`; card spacing, borders, action layout, long-name wrapping, and empty-state copy are unchanged
+- **Restyled** `.mission-drawer__close` in `src/index.css` as a dedicated icon-only X control: removed the generic `.btn.btn-secondary` classes from the button in `src/components/MissionDrawer.tsx`, replaced with a transparent-at-rest, borderless 44x44 CSS-pixel target using existing design tokens for hover/active (`--bg-tertiary`, `--text-primary`) and `:focus-visible` (`--border-focus`); still a native `button` with an accessible name, keyboard activation, and the existing close/focus-return behavior
+- **Added** a targeted `margin-right` on `.header-brand__drawer-toggle` at the existing <=640px and <=480px breakpoints in `src/index.css` so the hamburger keeps at least 8 CSS pixels of separation from "Fishing Report" at 320px, 375px, and 390px, without widening the shared `.header-brand` `gap` that governs the tightly-tuned version/timestamp/Install App/menu-toggle spacing
+- **Extended** `e2e/mission-drawer.spec.ts`: the header-row test now covers 375px and asserts the trigger-title gap is at least 8px at every mobile width; added a computed-style check that both populated lists resolve `list-style-type: none` with zero margin/padding, and a check that the close control is >=44x44px, contained within the panel, transparent and borderless at rest, and shows a `:focus-visible` outline on keyboard focus; updated the dialog accessible-name assertions (here and in `src/App.test.tsx`) to "My Forecasts"
+- **Unchanged**: mission data, storage, shared draft state, forecast/weather behavior, routing destinations, the focus trap and modal lifecycle, drawer dimensions, and mobile navigation behavior; `package.json` and `package-lock.json` remain at 1.6.0
+
 ## 2026-09-07 v1.5.4
 
 ### Version Bump to 1.5.4

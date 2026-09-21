@@ -231,15 +231,15 @@ export default function MissionDrawer({
           >
             <div className="mission-drawer__header" id="mission-drawer-header">
               <h2 className="mission-drawer__title" id={DRAWER_TITLE_ID}>
-                Saved spots and recent forecasts
+                My Forecasts
               </h2>
               <button
-                className="mission-drawer__close btn btn-secondary"
+                className="mission-drawer__close"
                 id="mission-drawer-close"
                 data-testid="mission-drawer-close"
                 type="button"
                 onClick={onClose}
-                aria-label="Close saved spots and recent forecasts"
+                aria-label="Close My Forecasts"
               >
                 <Icon name="xmark" />
               </button>
@@ -301,7 +301,7 @@ export default function MissionDrawer({
                   <p className="text-sm text-muted">No saved spots yet.</p>
                 ) : (
                   <ul
-                    className="grid gap-2"
+                    className="mission-drawer__list grid gap-2"
                     id="waypoint-list"
                     data-testid="waypoint-list"
                   >
@@ -375,7 +375,7 @@ export default function MissionDrawer({
                   <p className="text-sm text-muted">No recent forecasts yet.</p>
                 ) : (
                   <ul
-                    className="grid gap-2"
+                    className="mission-drawer__list grid gap-2"
                     id="mission-history-list"
                     data-testid="mission-history-list"
                   >

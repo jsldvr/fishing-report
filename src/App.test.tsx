@@ -188,6 +188,7 @@ describe("App drawer trigger", () => {
     expect(trigger.compareDocumentPosition(title) & FOLLOWING).toBeTruthy();
     expect(trigger).toHaveAttribute("aria-controls", "mission-drawer");
     expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(trigger).toHaveAccessibleName(/my forecasts/i);
   });
 
   it("exposes the hamburger on every route", () => {
@@ -195,7 +196,7 @@ describe("App drawer trigger", () => {
     expect(getDrawerTrigger()).toBeInTheDocument();
     openDrawer();
     expect(
-      screen.getByRole("dialog", { name: /saved spots and recent forecasts/i })
+      screen.getByRole("dialog", { name: /my forecasts/i })
     ).toBeInTheDocument();
   });
 
@@ -204,7 +205,7 @@ describe("App drawer trigger", () => {
     const dialog = openDrawer();
 
     expect(dialog).toHaveAttribute("aria-modal", "true");
-    expect(dialog).toHaveAccessibleName("Saved spots and recent forecasts");
+    expect(dialog).toHaveAccessibleName("My Forecasts");
     expect(getDrawerTrigger()).toHaveAttribute("aria-expanded", "true");
   });
 
@@ -215,7 +216,11 @@ describe("App drawer trigger", () => {
     const panel = screen.getByTestId("mission-drawer-panel");
     expect(panel).toHaveFocus();
 
-    fireEvent.click(screen.getByTestId("mission-drawer-close"));
+    const closeButton = screen.getByTestId("mission-drawer-close");
+    expect(closeButton).toHaveAccessibleName(/my forecasts/i);
+    expect(closeButton).not.toHaveClass("btn");
+
+    fireEvent.click(closeButton);
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(getDrawerTrigger()).toHaveFocus();
   });

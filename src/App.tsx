@@ -167,7 +167,7 @@ function AppShell() {
                 data-testid="mission-drawer-toggle"
                 type="button"
                 onClick={toggleDrawer}
-                aria-label="Saved spots and recent forecasts"
+                aria-label="Open My Forecasts"
                 aria-expanded={drawerOpen}
                 aria-controls="mission-drawer"
                 ref={drawerTriggerRef}

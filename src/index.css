@@ -1174,6 +1174,10 @@ div#wx-outlook-controls {
     width: 2rem;
     height: 2rem;
     font-size: 0.9rem;
+    /* Targeted separation from the brand title only: the shared `.header-brand`
+       `gap` sizes every brand-row item uniformly, so this adds to it just
+       between the trigger and the title rather than widening every gap. */
+    margin-right: 0.3rem;
   }
 
   .nav-primary {
@@ -1243,6 +1247,10 @@ div#wx-outlook-controls {
     width: 1.65rem;
     height: 1.65rem;
     font-size: 0.78rem;
+    /* Re-declared because the 640px rule's margin-right would otherwise be
+       paired with this narrower breakpoint's tighter `.header-brand` gap,
+       falling under the 8px minimum trigger-to-title separation. */
+    margin-right: 0.45rem;
   }
 
   .theme-toggle {
@@ -1327,8 +1335,44 @@ div#wx-outlook-controls {
   color: var(--text-primary);
 }
 
+/* Icon-only X: a native button with no generic large/bordered `.btn` box, a
+   compact visible glyph inside a 44x44 pointer target, and existing design
+   tokens for hover, active, and focus-visible feedback. */
 .mission-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mission-drawer__close:hover,
+.mission-drawer__close:active {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.mission-drawer__close:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Saved spots and Recent forecasts are plain data lists, not menus: drop the
+   browser's default marker and indentation reserved for `ul`/`li`. */
+.mission-drawer__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .mission-drawer__body {

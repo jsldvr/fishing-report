@@ -113,6 +113,7 @@ describe("MissionDrawer", () => {
     saveWaypoint("Test Spot");
 
     const list = screen.getByTestId("waypoint-list");
+    expect(list).toHaveClass("mission-drawer__list");
     expect(within(list).getByText("Test Spot")).toBeInTheDocument();
     expect(within(list).getByText("40.7128, -74.0060")).toBeInTheDocument();
   });
@@ -179,6 +180,7 @@ describe("MissionDrawer", () => {
 
     openDrawer();
     const historyList = screen.getByTestId("mission-history-list");
+    expect(historyList).toHaveClass("mission-drawer__list");
     expect(within(historyList).getByText("Dock B")).toBeInTheDocument();
   });
 

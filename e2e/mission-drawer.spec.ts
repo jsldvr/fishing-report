@@ -169,6 +169,112 @@ test.describe("mission drawer", () => {
     }
   });
 
+  test("renders populated Saved spots and Recent forecasts with no list markers or indentation", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "fishing-report.mission-state.v1",
+        JSON.stringify({
+          schemaVersion: 1,
+          waypoints: [
+            {
+              id: "wp_marker_check",
+              name: "Marker Check Cove",
+              lat: 41.2,
+              lon: -72.1,
+              createdAtIso: "2026-01-01T00:00:00.000Z",
+              updatedAtIso: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+          history: [
+            {
+              id: "run_marker_check",
+              lat: 41.2,
+              lon: -72.1,
+              name: "Marker Check Run",
+              startDate: "2026-01-02",
+              days: 3,
+              timestampIso: "2026-01-02T12:00:00.000Z",
+            },
+          ],
+        })
+      );
+    });
+    await gotoRoute(page, "/");
+    await openDrawer(page);
+
+    for (const testId of ["waypoint-list", "mission-history-list"]) {
+      const style = await page.getByTestId(testId).evaluate((el) => {
+        const computed = getComputedStyle(el);
+        return {
+          listStyleType: computed.listStyleType,
+          marginTop: computed.marginTop,
+          marginBottom: computed.marginBottom,
+          paddingLeft: computed.paddingLeft,
+          paddingInlineStart: computed.paddingInlineStart,
+        };
+      });
+      expect(style.listStyleType, `${testId} list-style-type`).toBe("none");
+      expect(style.marginTop, `${testId} margin-top`).toBe("0px");
+      expect(style.marginBottom, `${testId} margin-bottom`).toBe("0px");
+      expect(style.paddingLeft, `${testId} padding-left`).toBe("0px");
+      expect(style.paddingInlineStart, `${testId} padding-inline-start`).toBe(
+        "0px"
+      );
+    }
+  });
+
+  test("close control is an icon-only button with an adequate pointer target and no boxed treatment", async ({
+    page,
+  }) => {
+    await gotoRoute(page, "/", 320, 844);
+    await openDrawer(page);
+
+    const closeButton = page.getByTestId("mission-drawer-close");
+    await expect(closeButton).toHaveAccessibleName(/my forecasts/i);
+
+    const box = await boxOf(closeButton);
+    expect(box.width, "close control width").toBeGreaterThanOrEqual(44);
+    expect(box.height, "close control height").toBeGreaterThanOrEqual(44);
+
+    const panelBox = await boxOf(page.getByTestId("mission-drawer-panel"));
+    const titleBox = await boxOf(
+      page.getByRole("heading", { name: /my forecasts/i })
+    );
+    // Contained within the panel, with no title overlap.
+    expect(box.x + box.width).toBeLessThanOrEqual(panelBox.x + panelBox.width + 1);
+    expect(overlaps(titleBox, box)).toBe(false);
+
+    const restingStyle = await closeButton.evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return {
+        backgroundColor: computed.backgroundColor,
+        borderWidth: computed.borderTopWidth,
+      };
+    });
+    // No generic large/bordered `.btn.btn-secondary` box at rest.
+    expect(
+      restingStyle.backgroundColor === "rgba(0, 0, 0, 0)" ||
+        restingStyle.backgroundColor === "transparent"
+    ).toBe(true);
+    expect(restingStyle.borderWidth).toBe("0px");
+
+    // Keyboard-driven focus (not a programmatic .focus()) so :focus-visible
+    // reliably applies across engines. The panel autofocuses on open; the
+    // close button is the first focusable control after it in DOM order.
+    await page.keyboard.press("Tab");
+    await expect(closeButton).toBeFocused();
+    const focusOutline = await closeButton.evaluate(
+      (el) => getComputedStyle(el).outlineStyle
+    );
+    expect(focusOutline).not.toBe("none");
+
+    await closeButton.click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(await noDocumentOverflow(page)).toBe(true);
+  });
+
   test("is reachable from a non-home route", async ({ page }) => {
     await gotoRoute(page, "/guide");
     // Confirm the Guide route actually rendered (not Home via a bad path).
@@ -178,7 +284,7 @@ test.describe("mission drawer", () => {
 
     await openDrawer(page);
     await expect(
-      page.getByRole("dialog", { name: /saved spots and recent forecasts/i })
+      page.getByRole("dialog", { name: /my forecasts/i })
     ).toBeVisible();
   });
 
@@ -318,10 +424,10 @@ test.describe("mission drawer", () => {
     await expect(page.locator(".mobile-menu-overlay")).toHaveCount(0);
   });
 
-  test("header stays one contained row with the hamburger at 1280, 800, 390, and 320", async ({
+  test("header stays one contained row with the hamburger at 1280, 800, 390, 375, and 320", async ({
     page,
-  }) => {
-    for (const width of [1280, 800, 390, 320]) {
+  }, testInfo) => {
+    for (const width of [1280, 800, 390, 375, 320]) {
       await gotoRoute(page, "/", width, width < 500 ? 720 : 900);
 
       const hamburger = page.getByTestId("mission-drawer-toggle");
@@ -349,6 +455,18 @@ test.describe("mission drawer", () => {
         ).toBeLessThanOrEqual(6);
       }
       expect(overlaps(hamburgerBox, titleBox)).toBe(false);
+
+      // The trigger/title gap must be a deliberate, visible separation, not
+      // just "not overlapping" -- at least 8 CSS pixels on narrow mobile.
+      const triggerTitleGap = titleBox.x - (hamburgerBox.x + hamburgerBox.width);
+      expect(
+        triggerTitleGap,
+        `hamburger/title gap too tight at ${width}px: ${triggerTitleGap.toFixed(2)}px`
+      ).toBeGreaterThanOrEqual(8);
+      console.log(
+        `[${testInfo.project.name}] ${width}px hamburger -> title gap: ${triggerTitleGap.toFixed(2)}px`
+      );
+
       expect(await noDocumentOverflow(page)).toBe(true);
     }
   });
