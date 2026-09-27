@@ -1,8 +1,8 @@
-# 🎣 Tactical Fishing Intel Platform
+# Fishing Forecast
 
-**Mission-critical angling intelligence for the modern outdoorsman.** This ain't your grandpa's fishing app - it's a full-stack React/TypeScript tactical platform delivering real-time situational awareness for water operations across North America.
+**Fishing Forecast is an open source web app for planning fishing trips around weather, water, and solunar conditions in North America.** It is a static React/TypeScript client that runs entirely in the browser and reads public data sources such as Open-Meteo, the National Weather Service, and NOAA CO-OPS.
 
-Built by suburban tacti-cool operators, for suburban tacti-cool operators who understand that fish are just another target requiring proper intel, timing, and environmental assessment.
+You can run it locally or deploy your own copy to any static host using the instructions below.
 
 ## 🎯 Operational Capabilities
 

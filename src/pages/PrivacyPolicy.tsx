@@ -4,7 +4,7 @@ const sections: ContentPageSection[] = [
   {
     title: "Purpose of This Policy",
     paragraphs: [
-      "This Privacy Policy explains, in plain terms, that Fishing Report only uses functional cookies that support the core experience of generating weather-informed fishing forecasts. No marketing trackers, behavioral analytics, or unnecessary tags are used.",
+      "This Privacy Policy explains, in plain terms, that Fishing Forecast only uses functional cookies that support the core experience of generating weather-informed fishing forecasts. No marketing trackers, behavioral analytics, or unnecessary tags are used.",
       "By continuing to use the site, you acknowledge that functional cookies are essential to keep your session working, remember your unit preferences, and maintain continuity across visits. If these cookies are disabled, key features may degrade or stop working reliably.",
     ],
   },
@@ -41,7 +41,7 @@ export default function PrivacyPolicy() {
       sectionsId="privacy-sections"
       sectionIdPrefix="privacy"
       title="Privacy Policy"
-      subtitle="Effective October 19, 2025 - Fishing Report uses only functional cookies required to deliver forecasts."
+      subtitle="Effective October 19, 2025 - Fishing Forecast uses only functional cookies required to deliver forecasts."
       sections={sections}
     />
   );

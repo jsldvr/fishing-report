@@ -223,7 +223,7 @@ test("desktop header is one contained row with matching metadata pills", async (
   const headerBrand = page.locator(".header-brand");
   const headerNav = page.locator(".header-nav");
   const drawerToggle = headerBrand.getByTestId("mission-drawer-toggle");
-  const title = headerBrand.getByRole("heading", { name: "Fishing Report" });
+  const title = headerBrand.getByRole("heading", { name: "Fishing Forecast" });
   const version = headerBrand.locator(".app-version");
   const timestamp = headerBrand.locator(".timestamp");
 
@@ -297,7 +297,7 @@ test("narrow mobile header keeps one row with Install App and a working menu", a
   await dispatchInstallPrompt(page);
 
   const drawerToggle = headerBrand.getByTestId("mission-drawer-toggle");
-  const title = headerBrand.getByRole("heading", { name: "Fishing Report" });
+  const title = headerBrand.getByRole("heading", { name: "Fishing Forecast" });
   const version = headerBrand.locator(".app-version");
   const timestamp = headerBrand.locator(".timestamp");
   const installButton = page.getByRole("button", { name: /install app/i });

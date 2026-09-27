@@ -93,7 +93,7 @@ describe("App header", () => {
     renderApp();
 
     const brand = within(getBrand());
-    const title = brand.getByRole("heading", { name: "Fishing Report" });
+    const title = brand.getByRole("heading", { name: "Fishing Forecast" });
     const version = brand.getByText(`v${packageJson.version}`);
     const timestamp = brand.getByText(TIME_PATTERN);
 
@@ -182,7 +182,7 @@ describe("App drawer trigger", () => {
 
     const brand = getBrand();
     const trigger = getDrawerTrigger();
-    const title = within(brand).getByRole("heading", { name: "Fishing Report" });
+    const title = within(brand).getByRole("heading", { name: "Fishing Forecast" });
 
     expect(brand.firstElementChild).toBe(trigger);
     expect(trigger.compareDocumentPosition(title) & FOLLOWING).toBeTruthy();

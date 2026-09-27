@@ -4,7 +4,7 @@ const sections: ContentPageSection[] = [
   {
     title: "Cookie Usage",
     paragraphs: [
-      "This Cookie Consent Statement explains that Fishing Report uses narrowly-scoped functional cookies to keep the app working. These cookies remember navigation preferences, unit settings, and prevent redundant loading.",
+      "This Cookie Consent Statement explains that Fishing Forecast uses narrowly-scoped functional cookies to keep the app working. These cookies remember navigation preferences, unit settings, and prevent redundant loading.",
       "No marketing pixels or behavioral profiles are created. Functional cookies are the only ones used, consistent with the site's entertainment purpose.",
     ],
   },
@@ -34,7 +34,7 @@ export default function CookieConsent() {
       sectionsId="cookie-sections"
       sectionIdPrefix="cookie"
       title="Cookie Consent"
-      subtitle="Fishing Report uses functional cookies exclusively to run the app. No other tracking is used."
+      subtitle="Fishing Forecast uses functional cookies exclusively to run the app. No other tracking is used."
       sections={sections}
     />
   );

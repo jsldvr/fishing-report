@@ -4,7 +4,7 @@ const sections: ContentPageSection[] = [
   {
     title: "Local, Regional, and Federal Obligations",
     paragraphs: [
-      "Fishing is governed by layered regulatory authorities, including municipal ordinances, state wildlife codes, regional management councils, and federal conservation statutes. Fishing Report provides entertainment-grade forecasts and does not replace statutory requirements.",
+      "Fishing is governed by layered regulatory authorities, including municipal ordinances, state wildlife codes, regional management councils, and federal conservation statutes. Fishing Forecast provides entertainment-grade forecasts and does not replace statutory requirements.",
       "You must consult the controlling agency for licensing, catch limits, seasonal closures, protected species advisories, and any emergency orders in effect. Failure to comply may result in fines, permit revocation, or criminal liability.",
     ],
   },
@@ -19,7 +19,7 @@ const sections: ContentPageSection[] = [
     title: "Reporting and Documentation",
     paragraphs: [
       "Certain jurisdictions require catch reporting, logbook maintenance, or electronic submission of trip data. Make sure any required documentation is completed accurately and on time.",
-      "If you're subject to an enforcement inquiry, retain proof of licensing, catch reports, and any correspondence with authorities. Fishing Report does not mediate compliance disputes and cannot intervene on your behalf.",
+      "If you're subject to an enforcement inquiry, retain proof of licensing, catch reports, and any correspondence with authorities. Fishing Forecast does not mediate compliance disputes and cannot intervene on your behalf.",
     ],
   },
   {
@@ -41,7 +41,7 @@ export default function ComplianceStatement() {
       sectionsId="compliance-sections"
       sectionIdPrefix="compliance"
       title="Compliance Statement"
-      subtitle="You remain responsible for observing the fishing regulations issued by your governing authorities, regardless of what Fishing Report shows."
+      subtitle="You remain responsible for observing the fishing regulations issued by your governing authorities, regardless of what Fishing Forecast shows."
       sections={sections}
     />
   );
