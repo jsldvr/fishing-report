@@ -530,7 +530,7 @@ test.describe("mission drawer", () => {
       const hamburger = page.getByTestId("mission-drawer-toggle");
       const title = page
         .locator(".header-brand")
-        .getByRole("heading", { name: "Fishing Report" });
+        .getByRole("heading", { name: "Fishing Forecast" });
       const version = page.locator(".header-brand .app-version");
       const timestamp = page.locator(".header-brand .timestamp");
 
@@ -600,7 +600,7 @@ test.describe("mission drawer", () => {
       const hamburger = page.getByTestId("mission-drawer-toggle");
       const title = page
         .locator(".header-brand")
-        .getByRole("heading", { name: "Fishing Report" });
+        .getByRole("heading", { name: "Fishing Forecast" });
 
       const hamburgerBox = await boxOf(hamburger);
       const titleBox = await boxOf(title);

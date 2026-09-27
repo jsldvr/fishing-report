@@ -174,7 +174,7 @@ function AppShell() {
               >
                 <Icon name="hamburger" />
               </button>
-              <h1 className="brand-title">Fishing Report</h1>
+              <h1 className="brand-title">Fishing Forecast</h1>
               <div className="app-version" id="app-version">
                 v{APP_VERSION}
               </div>

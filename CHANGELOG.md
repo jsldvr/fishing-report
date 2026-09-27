@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-27
+
+### Public App Name: Fishing Forecast
+
+- **Changed** the `README.md` heading and opening description from "Tactical Fishing Intel Platform" to "Fishing Forecast", described as an open source, static browser app that people can run locally or deploy to any static host; clone and deployment instructions and the `jsldvr/fishing-report` repository path are unchanged
+- **Renamed** the public app name from "Fishing Report" to "Fishing Forecast" in the header `.brand-title` (`src/App.tsx`), the Home hero (`src/pages/Home.tsx`), the Cookie Consent, Compliance Statement, Privacy Policy, and Terms of Service pages, and the `src/index.css` banner comment
+- **Verified** the browser title (`index.html`), generated PWA manifest (`vite.config.ts`), `public/manifest.json`, `public/404.html`, About, and Results already use "Fishing Forecast" and remain aligned
+- **Updated** exact header-name expectations in `src/App.test.tsx`, `e2e/header.spec.ts`, and `e2e/mission-drawer.spec.ts`
+- **Added** `src/pages/LegalPages.test.tsx`, which renders the Compliance Statement, Cookie Consent, Privacy Policy, and Terms of Service pages, asserts each names the app "Fishing Forecast" with no remaining "Fishing Report", and confirms the Privacy Policy domain wording is unchanged; this brings those previously untested changed files to the `AGENTS.md` 80% line-coverage threshold
+- **Unchanged**: the `jsldvr/fishing-report` repository name and URLs, the `fishing-report` package name, the `/fishing-report/` deployment base path, `fishing-report.*` localStorage keys, third-party API User-Agent identifiers, asset filenames, the Privacy Policy "fishing-report domain" wording, application behavior, and the version (still 1.6.0)
+
 ## 2026-09-07 v1.6.0
 
 ### Version Bump to 1.6.0

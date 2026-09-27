@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="card hero-panel mb-6">
-        <h1 className="hero-title mb-2">Fishing Report</h1>
+        <h1 className="hero-title mb-2">Fishing Forecast</h1>
         <p className="hero-tagline mb-6">
           Plan around verified weather, water, and solunar conditions.
         </p>
