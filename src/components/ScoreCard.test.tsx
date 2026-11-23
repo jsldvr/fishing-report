@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ScoreCard from "./ScoreCard";
-import { hasMarineDisplayData } from "./MarineConditions";
+import { hasMarineDisplayData } from "../lib/marineDisplay";
 import type { ForecastScore } from "../types/forecast";
 
 const mockForecastWithMarine: ForecastScore = {
@@ -437,6 +437,52 @@ describe("ScoreCard", () => {
       unmount();
     }
   });
+});
+
+describe("ScoreCard calendar date", () => {
+  const ORIGINAL_TZ = process.env.TZ;
+
+  afterEach(() => {
+    process.env.TZ = ORIGINAL_TZ;
+  });
+
+  // tests/setup.ts maps every coordinate to America/New_York.
+  it.each(["America/Los_Angeles", "UTC", "Pacific/Auckland"])(
+    "keeps the forecast day in the heading and location label for a viewer in %s",
+    (viewerZone) => {
+      process.env.TZ = viewerZone;
+      const forecast = { ...mockForecastWithMarine, date: "2026-11-21" };
+      const { unmount } = render(
+        <ScoreCard forecast={forecast} lat={40.7128} lon={-74.006} />
+      );
+
+      expect(
+        screen.getByRole("heading", { name: "Saturday, Nov 21" })
+      ).toBeInTheDocument();
+      const label = document.getElementById("forecast-card-20261121-local-time");
+      expect(label).toHaveTextContent("11/21/2026 EST");
+      expect(label).toHaveAttribute("title", "UTC: 2026-11-21T05:00:00.000Z");
+      unmount();
+
+      render(
+        <ScoreCard
+          forecast={{
+            ...forecast,
+            date: "2026-03-08",
+            forecastStatus: "WEATHER_UNAVAILABLE",
+          }}
+          lat={40.7128}
+          lon={-74.006}
+        />
+      );
+      expect(
+        screen.getByRole("heading", { name: "Sunday, Mar 8" })
+      ).toBeInTheDocument();
+      expect(
+        document.getElementById("forecast-card-20260308-local-time")
+      ).toHaveTextContent("03/08/2026 EDT");
+    }
+  );
 });
 
 describe("hasMarineDisplayData", () => {

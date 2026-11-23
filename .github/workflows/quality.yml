@@ -1,0 +1,87 @@
+name: Quality gates
+
+# Release gates from AGENTS.md section 4: lint (TypeScript and HTML), types,
+# unit/component tests, >= 80% line coverage for changed files, PWA build
+# wiring for both deployment bases, and Lighthouse CI (no regressions,
+# LCP <= 2.5 s). Browser layout and axe checks run in playwright.yml.
+#
+# Pushes to main run these gates through pages.yml (workflow_call), which
+# deploys only after they pass for the same commit.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, types, tests, changed-file coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The coverage gate diffs against the merge base with the base branch.
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          # npm run lint includes html-validate 11, which needs Node ^22.22 or >= 24.8.
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run type-check
+      - run: npm run test:coverage
+      - name: Changed-file line coverage (>= 80%)
+        run: npm run coverage:changed -- --base "$BASE_REF"
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || (github.event_name == 'push' && github.event.before) || 'origin/main' }}
+
+  pwa-build:
+    name: Build and verify PWA (${{ matrix.base }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        base: ["/", "/fishing-report/"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          # lint:html:dist runs html-validate 11 (Node ^22.22 or >= 24.8).
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_BASE_PATH: ${{ matrix.base }}
+      - run: npm run verify:pwa -- --base "${{ matrix.base }}"
+      - run: npm run lint:html:dist
+
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Lighthouse CI (assertions in lighthouserc.cjs)
+        run: npx -y @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
+      - name: Keep Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci
+          if-no-files-found: ignore

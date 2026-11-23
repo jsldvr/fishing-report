@@ -11,7 +11,12 @@ import {
   type MarineFetchReason,
 } from "./noaaMarine.js";
 import { buildForecastReliability } from "./forecastReliability.js";
-import { addDaysToDate } from "./time.js";
+import {
+  formatTimeInZone,
+  getTimezoneFromCoords,
+  getViewerTimeZone,
+  zonedDayBounds,
+} from "./time.js";
 
 export type MarinePrefilterReason =
   | "OUTSIDE_OPERATIONAL_BOUNDS"
@@ -75,7 +80,6 @@ export async function fetchEnhancedWeather(
   if (nwsIsPrimary) {
     try {
       // Try NWS first for US locations
-      console.log(`Fetching NWS weather data for ${day.lat}, ${day.lon}`);
       weather = await nwsWeatherService.fetchEnhancedWeather(day);
     } catch (error) {
       console.warn("NWS failed, falling back to Open-Meteo:", error);
@@ -85,7 +89,6 @@ export async function fetchEnhancedWeather(
   // Fall back to Open-Meteo (international or NWS failure)
   if (!weather) {
     try {
-      console.log(`Fetching Open-Meteo weather data for ${day.lat}, ${day.lon}`);
       const openMeteoData = await fetchOpenMeteoWeather(day);
 
       usedFallbackSource = nwsIsPrimary;
@@ -123,7 +126,8 @@ export async function fetchEnhancedWeather(
         const updatedSafety = adjustSafetyWithMarine(
           weather.safety,
           mergedMarine,
-          day.date
+          day.date,
+          getTimezoneFromCoords(day.lat, day.lon)
         );
 
         weather = {
@@ -134,8 +138,6 @@ export async function fetchEnhancedWeather(
       }
       if (shouldLogMarineDiagnostics) {
         console.info("[marine] fetch outcome", {
-          lat: day.lat,
-          lon: day.lon,
           prefilterReason: marinePrefilter.reason,
           fetchReason: marineResult.reason,
           stationId: marineResult.stationId,
@@ -151,8 +153,6 @@ export async function fetchEnhancedWeather(
       : "PREFILTER_REJECTED";
     if (shouldLogMarineDiagnostics) {
       console.info("[marine] fetch skipped", {
-        lat: day.lat,
-        lon: day.lon,
         prefilterReason: marinePrefilter.reason,
         fetchReason,
       });
@@ -269,10 +269,17 @@ export function getOptimalFishingTimes(weather: EnhancedWeatherData): string[] {
     : ["Standard fishing conditions"];
 }
 
+/**
+ * Folds marine observations into a safety assessment. Tide events are limited
+ * to `isoDate` as a calendar day in `timeZone` (the fishing location's IANA
+ * zone) and labelled in that zone. The viewer's zone is only a fallback for
+ * callers that supply no location zone.
+ */
 export function adjustSafetyWithMarine(
   existingSafety: SafetyAssessment,
   marine: MarineWeatherData,
-  isoDate: string
+  isoDate: string,
+  timeZone: string = getViewerTimeZone()
 ): SafetyAssessment {
   const ratingHierarchy: SafetyAssessment["rating"][] = [
     "EXCELLENT",
@@ -353,8 +360,7 @@ export function adjustSafetyWithMarine(
       (a, b) =>
         new Date(a.timeIso).getTime() - new Date(b.timeIso).getTime()
     );
-    const dayStart = new Date(isoDate + "T00:00:00Z").getTime();
-    const dayEnd = new Date(addDaysToDate(isoDate, 1) + "T00:00:00Z").getTime();
+    const { startMs: dayStart, endMs: dayEnd } = zonedDayBounds(isoDate, timeZone);
 
     const nextHigh = tideEventsSorted.find(
       (event) =>
@@ -372,7 +378,7 @@ export function adjustSafetyWithMarine(
     if (nextHigh) {
       pushUnique(
         recommendations,
-        `Next high tide: ${formatLocalTime(nextHigh.timeIso)} (${nextHigh.heightMeters.toFixed(
+        `Next high tide: ${formatTimeInZone(nextHigh.timeIso, timeZone)} (${nextHigh.heightMeters.toFixed(
           2
         )}m)`
       );
@@ -380,7 +386,7 @@ export function adjustSafetyWithMarine(
     if (nextLow) {
       pushUnique(
         recommendations,
-        `Next low tide: ${formatLocalTime(nextLow.timeIso)} (${nextLow.heightMeters.toFixed(
+        `Next low tide: ${formatTimeInZone(nextLow.timeIso, timeZone)} (${nextLow.heightMeters.toFixed(
           2
         )}m)`
       );
@@ -393,16 +399,4 @@ export function adjustSafetyWithMarine(
     riskFactors,
     recommendations,
   };
-}
-
-function formatLocalTime(iso: string): string {
-  try {
-    const date = new Date(iso);
-    return new Intl.DateTimeFormat(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(date);
-  } catch {
-    return iso;
-  }
 }

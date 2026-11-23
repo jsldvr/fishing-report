@@ -64,6 +64,39 @@ locally with `npx playwright install firefox webkit` if you need to run those
 projects. Playwright's WebKit and Chromium are engine proxies -- they are not
 exact coverage for branded Safari or Edge.
 
+The browser suite also covers 320 CSS px and 200% zoom reflow, the color
+scheme on the first frame and on native controls, and axe WCAG 2.2 AA scans of
+Home, Privacy, and Results in both schemes. PWA behavior (manifest identity and
+scope, Chromium installability, offline navigation) needs a production build
+with a service worker, so it has its own config:
+
+```bash
+# Builds for /fishing-report/ and serves it with vite preview
+npm run test:e2e:pwa -- --project=chromium
+```
+
+### Release Gates
+
+`.github/workflows/quality.yml` enforces the `AGENTS.md` gates on pull requests
+to `main`. `.github/workflows/pages.yml` runs the same gates plus the Chromium
+browser suites for the commit being deployed and deploys only if they pass.
+Each can be run locally:
+
+```bash
+npm run lint                              # ESLint plus html-validate on index.html
+npm run type-check
+npm run test:coverage                     # Vitest with coverage (json-summary)
+npm run coverage:changed -- --base main   # >= 80% lines for each changed file
+VITE_BASE_PATH=/fishing-report/ npm run build
+npm run verify:pwa -- --base /fishing-report/   # manifest, scope, SW fallback, 404
+npm run lint:html:dist                    # html-validate on the built HTML
+npm run build && npx -y @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
+```
+
+The Lighthouse floors in `lighthouserc.cjs` are the medians measured on `main`
+before they were introduced, plus LCP <= 2.5 s. Raise them as scores improve;
+do not lower them to make a run pass.
+
 ### Production Deployment Options
 
 #### GitHub Pages (Recommended)

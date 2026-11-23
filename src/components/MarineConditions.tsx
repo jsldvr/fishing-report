@@ -1,42 +1,29 @@
 import type { MarineWeatherData } from "../types/forecast.js";
+import { hasMarineDisplayData, hasMarineMetrics } from "../lib/marineDisplay";
+import { formatTimeInZone } from "../lib/time";
 import Icon from "./Icon";
 
 interface MarineConditionsProps {
   marine: MarineWeatherData;
   dateIso: string;
+  /** The fishing location's IANA zone; tide times are shown in it. */
+  timeZone: string;
   useMph: boolean;
-}
-
-export function hasMarineDisplayData(
-  marine: MarineWeatherData | undefined
-): boolean {
-  if (!marine) return false;
-  const hasStation = Boolean(marine.stationId) || Boolean(marine.stationName);
-  const hasTides =
-    Array.isArray(marine.tideEvents) && marine.tideEvents.length > 0;
-  const hasMetrics =
-    marine.waveHeight !== undefined ||
-    marine.waterTemperature !== undefined ||
-    marine.windSpeedKph !== undefined;
-  return hasStation || hasTides || hasMetrics;
 }
 
 export default function MarineConditions({
   marine,
   dateIso,
+  timeZone,
   useMph,
 }: MarineConditionsProps) {
+  if (!hasMarineDisplayData(marine)) {
+    return null;
+  }
+
   const hasStation = Boolean(marine.stationId) || Boolean(marine.stationName);
   const hasTides =
     Array.isArray(marine.tideEvents) && marine.tideEvents.length > 0;
-  const hasMetrics =
-    marine.waveHeight !== undefined ||
-    marine.waterTemperature !== undefined ||
-    marine.windSpeedKph !== undefined;
-
-  if (!hasStation && !hasTides && !hasMetrics) {
-    return null;
-  }
 
   const idBase = `marine-${dateIso.replace(/[^0-9A-Za-z]/g, "")}`;
 
@@ -59,17 +46,6 @@ export default function MarineConditions({
       return `${miles.toFixed(1)} mi`;
     }
     return `${km} km`;
-  };
-
-  const formatTime = (iso: string): string => {
-    try {
-      return new Intl.DateTimeFormat(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date(iso));
-    } catch {
-      return iso;
-    }
   };
 
   const upcomingTides = hasTides
@@ -105,9 +81,7 @@ export default function MarineConditions({
         </p>
       )}
 
-      {(marine.waveHeight !== undefined ||
-        marine.windSpeedKph !== undefined ||
-        marine.waterTemperature !== undefined) && (
+      {hasMarineMetrics(marine) && (
         <div
           className="grid gap-3 sm:grid-cols-3 text-sm"
           id={`${idBase}-metrics`}
@@ -186,7 +160,8 @@ export default function MarineConditions({
                   className="text-gray-600"
                   id={`${idBase}-tide-${index}-time`}
                 >
-                  {formatTime(event.timeIso)} | {event.heightMeters.toFixed(2)}{" "}
+                  {formatTimeInZone(event.timeIso, timeZone)} |{" "}
+                  {event.heightMeters.toFixed(2)}{" "}
                   m
                 </span>
               </li>

@@ -3,9 +3,15 @@ import type {
   ForecastScore,
   SafetyAssessment,
 } from "../types/forecast";
-import { formatLocalDate, getTimezoneFromCoords } from "../lib/time";
+import { useState } from "react";
+import {
+  describeCalendarDateInZone,
+  formatCalendarDate,
+  getTimezoneFromCoords,
+} from "../lib/time";
+import { hasMarineDisplayData } from "../lib/marineDisplay";
 import WeatherAlerts from "./WeatherAlerts";
-import MarineConditions, { hasMarineDisplayData } from "./MarineConditions";
+import MarineConditions from "./MarineConditions";
 import Icon, { type IconName } from "./Icon";
 
 interface ScoreCardProps {
@@ -24,7 +30,11 @@ export default function ScoreCard({
   useMph = true,
 }: ScoreCardProps) {
   const tz = getTimezoneFromCoords(lat, lon);
-  const dateInfo = formatLocalDate(forecast.date, tz);
+  // forecast.date is a calendar day at the fishing location, not an instant.
+  const dateInfo = describeCalendarDateInZone(forecast.date, tz);
+  const headingDate = formatCalendarDate(forecast.date);
+  // Relative ages are measured from first render so rendering stays pure.
+  const [renderedAtMs] = useState(() => Date.now());
 
   const tempF = Math.round((forecast.weather.tempC * 9) / 5 + 32);
   const windMph = Math.round((forecast.weather.windKph / 1.609) * 10) / 10;
@@ -124,7 +134,7 @@ export default function ScoreCard({
       return "Unknown";
     }
 
-    const diffMs = Date.now() - parsed.getTime();
+    const diffMs = renderedAtMs - parsed.getTime();
     const isFuture = diffMs < 0;
     const absMs = Math.abs(diffMs);
     const minutes = Math.floor(absMs / 60000);
@@ -225,14 +235,7 @@ export default function ScoreCard({
         <div className="forecast-card__header" id={`${cardId}-header`}>
           <div className="forecast-card__title" id={`${cardId}-title`}>
             <h3 className="text-xl font-semibold forecast-card__heading">
-              {new Date(forecast.date + "T12:00:00").toLocaleDateString(
-                "en-US",
-                {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
-                }
-              )}
+              {headingDate}
             </h3>
             <p
               className="text-sm forecast-card__subtext"
@@ -272,11 +275,7 @@ export default function ScoreCard({
       <div className="forecast-card__header" id={`${cardId}-header`}>
         <div className="forecast-card__title" id={`${cardId}-title`}>
           <h3 className="text-xl font-semibold forecast-card__heading">
-            {new Date(forecast.date + "T12:00:00").toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-            })}
+            {headingDate}
           </h3>
           <p
             className="text-sm forecast-card__subtext"
@@ -790,6 +789,7 @@ export default function ScoreCard({
             <MarineConditions
               marine={forecast.weather.marine!}
               dateIso={forecast.date}
+              timeZone={tz}
               useMph={useMph}
             />
           </div>

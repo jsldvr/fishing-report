@@ -14,12 +14,25 @@ import Icon from "./components/Icon";
 import MissionDrawer from "./components/MissionDrawer";
 import ResultsDraftSync from "./state/ResultsDraftSync";
 import { MissionProvider } from "./state/MissionProvider";
+import { useColorScheme } from "./state/useColorScheme";
+import type { ColorScheme } from "./lib/colorScheme";
 
 const APP_VERSION = (packageJson as { version: string }).version;
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+/** Action text for the theme toggle; names the return to the system setting. */
+function describeThemeToggle(
+  rendered: ColorScheme,
+  next: ColorScheme | null
+): string {
+  const target: ColorScheme = rendered === "dark" ? "light" : "dark";
+  return next === null
+    ? `Switch to ${target} theme (follow system setting)`
+    : `Switch to ${target} theme`;
 }
 
 function App() {
@@ -31,7 +44,8 @@ function App() {
 }
 
 function AppShell() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const colorScheme = useColorScheme();
+  const themeToggleLabel = describeThemeToggle(colorScheme.rendered, colorScheme.next);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [installPromptEvent, setInstallPromptEvent] =
@@ -39,27 +53,6 @@ function AppShell() {
   const location = useLocation();
   const drawerTriggerRef = useRef<HTMLButtonElement>(null);
   const appShellRef = useRef<HTMLDivElement>(null);
-
-  // Initialize theme from localStorage or system preference
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-      .matches
-      ? "dark"
-      : "light";
-    const initialTheme = savedTheme || systemTheme;
-
-    setTheme(initialTheme);
-    document.documentElement.setAttribute("data-theme", initialTheme);
-  }, []);
-
-  // Toggle theme function
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
 
   // The mobile navigation menu and the Saved/Recent drawer are mutually
   // exclusive: opening either overlay closes the other.
@@ -80,21 +73,6 @@ function AppShell() {
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
-  }, []);
-
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem("theme")) {
-        const systemTheme = e.matches ? "dark" : "light";
-        setTheme(systemTheme);
-        document.documentElement.setAttribute("data-theme", systemTheme);
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   // Handle scroll restoration on route changes
@@ -146,14 +124,17 @@ function AppShell() {
       ref={appShellRef}
     >
       <ResultsDraftSync />
-      {/* Theme Toggle Button */}
+      {/* Theme toggle: two states, the system default and its opposite. */}
       <button
-        onClick={toggleTheme}
         className="theme-toggle"
-        aria-label="Toggle theme"
-        title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+        id="theme-toggle"
+        data-testid="theme-toggle"
+        type="button"
+        onClick={colorScheme.toggle}
+        aria-label={themeToggleLabel}
+        title={themeToggleLabel}
       >
-        <Icon name={theme === "light" ? "moon" : "sun"} />
+        <Icon name={colorScheme.rendered === "light" ? "moon" : "sun"} />
       </button>
 
       <header className="header">

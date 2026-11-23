@@ -11,6 +11,7 @@ import type {
   SpcOutlookRisk,
 } from "../types/forecast.js";
 import { fetchSpcOutlook } from "./spcOutlook.js";
+import { getTimezoneFromCoords, hourInZone, zonedDayBounds } from "./time.js";
 
 interface NWSPointResponse {
   properties: {
@@ -85,6 +86,15 @@ export function convertTemperatureToC(value: number, uom?: string): number {
 /** Clamp a probability-of-precipitation value into 0..100. */
 export function clampProbabilityPct(value: number): number {
   return Math.max(0, Math.min(100, value));
+}
+
+/**
+ * Start instant (epoch ms) of an NWS grid `validTime`, which is an ISO 8601
+ * interval such as "2026-11-21T14:00:00+00:00/PT1H". `new Date()` cannot parse
+ * the interval form, so the duration suffix is dropped first. NaN when invalid.
+ */
+export function parseValidTimeStartMs(validTime: string): number {
+  return new Date(validTime.split("/")[0]).getTime();
 }
 
 interface NWSAlertsResponse {
@@ -357,22 +367,31 @@ export class NWSWeatherService {
     return nwsOffices[officeId] || null;
   }
 
+  /**
+   * Averages the grid values that start within `isoDate` as a calendar day in
+   * the fishing location's `timeZone`, preferring local daylight hours (6-18).
+   */
   private extractValueForDate(
     values: Array<{ validTime: string; value: number | null }> | undefined,
-    targetDate: string
+    isoDate: string,
+    timeZone: string
   ): number | undefined {
     if (!values) return undefined;
 
-    const targetDay = targetDate.split("T")[0];
-    const dayValues = values.filter(
-      (v) => v.value !== null && v.validTime.startsWith(targetDay)
-    ) as Array<{ validTime: string; value: number }>;
+    const { startMs, endMs } = zonedDayBounds(isoDate, timeZone);
+    const dayValues = values.filter((v) => {
+      const start = parseValidTimeStartMs(v.validTime);
+      return v.value !== null && start >= startMs && start < endMs;
+    }) as Array<{ validTime: string; value: number }>;
 
     if (dayValues.length === 0) return undefined;
 
-    // Return average of daylight hours (6-18)
+    // Return average of daylight hours (6-18) at the fishing location
     const daylightValues = dayValues.filter((v) => {
-      const hour = new Date(v.validTime).getHours();
+      const hour = hourInZone(
+        new Date(parseValidTimeStartMs(v.validTime)),
+        timeZone
+      );
       return hour >= 6 && hour <= 18;
     });
 
@@ -402,27 +421,35 @@ export class NWSWeatherService {
         this.getLocalOfficeInfo(pointMetadata.forecastOffice, day.lat, day.lon),
       ]);
 
-      // Extract weather data for the target date
+      // Extract weather data for the target calendar day at the location.
+      // targetDateTime anchors only the barometric trend window (unchanged).
+      const timeZone =
+        pointMetadata.timeZone || getTimezoneFromCoords(day.lat, day.lon);
       const targetDateTime = `${day.date}T12:00:00Z`;
       const tempRaw = this.extractValueForDate(
         gridData.properties.temperature?.values,
-        targetDateTime
+        day.date,
+        timeZone
       );
       const windSpeedRaw = this.extractValueForDate(
         gridData.properties.windSpeed?.values,
-        targetDateTime
+        day.date,
+        timeZone
       );
       const precipProbability = this.extractValueForDate(
         gridData.properties.probabilityOfPrecipitation?.values,
-        targetDateTime
+        day.date,
+        timeZone
       );
       const cloudCover = this.extractValueForDate(
         gridData.properties.skyCover?.values,
-        targetDateTime
+        day.date,
+        timeZone
       );
       const pressureRaw = this.extractValueForDate(
         gridData.properties.pressure?.values,
-        targetDateTime
+        day.date,
+        timeZone
       );
 
       // Core fields must be real observations/forecasts. Throwing here lets the
@@ -450,23 +477,28 @@ export class NWSWeatherService {
       const marine: MarineWeatherData = {
         waveHeight: this.extractValueForDate(
           gridData.properties.waveHeight?.values,
-          targetDateTime
+          day.date,
+          timeZone
         ),
         swellDirection: this.extractValueForDate(
           gridData.properties.primarySwellDirection?.values,
-          targetDateTime
+          day.date,
+          timeZone
         ),
         waterTemperature: this.extractValueForDate(
           gridData.properties.waterTemperature?.values,
-          targetDateTime
+          day.date,
+          timeZone
         ),
         visibility: this.extractValueForDate(
           gridData.properties.visibility?.values,
-          targetDateTime
+          day.date,
+          timeZone
         ),
         windWaveHeight: this.extractValueForDate(
           gridData.properties.windWaveHeight?.values,
-          targetDateTime
+          day.date,
+          timeZone
         ),
       };
 

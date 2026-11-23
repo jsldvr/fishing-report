@@ -19,31 +19,39 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Release gates for this exact commit. Deployment needs both to succeed, so
+  # a failing, cancelled, or still-running gate blocks the deploy.
+  quality:
+    name: Quality gates
+    uses: ./.github/workflows/quality.yml
+
+  browser:
+    name: Browser checks
+    uses: ./.github/workflows/playwright.yml
+    with:
+      cross-browser: skip
+
   build-and-deploy:
+    needs: [quality, browser]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          # Validate built HTML runs html-validate 11 (Node ^22.22 or >= 24.8).
+          node-version: '24'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
-      - name: Type check
-        run: npm run type-check
-        
-      - name: Run tests
-        run: npm test
-        
+
       - name: Build data (optional prebuild)
         run: npm run build:data || echo "Skipping data prebuild - not configured"
         continue-on-error: true
@@ -52,7 +60,14 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_PATH: /fishing-report/
-        
+
+      # Re-check the exact artifact being deployed.
+      - name: Verify PWA manifest, scope, and offline fallback
+        run: npm run verify:pwa -- --base /fishing-report/
+
+      - name: Validate built HTML
+        run: npm run lint:html:dist
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
         

@@ -5,7 +5,7 @@ import ResultsDraftSync from "./ResultsDraftSync";
 import { MissionProvider } from "./MissionProvider";
 import { useMissionContext } from "./missionContext";
 import { missionStorage } from "../lib/missionStorage";
-import { getCurrentDateISO } from "../lib/time";
+import { getLocationTodayISO } from "../lib/time";
 
 function DraftProbe() {
   const { draft } = useMissionContext();
@@ -43,12 +43,12 @@ describe("ResultsDraftSync", () => {
 
   it("ignores an out-of-range or malformed Results query", () => {
     renderAt("/results?lat=41.5&lon=-71.3&startDate=2026-02-25&days=99");
-    expect(draftValue()).toBe(`40.7128|-74.006|${getCurrentDateISO()}|3|`);
+    expect(draftValue()).toBe(`40.7128|-74.006|${getLocationTodayISO(40.7128, -74.006)}|3|`);
   });
 
   it("leaves the draft untouched on non-Results routes", () => {
     renderAt("/about?lat=41.5&lon=-71.3&startDate=2026-02-25&days=4");
-    expect(draftValue()).toBe(`40.7128|-74.006|${getCurrentDateISO()}|3|`);
+    expect(draftValue()).toBe(`40.7128|-74.006|${getLocationTodayISO(40.7128, -74.006)}|3|`);
   });
 
   it("never records forecast history when a Results URL is opened", () => {

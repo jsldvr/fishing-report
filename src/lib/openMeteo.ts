@@ -1,5 +1,10 @@
 import type { WeatherData, DayInputs } from "../types/forecast.js";
-import { isHourInDaylightWindow } from "./time.js";
+import {
+  daysBetweenDates,
+  getCurrentDateISO,
+  getTimezoneFromCoords,
+  isHourInDaylightWindow,
+} from "./time.js";
 
 interface OpenMeteoResponse {
   hourly: {
@@ -19,12 +24,12 @@ interface OpenMeteoResponse {
  */
 export async function fetchWeather(day: DayInputs): Promise<WeatherData> {
   const baseUrl = "https://api.open-meteo.com/v1/forecast";
-  const today = new Date().toISOString().split("T")[0];
-  const targetDate = new Date(day.date);
-  const todayDate = new Date(today);
-  const daysFromToday = Math.ceil(
-    (targetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)
+  // `timezone=auto` makes Open-Meteo count forecast days from the location's
+  // today, so the offset must be measured from that same calendar date.
+  const locationToday = getCurrentDateISO(
+    getTimezoneFromCoords(day.lat, day.lon)
   );
+  const daysFromToday = daysBetweenDates(locationToday, day.date);
 
   const params = new URLSearchParams({
     latitude: day.lat.toString(),

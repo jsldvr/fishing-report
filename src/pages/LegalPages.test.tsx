@@ -5,6 +5,7 @@ import ComplianceStatement from "./ComplianceStatement";
 import CookieConsent from "./CookieConsent";
 import PrivacyPolicy from "./PrivacyPolicy";
 import TermsOfService from "./TermsOfService";
+import { IP_LOCATION_SERVICES } from "../lib/locationLookup";
 
 const APP_NAME = "Fishing Forecast";
 
@@ -31,5 +32,22 @@ describe("legal and consent pages", () => {
     const { container } = render(<PrivacyPolicy />);
 
     expect(container).toHaveTextContent("scoped to the fishing-report domain");
+  });
+
+  it("discloses the IP location fallback and every lookup service it uses", () => {
+    const { container } = render(<PrivacyPolicy />);
+
+    expect(
+      screen.getByRole("heading", { name: "Location Lookup and Third-Party Services" })
+    ).toBeVisible();
+    expect(container).toHaveTextContent(
+      /falls back to an approximate location based on your IP address/
+    );
+    for (const host of IP_LOCATION_SERVICES.map((service) => service.host)) {
+      expect(container).toHaveTextContent(host);
+    }
+    expect(container).toHaveTextContent(
+      "does not write the response or your coordinates to the browser console"
+    );
   });
 });

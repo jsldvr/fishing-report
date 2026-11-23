@@ -1,14 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/fishing.svg" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#102820" />
-    <meta class="viewport-meta" id="viewport-meta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="description" content="Science-based fishing forecast using lunar phase, weather data, and solunar theory for North America" />
-    <meta name="keywords" content="fishing, forecast, solunar, moon phase, weather, North America" />
-    <meta class="meta-og-image" id="meta-og-image" property="og:image" content="images/sharing-fishing-report.png" />
+    <meta charset="UTF-8">
+    <meta class="viewport-meta" id="viewport-meta" name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <script>
+      // Pre-paint only: apply a stored light/dark override so the first frame
+      // uses the chosen scheme. Mirrors src/lib/colorScheme.ts (key "theme").
+      try {
+        var storedScheme = localStorage.getItem("theme");
+        if (storedScheme === "light" || storedScheme === "dark") {
+          document.querySelector('meta[name="color-scheme"]').content = storedScheme;
+          document.documentElement.setAttribute("data-color-scheme", storedScheme);
+        }
+      } catch (error) {
+        // Site data blocked: follow the system preference.
+      }
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/fishing.svg">
+    <!-- The web app manifest link is injected by vite-plugin-pwa with the deployment base. -->
+    <meta name="theme-color" content="#102820">
+    <meta name="description" content="Science-based fishing forecast using lunar phase, weather data, and solunar theory for North America">
+    <meta name="keywords" content="fishing, forecast, solunar, moon phase, weather, North America">
+    <meta class="meta-og-image" id="meta-og-image" property="og:image" content="images/sharing-fishing-report.png">
     <title>Fishing Forecast - Science-based predictions for North America</title>
   </head>
   <body>

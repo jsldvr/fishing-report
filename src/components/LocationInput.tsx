@@ -1,17 +1,131 @@
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type FocusEvent,
+  type KeyboardEvent,
+} from "react";
 import { validateNorthAmericaCoords } from "../lib/time";
+import {
+  describePositionFailure,
+  getCoordinateError,
+  lookupIpLocation,
+  LOCATION_PERMISSION_DENIED_MESSAGE,
+  type CoordinateField,
+} from "../lib/locationLookup";
 import Icon from "./Icon";
 
 interface LocationInputProps {
   onLocationChange: (lat: number, lon: number, name?: string) => void;
+  /**
+   * Reports whether the coordinates currently visible in the fields form a
+   * valid North American location. A parent must not submit while false.
+   */
+  onValidityChange?: (valid: boolean) => void;
   initialLat?: number;
   initialLon?: number;
   initialName?: string;
   prefillToken?: number;
 }
 
+/** Delay before an error is announced, so it does not talk over the next field. */
+const ERROR_ANNOUNCE_DELAY_MS = 500;
+
+const ERROR_IDS: Record<CoordinateField, string> = {
+  latitude: "latitude-error",
+  longitude: "longitude-error",
+};
+
+const FIELD_LABELS: Record<CoordinateField, string> = {
+  latitude: "Latitude",
+  longitude: "Longitude",
+};
+
+const COMMON_LOCATIONS: Record<string, [number, number]> = {
+  "moore, ok": [35.3383, -97.4867],
+  "moore, oklahoma": [35.3383, -97.4867],
+  "oklahoma city, ok": [35.4676, -97.5164],
+  "oklahoma city, oklahoma": [35.4676, -97.5164],
+  "new york, ny": [40.7128, -74.006],
+  "new york, new york": [40.7128, -74.006],
+  "los angeles, ca": [34.0522, -118.2437],
+  "los angeles, california": [34.0522, -118.2437],
+  "chicago, il": [41.8781, -87.6298],
+  "chicago, illinois": [41.8781, -87.6298],
+  "houston, tx": [29.7604, -95.3698],
+  "houston, texas": [29.7604, -95.3698],
+  "miami, fl": [25.7617, -80.1918],
+  "miami, florida": [25.7617, -80.1918],
+  "seattle, wa": [47.6062, -122.3321],
+  "seattle, washington": [47.6062, -122.3321],
+  "denver, co": [39.7392, -104.9903],
+  "denver, colorado": [39.7392, -104.9903],
+  "toronto, on": [43.6532, -79.3832],
+  "toronto, ontario": [43.6532, -79.3832],
+  "vancouver, bc": [49.2827, -123.1207],
+  "vancouver, british columbia": [49.2827, -123.1207],
+};
+
+const COORDINATE_TEXT_PATTERN = /(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)/;
+
+/** Coordinates typed into the search box, when they are a valid location. */
+function parseCoordinateText(text: string): [number, number] | null {
+  const match = text.match(COORDINATE_TEXT_PATTERN);
+  if (!match) {
+    return null;
+  }
+  const lat = parseFloat(match[1]);
+  const lon = parseFloat(match[2]);
+  return validateNorthAmericaCoords(lat, lon) ? [lat, lon] : null;
+}
+
+type PhotonResult =
+  | { kind: "found"; lat: number; lon: number }
+  | { kind: "outside" }
+  | { kind: "none" };
+
+/** Photon (Komoot) geocoding, bounded to North America. Sends only the query text. */
+async function geocodeWithPhoton(query: string): Promise<PhotonResult> {
+  try {
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(
+      query
+    )}&bbox=-180,14,-50,83&limit=1`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      return { kind: "none" };
+    }
+    const data = await response.json();
+    const feature = data.features?.[0];
+    if (!feature) {
+      return { kind: "none" };
+    }
+    const [lon, lat] = feature.geometry.coordinates;
+    return validateNorthAmericaCoords(lat, lon)
+      ? { kind: "found", lat, lon }
+      : { kind: "outside" };
+  } catch {
+    return { kind: "none" };
+  }
+}
+
+/** Enter in a composing IME confirms a candidate; it must never submit. */
+function isImeComposing(event: KeyboardEvent<HTMLInputElement>): boolean {
+  // keyCode 229 covers Safari, which delivers compositionend before keydown.
+  return event.nativeEvent.isComposing || event.keyCode === 229;
+}
+
+function notFoundMessage(query: string): string {
+  return (
+    `Location "${query}" not found. Try a common city format such as ` +
+    `"Oklahoma City, OK", coordinates such as "35.3383, -97.4867", the ` +
+    `coordinate fields below, or the "Use my location" button.`
+  );
+}
+
 export default function LocationInput({
   onLocationChange,
+  onValidityChange,
   initialLat = 40.7128,
   initialLon = -74.006,
   initialName = "",
@@ -20,23 +134,29 @@ export default function LocationInput({
   const [lat, setLat] = useState(initialLat.toString());
   const [lon, setLon] = useState(initialLon.toString());
   const [locationName, setLocationName] = useState(initialName);
-  const [isValid, setIsValid] = useState(true);
+  const [touched, setTouched] = useState<Record<CoordinateField, boolean>>({
+    latitude: false,
+    longitude: false,
+  });
+  const [statusMessage, setStatusMessage] = useState("");
+  const [announcement, setAnnouncement] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
+  const announceTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const announcedRef = useRef(new Set<CoordinateField>());
+
+  const errors: Record<CoordinateField, string> = {
+    latitude: getCoordinateError("latitude", lat),
+    longitude: getCoordinateError("longitude", lon),
+  };
+  const isValid = !errors.latitude && !errors.longitude;
 
   useEffect(() => {
-    const latNum = parseFloat(lat);
-    const lonNum = parseFloat(lon);
-    const valid =
-      !isNaN(latNum) &&
-      !isNaN(lonNum) &&
-      validateNorthAmericaCoords(latNum, lonNum);
-    setIsValid(valid);
-
-    if (valid) {
-      onLocationChange(latNum, lonNum, locationName || undefined);
+    onValidityChange?.(isValid);
+    if (isValid) {
+      onLocationChange(Number(lat), Number(lon), locationName || undefined);
     }
-  }, [lat, lon, locationName, onLocationChange]);
+  }, [isValid, lat, lon, locationName, onLocationChange, onValidityChange]);
 
   useEffect(() => {
     setLat(initialLat.toString());
@@ -44,341 +164,193 @@ export default function LocationInput({
     setLocationName(initialName);
   }, [initialLat, initialLon, initialName, prefillToken]);
 
+  // A fixed field may be announced again if it later becomes invalid.
+  useEffect(() => {
+    for (const field of ["latitude", "longitude"] as const) {
+      if (!errors[field]) {
+        announcedRef.current.delete(field);
+      }
+    }
+  });
+
+  useEffect(() => () => clearTimeout(announceTimerRef.current), []);
+
+  const applyCoordinates = useCallback(
+    (nextLat: number, nextLon: number, nextName?: string) => {
+      setLat(nextLat.toFixed(4));
+      setLon(nextLon.toFixed(4));
+      if (nextName !== undefined) {
+        setLocationName(nextName);
+      }
+    },
+    []
+  );
+
+  const handleCoordinateBlur = (event: FocusEvent<HTMLInputElement>) => {
+    const field = event.currentTarget.name as CoordinateField;
+    setTouched((previous) => ({ ...previous, [field]: true }));
+    const error = getCoordinateError(field, event.currentTarget.value);
+    if (!error || announcedRef.current.has(field)) {
+      return;
+    }
+    announcedRef.current.add(field);
+    clearTimeout(announceTimerRef.current);
+    setAnnouncement("");
+    announceTimerRef.current = setTimeout(
+      () => setAnnouncement(`${FIELD_LABELS[field]}: ${error}`),
+      ERROR_ANNOUNCE_DELAY_MS
+    );
+  };
+
   const handleGeocodeLocation = async () => {
-    if (!locationName.trim()) return;
+    const query = locationName.trim();
+    if (!query) return;
+
+    setStatusMessage("");
+    const typedCoordinates = parseCoordinateText(locationName);
+    if (typedCoordinates) {
+      applyCoordinates(typedCoordinates[0], typedCoordinates[1]);
+      return;
+    }
 
     setIsGeocoding(true);
     try {
-      // Strategy 1: Check if input looks like coordinates first
-      const coordMatch = locationName.match(
-        /(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)/
-      );
-      if (coordMatch) {
-        const newLat = parseFloat(coordMatch[1]);
-        const newLon = parseFloat(coordMatch[2]);
-
-        if (
-          !isNaN(newLat) &&
-          !isNaN(newLon) &&
-          validateNorthAmericaCoords(newLat, newLon)
-        ) {
-          setLat(newLat.toFixed(4));
-          setLon(newLon.toFixed(4));
-          return;
-        }
+      const photon = await geocodeWithPhoton(locationName);
+      if (photon.kind === "found") {
+        applyCoordinates(photon.lat, photon.lon);
+        return;
       }
-
-      // Strategy 2: Use Photon API (by Komoot) - supports CORS and is free
-      try {
-        const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(
-          locationName
-        )}&bbox=-180,14,-50,83&limit=1`;
-        const response = await fetch(photonUrl);
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.features && data.features.length > 0) {
-            const feature = data.features[0];
-            const [lon, lat] = feature.geometry.coordinates;
-
-            if (validateNorthAmericaCoords(lat, lon)) {
-              setLat(lat.toFixed(4));
-              setLon(lon.toFixed(4));
-              return;
-            } else {
-              alert("Location is outside North America");
-              return;
-            }
-          }
-        }
-      } catch (photonError) {
-        console.log("Photon API failed, trying fallback...");
-      }
-
-      // Strategy 3: Hardcoded lookup for common cities as fallback
-      const commonLocations: Record<string, [number, number]> = {
-        "moore, ok": [35.3383, -97.4867],
-        "moore, oklahoma": [35.3383, -97.4867],
-        "oklahoma city, ok": [35.4676, -97.5164],
-        "oklahoma city, oklahoma": [35.4676, -97.5164],
-        "new york, ny": [40.7128, -74.006],
-        "new york, new york": [40.7128, -74.006],
-        "los angeles, ca": [34.0522, -118.2437],
-        "los angeles, california": [34.0522, -118.2437],
-        "chicago, il": [41.8781, -87.6298],
-        "chicago, illinois": [41.8781, -87.6298],
-        "houston, tx": [29.7604, -95.3698],
-        "houston, texas": [29.7604, -95.3698],
-        "miami, fl": [25.7617, -80.1918],
-        "miami, florida": [25.7617, -80.1918],
-        "seattle, wa": [47.6062, -122.3321],
-        "seattle, washington": [47.6062, -122.3321],
-        "denver, co": [39.7392, -104.9903],
-        "denver, colorado": [39.7392, -104.9903],
-        "toronto, on": [43.6532, -79.3832],
-        "toronto, ontario": [43.6532, -79.3832],
-        "vancouver, bc": [49.2827, -123.1207],
-        "vancouver, british columbia": [49.2827, -123.1207],
-      };
-
-      const searchKey = locationName.toLowerCase().trim();
-      if (commonLocations[searchKey]) {
-        const [lat, lon] = commonLocations[searchKey];
-        setLat(lat.toFixed(4));
-        setLon(lon.toFixed(4));
+      if (photon.kind === "outside") {
+        setStatusMessage("Location is outside North America.");
         return;
       }
 
-      // If all strategies fail, show helpful message
-      alert(
-        `Location "${locationName}" not found. Try:\n` +
-          `- Common city format: "Oklahoma City, OK"\n` +
-          `- Coordinates: "35.3383, -97.4867"\n` +
-          `- Use the coordinate fields below\n` +
-          `- Try the "Use my location" button`
-      );
-    } catch (error) {
-      console.error("Geocoding error:", error);
-      alert(
-        'Failed to find location. Try entering coordinates like "35.3383, -97.4867"'
-      );
+      const common = COMMON_LOCATIONS[query.toLowerCase()];
+      if (common) {
+        applyCoordinates(common[0], common[1]);
+        return;
+      }
+
+      setStatusMessage(notFoundMessage(locationName));
     } finally {
       setIsGeocoding(false);
     }
   };
 
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    if (isImeComposing(event)) {
+      return;
+    }
+    void handleGeocodeLocation();
+  };
+
   const handleGetCurrentLocation = () => {
+    setStatusMessage("");
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser");
+      setStatusMessage("Geolocation is not supported by this browser.");
       return;
     }
 
     setIsGeolocating(true);
 
-    // Success handler - shared across all attempts
-    const handleSuccess = (position: GeolocationPosition) => {
-      const newLat = position.coords.latitude;
-      const newLon = position.coords.longitude;
-
-      if (validateNorthAmericaCoords(newLat, newLon)) {
-        setLat(newLat.toFixed(4));
-        setLon(newLon.toFixed(4));
-        setLocationName("");
-      } else {
-        alert("Your current location is outside North America");
-      }
+    const finish = (message = "") => {
+      setStatusMessage(message);
       setIsGeolocating(false);
     };
 
-    // First attempt: Quick network location with cached data
-    const tryQuickLocation = () => {
-      navigator.geolocation.getCurrentPosition(
-        handleSuccess,
-        (error) => {
-          console.warn("Quick location failed:", error);
-
-          // If permission denied, skip other geolocation attempts and go straight to IP
-          if (error.code === error.PERMISSION_DENIED) {
-            console.log(
-              "Permission denied on first attempt, skipping to IP location..."
-            );
-            tryIpLocation().catch((ipError) => {
-              console.error("IP location also failed:", ipError);
-              alert(
-                "Location permission denied. We tried to get your approximate location using your IP address, but that also failed. Please enter coordinates manually or allow location access and try again."
-              );
-              setIsGeolocating(false);
-            });
-            return;
-          }
-
-          tryWatchPosition();
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 3000, // 3 seconds - very fast
-          maximumAge: 1800000, // 30 minutes - use older cached data
-        }
-      );
+    const handleSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      if (!validateNorthAmericaCoords(latitude, longitude)) {
+        finish("Your current location is outside North America.");
+        return;
+      }
+      applyCoordinates(latitude, longitude, "");
+      finish();
     };
 
-    // Second attempt: Use watchPosition for continuous updates
-    const tryWatchPosition = () => {
-      let hasSucceeded = false;
-
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          if (!hasSucceeded) {
-            hasSucceeded = true;
-            clearTimeout(fallbackTimer);
-            navigator.geolocation.clearWatch(watchId);
-            handleSuccess(position);
-          }
-        },
-        (error) => {
-          console.warn("Watch position failed:", error);
-          if (!hasSucceeded) {
-            hasSucceeded = true;
-            clearTimeout(fallbackTimer);
-            navigator.geolocation.clearWatch(watchId);
-            tryLastResort();
-          }
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 2000, // 2 seconds per attempt
-          maximumAge: 3600000, // 1 hour - very old cached data is fine
-        }
-      );
-
-      // Set a fallback timeout
-      const fallbackTimer = setTimeout(() => {
-        if (!hasSucceeded) {
-          navigator.geolocation.clearWatch(watchId);
-          tryLastResort();
-        }
-      }, 5000); // 5 second fallback
+    // Approximate location from the IP address; disclosed next to the button.
+    const tryIpLocation = async (failureMessage: string) => {
+      const location = await lookupIpLocation();
+      if (!location) {
+        finish(failureMessage);
+        return;
+      }
+      applyCoordinates(location.lat, location.lon, location.name);
+      finish();
     };
 
-    // Final attempt: Aggressive cached location
+    // Final attempt: accept any cached device location, then fall back to IP.
     const tryLastResort = () => {
       navigator.geolocation.getCurrentPosition(
         handleSuccess,
-        (error) => {
-          console.error("All geolocation attempts failed:", error);
-
-          // For permission denied or any other error, try IP location immediately
-          if (error.code === error.PERMISSION_DENIED) {
-            console.log("Permission denied, trying IP location...");
-            tryIpLocation().catch((ipError) => {
-              console.error("IP location also failed:", ipError);
-              alert(
-                "Location permission denied. We tried to get your approximate location using your IP address, but that also failed. Please enter coordinates manually or allow location access and try again."
-              );
-              setIsGeolocating(false);
-            });
-            return;
-          }
-
-          // For other errors, provide specific messages and try IP fallback
-          let errorMessage = "Unable to get your location. ";
-          switch (error.code) {
-            case error.POSITION_UNAVAILABLE:
-              errorMessage +=
-                "Location services are unavailable. Trying alternative method...";
-              break;
-            case error.TIMEOUT:
-              errorMessage +=
-                "Location services are too slow. Trying alternative method...";
-              break;
-            default:
-              errorMessage += "Trying alternative method...";
-              break;
-          }
-
-          console.log(errorMessage);
-          tryIpLocation().catch((ipError) => {
-            console.error("IP location failed:", ipError);
-            alert(
-              errorMessage.replace(
-                "Trying alternative method...",
-                "Please enter coordinates manually."
-              )
-            );
-            setIsGeolocating(false);
-          });
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 1000, // 1 second - extremely fast
-          maximumAge: Infinity, // Accept any cached data, no matter how old
-        }
+        (error) => void tryIpLocation(describePositionFailure(error)),
+        { enableHighAccuracy: false, timeout: 1000, maximumAge: Infinity }
       );
     };
 
-    // Absolute last resort: IP-based location
-    const tryIpLocation = async () => {
-      console.log("Attempting IP-based location...");
-
-      try {
-        // Try multiple IP geolocation services for better reliability
-        const services = [
-          "https://ipapi.co/json/",
-          "https://ip-api.com/json/",
-          "https://ipinfo.io/json",
-        ];
-
-        for (const service of services) {
-          try {
-            console.log(`Trying IP service: ${service}`);
-            const response = await fetch(service);
-
-            if (response.ok) {
-              const data = await response.json();
-              console.log("IP location response:", data);
-
-              let lat: number = NaN,
-                lon: number = NaN,
-                city: string = "",
-                region: string = "";
-
-              // Handle different response formats
-              if (service.includes("ipapi.co")) {
-                lat = parseFloat(data.latitude);
-                lon = parseFloat(data.longitude);
-                city = data.city || "";
-                region = data.region || "";
-              } else if (service.includes("ip-api.com")) {
-                lat = parseFloat(data.lat);
-                lon = parseFloat(data.lon);
-                city = data.city || "";
-                region = data.regionName || "";
-              } else if (service.includes("ipinfo.io")) {
-                const [latStr, lonStr] = (data.loc || "").split(",");
-                lat = parseFloat(latStr);
-                lon = parseFloat(lonStr);
-                city = data.city || "";
-                region = data.region || "";
-              }
-              if (!isNaN(lat) && !isNaN(lon)) {
-                console.log(`Found IP location: ${lat}, ${lon}`);
-
-                if (validateNorthAmericaCoords(lat, lon)) {
-                  setLat(lat.toFixed(4));
-                  setLon(lon.toFixed(4));
-                  setLocationName(city && region ? `${city}, ${region}` : "");
-                  console.log("IP location set successfully");
-                  setIsGeolocating(false);
-                  return;
-                } else {
-                  console.warn(
-                    `IP location ${lat}, ${lon} is outside North America`
-                  );
-                  // Continue to next service
-                }
-              }
-            }
-          } catch (serviceError) {
-            console.warn(`IP service ${service} failed:`, serviceError);
-            // Continue to next service
-          }
+    // Second attempt: watchPosition, abandoned after five seconds.
+    const tryWatchPosition = () => {
+      let settled = false;
+      let watchId: number | undefined;
+      const settle = () => {
+        settled = true;
+        clearTimeout(fallbackTimer);
+        if (watchId !== undefined) {
+          navigator.geolocation.clearWatch(watchId);
         }
-
-        throw new Error(
-          "All IP location services failed or returned invalid coordinates"
-        );
-      } catch (error) {
-        console.error("IP location completely failed:", error);
-        throw error;
-      }
+      };
+      const fallbackTimer = setTimeout(() => {
+        if (settled) return;
+        settle();
+        tryLastResort();
+      }, 5000);
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          if (settled) return;
+          settle();
+          handleSuccess(position);
+        },
+        () => {
+          if (settled) return;
+          settle();
+          tryLastResort();
+        },
+        { enableHighAccuracy: false, timeout: 2000, maximumAge: 3600000 }
+      );
     };
 
-    // Start with quick location attempt
-    tryQuickLocation();
+    // First attempt: quick network location with cached data. A denial skips
+    // straight to the IP fallback.
+    navigator.geolocation.getCurrentPosition(
+      handleSuccess,
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          void tryIpLocation(LOCATION_PERMISSION_DENIED_MESSAGE);
+          return;
+        }
+        tryWatchPosition();
+      },
+      { enableHighAccuracy: false, timeout: 3000, maximumAge: 1800000 }
+    );
   };
 
+  const fieldProps = (field: CoordinateField) => {
+    const showError = touched[field] && Boolean(errors[field]);
+    return {
+      showError,
+      "aria-invalid": showError,
+      "aria-describedby": showError ? ERROR_IDS[field] : undefined,
+    };
+  };
+  const latitudeField = fieldProps("latitude");
+  const longitudeField = fieldProps("longitude");
+
   return (
-    <div className="hero-panel__section">
+    <div className="location-input hero-panel__section">
       <h2 className="text-xl font-semibold mb-4 text-primary flex items-center gap-2">
         <Icon name="mapPin" />
         Location
@@ -395,16 +367,19 @@ export default function LocationInput({
           </label>
           <div className="flex gap-2">
             <input
+              className="location-input__search-field input flex-1"
               id="location-name"
               type="text"
-              className="input flex-1"
               placeholder="City, lake, or coordinates"
+              aria-describedby="location-search-hint"
               value={locationName}
               onChange={(e) => setLocationName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleGeocodeLocation()}
+              onKeyDown={handleSearchKeyDown}
             />
             <button
-              className="btn btn-primary"
+              className="location-input__search-button btn btn-primary"
+              id="location-search-button"
+              type="button"
               onClick={handleGeocodeLocation}
               disabled={!locationName.trim() || isGeocoding}
             >
@@ -418,7 +393,7 @@ export default function LocationInput({
               )}
             </button>
           </div>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-xs text-muted mt-1" id="location-search-hint">
             Coordinates improve marine and local weather matching.
           </p>
         </div>
@@ -433,15 +408,19 @@ export default function LocationInput({
               Latitude (°N)
             </label>
             <input
+              className="location-input__coordinate input"
               id="latitude"
+              name="latitude"
               type="number"
               step="0.0001"
               min="14"
               max="83"
-              className="input"
               placeholder="40.7128"
               value={lat}
+              aria-invalid={latitudeField["aria-invalid"]}
+              aria-describedby={latitudeField["aria-describedby"]}
               onChange={(e) => setLat(e.target.value)}
+              onBlur={handleCoordinateBlur}
             />
           </div>
           <div>
@@ -452,19 +431,26 @@ export default function LocationInput({
               Longitude (°W)
             </label>
             <input
+              className="location-input__coordinate input"
               id="longitude"
+              name="longitude"
               type="number"
               step="0.0001"
               min="-180"
               max="-50"
-              className="input"
               placeholder="-74.0060"
               value={lon}
+              aria-invalid={longitudeField["aria-invalid"]}
+              aria-describedby={longitudeField["aria-describedby"]}
               onChange={(e) => setLon(e.target.value)}
+              onBlur={handleCoordinateBlur}
             />
           </div>
           <button
-            className="btn btn-primary"
+            className="location-input__locate-button btn btn-primary"
+            id="use-my-location-button"
+            type="button"
+            aria-describedby="location-privacy-notice"
             onClick={handleGetCurrentLocation}
             disabled={isGeolocating}
           >
@@ -482,12 +468,56 @@ export default function LocationInput({
           </button>
         </div>
 
-        {!isValid && (
-          <p className="text-sm text-error mt-2">
+        {latitudeField.showError && (
+          <p
+            className="location-input__error text-sm text-error"
+            id={ERROR_IDS.latitude}
+          >
             <Icon name="warning" className="mr-2" />
-            Enter a location within North America (14–83°N, -180 to -50°W).
+            {errors.latitude}
           </p>
         )}
+        {longitudeField.showError && (
+          <p
+            className="location-input__error text-sm text-error"
+            id={ERROR_IDS.longitude}
+          >
+            <Icon name="warning" className="mr-2" />
+            {errors.longitude}
+          </p>
+        )}
+
+        <p
+          className="location-input__privacy-notice text-xs text-muted"
+          id="location-privacy-notice"
+        >
+          Use my location asks your browser for your device location. If you
+          deny access or it is unavailable, your IP address is sent to a
+          third-party lookup service (ipapi.co, then ip-api.com, then
+          ipinfo.io) to estimate an approximate location.{" "}
+          <a
+            className="location-input__privacy-link"
+            id="location-privacy-link"
+            href="#/privacy"
+          >
+            Privacy Policy
+          </a>
+        </p>
+
+        <p
+          className="location-input__status text-sm text-secondary"
+          id="location-status"
+          role="status"
+        >
+          {statusMessage}
+        </p>
+        <div
+          className="location-input__announcer sr-only"
+          id="location-error-announcer"
+          aria-live="polite"
+        >
+          {announcement}
+        </div>
       </div>
     </div>
   );

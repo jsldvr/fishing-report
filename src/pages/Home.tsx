@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react";
+import { getTimezoneFromCoords } from "../lib/time";
 import LocationInput from "../components/LocationInput";
 import DateRangePicker from "../components/DateRangePicker";
 import Icon from "../components/Icon";
@@ -8,12 +10,27 @@ export default function Home() {
   const { draft, locationPrefillToken, setDraftLocation, setDraftDateRange } =
     useMissionContext();
   const { runDraft } = useMissionActions();
+  // The shared draft keeps the last valid location; the visible fields decide
+  // whether that location may be submitted.
+  const [isVisibleLocationValid, setVisibleLocationValid] = useState(true);
+  // Dates are calendar days at the fishing location, not at the viewer.
+  const locationTimeZone = useMemo(
+    () => getTimezoneFromCoords(draft.lat, draft.lon),
+    [draft.lat, draft.lon]
+  );
 
   const hasLocationCoordinates =
     Number.isFinite(draft.lat) && Number.isFinite(draft.lon);
 
   const isValid =
-    hasLocationCoordinates && Boolean(draft.startDate) && draft.days > 0;
+    isVisibleLocationValid &&
+    hasLocationCoordinates &&
+    Boolean(draft.startDate) &&
+    draft.days > 0;
+
+  const blockedMessage = isVisibleLocationValid
+    ? "Choose a location and forecast window to continue."
+    : "Fix the location above to continue.";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -26,6 +43,7 @@ export default function Home() {
         <div className="grid gap-6 lg:grid-cols-2 mb-6">
           <LocationInput
             onLocationChange={setDraftLocation}
+            onValidityChange={setVisibleLocationValid}
             initialLat={draft.lat}
             initialLon={draft.lon}
             initialName={draft.name}
@@ -34,6 +52,7 @@ export default function Home() {
 
           <DateRangePicker
             onDateRangeChange={setDraftDateRange}
+            timeZone={locationTimeZone}
             startDate={draft.startDate}
             days={draft.days}
             maxDays={7}
@@ -42,19 +61,21 @@ export default function Home() {
 
         <div className="text-center">
           <button
-            className="btn btn-primary btn-lg"
+            className="home__generate-button btn btn-primary btn-lg"
             id="generate-forecast-button"
+            type="button"
             onClick={runDraft}
             disabled={!isValid}
+            aria-describedby={isValid ? undefined : "generate-forecast-blocked"}
           >
             <Icon name="fish" className="mr-2" />
             Get fishing outlook
           </button>
 
           {!isValid && (
-            <p className="text-sm text-muted mt-2">
+            <p className="text-sm text-muted mt-2" id="generate-forecast-blocked">
               <Icon name="warning" className="mr-2" />
-              Choose a location and forecast window to continue.
+              {blockedMessage}
             </p>
           )}
         </div>

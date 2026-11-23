@@ -16,6 +16,15 @@ const sections: ContentPageSection[] = [
     ],
   },
   {
+    title: "Location Lookup and Third-Party Services",
+    paragraphs: [
+      "When you select Use my location, your browser asks for permission to share your device location. If you allow it, the coordinates stay in your browser and fill the latitude and longitude fields.",
+      "If you deny location access, or your device cannot provide a location, the app falls back to an approximate location based on your IP address. Your browser sends a request directly to a third-party lookup service, trying ipapi.co, then ip-api.com, then ipinfo.io until one responds. That service receives your IP address and returns an approximate city, region, and coordinates. Fishing Forecast is a static site with no application server, so it does not receive or store this response; the app keeps only the coordinates and the city and region name, and does not write the response or your coordinates to the browser console.",
+      "Searching for a place name sends the text you type to the Photon geocoding service (photon.komoot.io). Generating a forecast or weather outlook sends the selected coordinates to the public weather and tide services that supply the data: the National Weather Service (api.weather.gov), NOAA (api.tidesandcurrents.noaa.gov and mapservices.weather.noaa.gov), Open-Meteo (api.open-meteo.com), and, only when a deployment configures it as a fallback, OpenWeatherMap (api.openweathermap.org). These services operate under their own privacy policies.",
+      "Saved spots, recent forecasts, offline forecast copies, and an optional light or dark theme choice are stored in your browser's local storage on this device. You can remove them at any time by clearing this site's data in your browser.",
+    ],
+  },
+  {
     title: "Third-Party Access and Disclosure",
     paragraphs: [
       "We do not license, rent, or otherwise disclose cookie contents to third parties, except where required by applicable law or a lawful government request. Functional cookies are scoped to the fishing-report domain and are not shared with advertising networks or unrelated platforms.",
@@ -41,7 +50,7 @@ export default function PrivacyPolicy() {
       sectionsId="privacy-sections"
       sectionIdPrefix="privacy"
       title="Privacy Policy"
-      subtitle="Effective October 19, 2025 - Fishing Forecast uses only functional cookies required to deliver forecasts."
+      subtitle="Effective October 19, 2025; updated November 21, 2026 - Fishing Forecast uses only functional cookies required to deliver forecasts, plus the location services described below."
       sections={sections}
     />
   );

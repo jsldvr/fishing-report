@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { getCurrentDateISO } from "../lib/time";
+import { getLocationTodayISO } from "../lib/time";
 import type { MissionRun, MissionState } from "../lib/missionStorage";
 
 /**
@@ -11,9 +11,17 @@ export interface ForecastDraft {
   lat: number;
   lon: number;
   name: string;
+  /** Calendar date (YYYY-MM-DD) at the fishing location. */
   startDate: string;
   days: number;
+  /**
+   * True once the user (or a Results URL) set startDate. Until then the start
+   * date is a default that follows the current location's today.
+   */
+  startDateChosen: boolean;
 }
+
+export type ForecastDraftChange = Partial<Omit<ForecastDraft, "startDateChosen">>;
 
 /** Requirement 15: fallback values when no valid active draft exists. */
 export const DEFAULT_DRAFT_LOCATION = {
@@ -27,9 +35,42 @@ export function createDefaultDraft(): ForecastDraft {
     lat: DEFAULT_DRAFT_LOCATION.lat,
     lon: DEFAULT_DRAFT_LOCATION.lon,
     name: "",
-    startDate: getCurrentDateISO(),
+    startDate: getLocationTodayISO(
+      DEFAULT_DRAFT_LOCATION.lat,
+      DEFAULT_DRAFT_LOCATION.lon
+    ),
     days: DEFAULT_DRAFT_LOCATION.days,
+    startDateChosen: false,
   };
+}
+
+/**
+ * Applies a draft change. A supplied start date is a choice, and is kept from
+ * then on, when it differs from the current one or when `explicitStartDate`
+ * says so (a Results URL names its date even if it equals the old default).
+ * The date picker echoes its current value on mount, so for it only a
+ * different date counts. While the start date is still the default, moving
+ * the location moves it to the new location's today.
+ * Returns `previous` unchanged when nothing differs.
+ */
+export function mergeDraft(
+  previous: ForecastDraft,
+  change: ForecastDraftChange,
+  explicitStartDate = false
+): ForecastDraft {
+  const merged: ForecastDraft = { ...previous, ...change };
+  const suppliedDate = change.startDate !== undefined;
+  if (suppliedDate && (explicitStartDate || change.startDate !== previous.startDate)) {
+    merged.startDateChosen = true;
+  }
+  const moved = merged.lat !== previous.lat || merged.lon !== previous.lon;
+  if (moved && !merged.startDateChosen) {
+    merged.startDate = getLocationTodayISO(merged.lat, merged.lon);
+  }
+  const unchanged = (Object.keys(merged) as Array<keyof ForecastDraft>).every(
+    (key) => merged[key] === previous[key]
+  );
+  return unchanged ? previous : merged;
 }
 
 export interface ApplyDraftOptions {
@@ -53,7 +94,7 @@ export interface MissionContextValue {
   setWaypointNameDraft: (name: string) => void;
   setDraftLocation: (lat: number, lon: number, name?: string) => void;
   setDraftDateRange: (startDate: string, days: number) => void;
-  applyDraft: (next: Partial<ForecastDraft>, options?: ApplyDraftOptions) => void;
+  applyDraft: (next: ForecastDraftChange, options?: ApplyDraftOptions) => void;
 }
 
 export const MissionContext = createContext<MissionContextValue | null>(null);

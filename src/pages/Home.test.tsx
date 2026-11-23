@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import Home from "./Home";
 import { renderWithMission } from "../../tests/missionRender";
-import { getCurrentDateISO } from "../lib/time";
+import { getLocationTodayISO } from "../lib/time";
 
 const navigateMock = vi.fn();
 
@@ -77,7 +77,7 @@ describe("Home", () => {
     fireEvent.click(button);
 
     expect(navigateMock).toHaveBeenCalledWith(
-      `/results?lat=40.7128&lon=-74.006&startDate=${getCurrentDateISO()}&days=3`
+      `/results?lat=40.7128&lon=-74.006&startDate=${getLocationTodayISO(40.7128, -74.006)}&days=3`
     );
   });
 

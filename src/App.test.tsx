@@ -161,18 +161,37 @@ describe("App header", () => {
     15000
   );
 
-  it("toggles the theme from the floating control", () => {
-    renderApp();
+  it("overrides the system theme from the floating control and returns to system", () => {
+    const meta = document.createElement("meta");
+    meta.name = "color-scheme";
+    meta.content = "light dark";
+    document.head.append(meta);
 
-    const themeToggle = screen.getByRole("button", { name: /toggle theme/i });
+    try {
+      renderApp();
+      // matchMedia reports a light system preference; no override is stored.
+      expect(meta.content).toBe("light dark");
+      expect(document.documentElement).not.toHaveAttribute("data-color-scheme");
+      const themeToggle = screen.getByTestId("theme-toggle");
+      expect(themeToggle).toHaveAccessibleName("Switch to dark theme");
 
-    fireEvent.click(themeToggle);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-    expect(localStorage.getItem("theme")).toBe("dark");
+      fireEvent.click(themeToggle);
+      expect(meta.content).toBe("dark");
+      expect(document.documentElement).toHaveAttribute("data-color-scheme", "dark");
+      expect(localStorage.getItem("theme")).toBe("dark");
+      expect(themeToggle).toHaveAccessibleName(
+        "Switch to light theme (follow system setting)"
+      );
 
-    fireEvent.click(themeToggle);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
-    expect(localStorage.getItem("theme")).toBe("light");
+      fireEvent.click(themeToggle);
+      expect(meta.content).toBe("light dark");
+      expect(document.documentElement).not.toHaveAttribute("data-color-scheme");
+      expect(localStorage.getItem("theme")).toBeNull();
+      expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+    } finally {
+      meta.remove();
+      document.documentElement.removeAttribute("data-color-scheme");
+    }
   });
 });
 

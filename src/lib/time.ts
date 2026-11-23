@@ -14,34 +14,217 @@ export function getTimezoneFromCoords(lat: number, lon: number): string {
   }
 }
 
-/**
- * Format date in local timezone with UTC fallback info
- */
-export function formatLocalDate(
-  date: string | Date,
-  timezone?: string
-): {
-  local: string;
-  utc: string;
-  timezone: string;
-} {
-  const d = typeof date === "string" ? new Date(date) : date;
-  const tz = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const MS_PER_DAY = 86_400_000;
+const MS_PER_MINUTE = 60_000;
 
-  const local = new Intl.DateTimeFormat("en-US", {
-    timeZone: tz,
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Shared en-US formatter for a set of options. Constructing a formatter with a
+ * time zone is costly; formatting is cheap. Every cached formatter names its
+ * zone explicitly, so a cached instance never depends on the viewer's zone.
+ */
+function getFormatter(
+  options: Intl.DateTimeFormatOptions & { timeZone: string }
+): Intl.DateTimeFormat {
+  const key = JSON.stringify(options);
+  let formatter = formatterCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", options);
+    formatterCache.set(key, formatter);
+  }
+  return formatter;
+}
+
+/** The viewer's IANA time zone as reported by the browser. */
+export function getViewerTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+/**
+ * Epoch milliseconds for UTC midnight of a calendar date (YYYY-MM-DD). The UTC
+ * anchor is a deliberate, zone-free carrier for calendar arithmetic and
+ * formatting; it never represents the moment that day starts anywhere.
+ * Throws RangeError for anything that is not a real calendar date.
+ */
+function calendarDateToUtcMs(isoDate: string): number {
+  const match = ISO_DATE_PATTERN.exec(isoDate);
+  if (!match) {
+    throw new RangeError(`Invalid calendar date: ${isoDate}`);
+  }
+  const [year, month, day] = match.slice(1).map(Number);
+  const ms = Date.UTC(year, month - 1, day);
+  const roundTrip = new Date(ms);
+  if (roundTrip.getUTCMonth() !== month - 1 || roundTrip.getUTCDate() !== day) {
+    throw new RangeError(`Invalid calendar date: ${isoDate}`);
+  }
+  return ms;
+}
+
+function utcMsToCalendarDate(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
+/** True when the value is a real YYYY-MM-DD calendar date. */
+export function isCalendarDate(value: string): boolean {
+  try {
+    calendarDateToUtcMs(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Calendar date (YYYY-MM-DD) that an instant falls on in an IANA time zone. */
+export function calendarDateInZone(instant: Date, timeZone: string): string {
+  const parts = getFormatter({
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+  }).formatToParts(instant);
+  const field = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return `${field("year")}-${field("month")}-${field("day")}`;
+}
+
+/**
+ * Today's calendar date (YYYY-MM-DD) in an IANA time zone, defaulting to the
+ * viewer's zone. Never derived from the UTC date.
+ */
+export function getCurrentDateISO(
+  timeZone: string = getViewerTimeZone(),
+  now: Date = new Date()
+): string {
+  return calendarDateInZone(now, timeZone);
+}
+
+/**
+ * Today's calendar date at a fishing location (its IANA zone from
+ * coordinates). Forecast defaults and the earliest selectable start date use
+ * this, not the viewer's date: they can differ by a day.
+ */
+export function getLocationTodayISO(
+  lat: number,
+  lon: number,
+  now: Date = new Date()
+): string {
+  return getCurrentDateISO(getTimezoneFromCoords(lat, lon), now);
+}
+
+/** Calendar-day addition, independent of the viewer's zone and DST. */
+export function addDaysToDate(isoDate: string, days: number): string {
+  return utcMsToCalendarDate(calendarDateToUtcMs(isoDate) + days * MS_PER_DAY);
+}
+
+/** Whole calendar days from `fromIsoDate` to `toIsoDate` (negative if earlier). */
+export function daysBetweenDates(fromIsoDate: string, toIsoDate: string): number {
+  return Math.round(
+    (calendarDateToUtcMs(toIsoDate) - calendarDateToUtcMs(fromIsoDate)) /
+      MS_PER_DAY
+  );
+}
+
+/**
+ * The instant at which a calendar date's local wall-clock time
+ * (`minutesFromMidnight`) occurs in an IANA zone. The offset is re-read at the
+ * first candidate so a DST transition that day resolves to the correct side.
+ */
+export function zonedWallTimeToInstant(
+  isoDate: string,
+  timeZone: string,
+  minutesFromMidnight = 0
+): Date {
+  const wallClockMs =
+    calendarDateToUtcMs(isoDate) + minutesFromMidnight * MS_PER_MINUTE;
+  const firstOffset = getTimezoneOffsetMinutes(new Date(wallClockMs), timeZone);
+  const firstGuess = wallClockMs - firstOffset * MS_PER_MINUTE;
+  const offset = getTimezoneOffsetMinutes(new Date(firstGuess), timeZone);
+  return new Date(wallClockMs - offset * MS_PER_MINUTE);
+}
+
+/**
+ * Half-open instant range [startMs, endMs) covering a calendar date in an IANA
+ * zone. DST days are 23 or 25 hours long.
+ */
+export function zonedDayBounds(
+  isoDate: string,
+  timeZone: string
+): { startMs: number; endMs: number } {
+  return {
+    startMs: zonedWallTimeToInstant(isoDate, timeZone).getTime(),
+    endMs: zonedWallTimeToInstant(addDaysToDate(isoDate, 1), timeZone).getTime(),
+  };
+}
+
+/** Local hour (0-23) of an instant in an IANA zone. */
+export function hourInZone(instant: Date, timeZone: string): number {
+  const hour = getFormatter({
+    timeZone,
     hour: "2-digit",
+    hourCycle: "h23",
+  }).format(instant);
+  return parseInt(hour, 10);
+}
+
+/**
+ * Formats a calendar date without shifting it through any time zone.
+ * `options` must contain date fields only.
+ */
+export function formatCalendarDate(
+  isoDate: string,
+  options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  }
+): string {
+  return getFormatter({ ...options, timeZone: "UTC" }).format(
+    new Date(calendarDateToUtcMs(isoDate))
+  );
+}
+
+/**
+ * A calendar date labelled for a fishing location: the date itself with the
+ * location's zone abbreviation at local noon, plus the UTC instant the local
+ * day begins (for a tooltip).
+ */
+export function describeCalendarDateInZone(
+  isoDate: string,
+  timeZone: string
+): { local: string; utc: string; timezone: string } {
+  const localNoon = zonedWallTimeToInstant(isoDate, timeZone, 12 * 60);
+  const zoneName =
+    getFormatter({ timeZone, timeZoneName: "short" })
+      .formatToParts(localNoon)
+      .find((part) => part.type === "timeZoneName")?.value ?? timeZone;
+  const date = formatCalendarDate(isoDate, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return {
+    local: `${date} ${zoneName}`,
+    utc: zonedWallTimeToInstant(isoDate, timeZone).toISOString(),
+    timezone: timeZone,
+  };
+}
+
+/**
+ * Wall-clock time of an instant in the fishing location's IANA zone, for
+ * condition labels such as tides. Returns the input when it cannot be parsed.
+ */
+export function formatTimeInZone(iso: string, timeZone: string): string {
+  const instant = new Date(iso);
+  if (Number.isNaN(instant.getTime())) {
+    return iso;
+  }
+  return getFormatter({
+    timeZone,
+    hour: "numeric",
     minute: "2-digit",
-    second: "2-digit",
-    timeZoneName: "short",
-  }).format(d);
-
-  const utc = d.toISOString();
-
-  return { local, utc, timezone: tz };
+  }).format(instant);
 }
 
 /**
@@ -58,22 +241,6 @@ export function isHourInDaylightWindow(
   } catch {
     return true; // Default to including if parsing fails
   }
-}
-
-/**
- * Get current date in ISO format (YYYY-MM-DD)
- */
-export function getCurrentDateISO(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-/**
- * Add days to ISO date string
- */
-export function addDaysToDate(isoDate: string, days: number): string {
-  const date = new Date(isoDate + "T00:00:00");
-  date.setDate(date.getDate() + days);
-  return date.toISOString().split("T")[0];
 }
 
 /**
@@ -107,7 +274,7 @@ export interface SolunarTimes {
 }
 
 function getTimezoneOffsetMinutes(date: Date, timezone: string): number {
-  const formatter = new Intl.DateTimeFormat("en-US", {
+  const formatter = getFormatter({
     timeZone: timezone,
     timeZoneName: "shortOffset",
     hour: "2-digit",
@@ -119,7 +286,9 @@ function getTimezoneOffsetMinutes(date: Date, timezone: string): number {
     formatter.formatToParts(date).find((part) => part.type === "timeZoneName")
       ?.value || "UTC";
 
-  const match = tzName.match(/([+-])(\d{2})(?::?(\d{2}))?/);
+  // ICU renders whole-hour offsets without padding ("GMT-5", "GMT+10"), and
+  // half-hour offsets with minutes ("GMT-3:30"). "GMT" alone means UTC.
+  const match = tzName.match(/([+-])(\d{1,2})(?::?(\d{2}))?/);
   if (!match) {
     return 0;
   }
@@ -330,13 +499,14 @@ function calculateSolunarTimes(
   else if (moonPhase > 0.4 && moonPhase < 0.6) dayRating += 1;
 
   // Additional points for moon transit during daylight
-  const isDaylightTransit =
-    moonOverhead.getHours() >= 6 && moonOverhead.getHours() <= 18;
+  // Hours are read in the fishing location's zone, never the viewer's.
+  const overheadHour = hourInZone(moonOverhead, timezone);
+  const isDaylightTransit = overheadHour >= 6 && overheadHour <= 18;
   if (isDaylightTransit) dayRating += 1;
 
   // Additional points for close sun/moon alignment
   const sunMoonAlignment = Math.abs(
-    solarNoon.getHours() - moonOverhead.getHours()
+    hourInZone(solarNoon, timezone) - overheadHour
   );
   if (sunMoonAlignment < 2) dayRating += 1;
 
