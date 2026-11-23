@@ -3,8 +3,8 @@ import { AxeBuilder } from "@axe-core/playwright";
 
 /**
  * Browser-level coverage for the global Saved spots / Recent forecasts drawer:
- * responsive layout and internal scroll, the single-row header with the added
- * hamburger, focus trap and return, every close path, the mobile-navigation
+ * responsive layout and internal scroll, the header (one row, or two rows at
+ * 480px and below) with the added hamburger, focus trap and return, every close path, the mobile-navigation
  * caret and mutual exclusion, body-scroll lock, route availability, and
  * axe WCAG 2.2 AA scans with the drawer open.
  */
@@ -37,6 +37,14 @@ function centerY(box: Box): number {
 function overlaps(a: Box, b: Box): boolean {
   const [left, right] = a.x <= b.x ? [a, b] : [b, a];
   return right.x < left.x + left.width - 0.5;
+}
+
+/** Widest viewport that uses the two-row header (src/index.css). */
+const TWO_ROW_MAX_WIDTH = 480;
+
+/** Distinct rows: `lower` starts at or below the bottom of `upper`. */
+function isBelow(upper: Box, lower: Box): boolean {
+  return lower.y >= upper.y + upper.height - 0.5;
 }
 
 async function noDocumentOverflow(page: Page): Promise<boolean> {
@@ -521,7 +529,7 @@ test.describe("mission drawer", () => {
     await expect(page.locator(".mobile-menu-overlay")).toHaveCount(0);
   });
 
-  test("header stays one contained row with the hamburger at 1280, 800, 390, 375, and 320", async ({
+  test("header keeps the hamburger on the title row at 1280, 800, 390, 375, and 320", async ({
     page,
   }, testInfo) => {
     for (const width of [1280, 800, 390, 375, 320]) {
@@ -543,15 +551,31 @@ test.describe("mission drawer", () => {
       const versionBox = await boxOf(version);
       const timestampBox = await boxOf(timestamp);
 
-      // Hamburger precedes the title and shares its row.
+      // Hamburger precedes the title and shares its row. Version and timestamp
+      // share that row on wider screens and form the second row at 480px and
+      // below.
       expect(hamburgerBox.x).toBeLessThan(titleBox.x);
-      for (const box of [titleBox, versionBox, timestampBox]) {
-        expect(
-          Math.abs(centerY(hamburgerBox) - centerY(box)),
-          `control left the hamburger row at ${width}px`
-        ).toBeLessThanOrEqual(6);
+      expect(
+        Math.abs(centerY(hamburgerBox) - centerY(titleBox)),
+        `title left the hamburger row at ${width}px`
+      ).toBeLessThanOrEqual(6);
+      for (const box of [versionBox, timestampBox]) {
+        if (width <= TWO_ROW_MAX_WIDTH) {
+          expect(
+            isBelow(titleBox, box) && isBelow(hamburgerBox, box),
+            `metadata is not on the second row at ${width}px`
+          ).toBe(true);
+          expect(Math.abs(centerY(versionBox) - centerY(box))).toBeLessThanOrEqual(6);
+        } else {
+          expect(
+            Math.abs(centerY(hamburgerBox) - centerY(box)),
+            `control left the hamburger row at ${width}px`
+          ).toBeLessThanOrEqual(6);
+        }
       }
+      expect(versionBox.x).toBeLessThan(timestampBox.x);
       expect(overlaps(hamburgerBox, titleBox)).toBe(false);
+      expect(overlaps(versionBox, timestampBox)).toBe(false);
 
       // The trigger/title gap must be a deliberate, visible separation, not
       // just "not overlapping" -- at least 8 CSS pixels on narrow mobile.
@@ -568,7 +592,7 @@ test.describe("mission drawer", () => {
     }
   });
 
-  test("header keeps the hamburger, brand metadata, and Install App on one row at 320 and 800", async ({
+  test("header places Install App on the metadata row at 320 and on the title row at 800", async ({
     page,
   }) => {
     for (const width of [320, 800]) {
@@ -609,10 +633,23 @@ test.describe("mission drawer", () => {
       expect(
         Math.abs(centerY(hamburgerBox) - centerY(titleBox))
       ).toBeLessThanOrEqual(6);
+      const timestampBox = await boxOf(page.locator(".header-brand .timestamp"));
+      expect(timestampBox.x).toBeLessThan(installBox.x);
       expect(
-        Math.abs(centerY(hamburgerBox) - centerY(installBox)),
-        `Install App left the header row at ${width}px`
+        Math.abs(centerY(timestampBox) - centerY(installBox)),
+        `Install App left the metadata at ${width}px`
       ).toBeLessThanOrEqual(6);
+      if (width <= TWO_ROW_MAX_WIDTH) {
+        expect(
+          isBelow(titleBox, installBox),
+          `Install App is not on the second row at ${width}px`
+        ).toBe(true);
+      } else {
+        expect(
+          Math.abs(centerY(hamburgerBox) - centerY(installBox)),
+          `Install App left the header row at ${width}px`
+        ).toBeLessThanOrEqual(6);
+      }
       expect(await noDocumentOverflow(page)).toBe(true);
     }
   });

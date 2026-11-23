@@ -77,11 +77,19 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Lighthouse CI (assertions in lighthouserc.cjs)
+        id: lhci
         run: npx -y @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
+      # LHCI writes the per-run HTML/JSON reports and manifest.json to
+      # lighthouse-reports/ (a non-hidden directory) after assertions, whether
+      # they pass or fail. Upload only those report files; a run without them
+      # fails this step instead of silently keeping nothing.
       - name: Keep Lighthouse reports
-        if: always()
+        if: ${{ !cancelled() && steps.lhci.outcome != 'skipped' }}
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-reports
-          path: .lighthouseci
-          if-no-files-found: ignore
+          path: |
+            lighthouse-reports/*.report.html
+            lighthouse-reports/*.report.json
+            lighthouse-reports/manifest.json
+          if-no-files-found: error

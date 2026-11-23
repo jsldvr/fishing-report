@@ -95,7 +95,9 @@ npm run build && npx -y @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
 
 The Lighthouse floors in `lighthouserc.cjs` are the medians measured on `main`
 before they were introduced, plus LCP <= 2.5 s. Raise them as scores improve;
-do not lower them to make a run pass.
+do not lower them to make a run pass. Each run writes its HTML and JSON reports
+to `lighthouse-reports/` (gitignored); CI keeps them, pass or fail, as the
+`lighthouse-reports` workflow artifact.
 
 ### Production Deployment Options
 

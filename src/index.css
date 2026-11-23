@@ -1074,9 +1074,15 @@ div#wx-outlook-controls {
   margin-left: auto;
 }
 
-/* Brand metadata (version, timestamp, install control) render inline
-   after the brand title in the single header row. Version and timestamp
-   share one restrained neutral pill treatment, subordinate to the title. */
+/* Brand metadata (version, timestamp, install control) render inline after
+   the brand title on wider screens; the group box is transparent to layout
+   there and becomes its own second row at 480px and below. Version and
+   timestamp share one restrained neutral pill treatment, subordinate to the
+   title. */
+.header-brand__meta {
+  display: contents;
+}
+
 .app-version,
 .timestamp {
   display: inline-flex;
@@ -1095,6 +1101,26 @@ div#wx-outlook-controls {
 .header-brand .btn {
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+/* The header is --deep-water in both color schemes, so Install App uses the
+   same light-on-dark treatment as the other header controls instead of
+   .btn-secondary's page text color (#14231d on #102820, 1.04:1 in light). */
+.header-brand .header-brand__install {
+  color: rgba(238, 243, 239, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.header-brand .header-brand__install:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.header-brand .header-brand__install:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 2px;
 }
 
 /* ===========================================
@@ -1197,68 +1223,37 @@ div#wx-outlook-controls {
   }
 }
 
-/* Extra Small Mobile */
+/* Extra Small Mobile: two header rows. The drawer trigger and title form the
+   first row and the metadata group (version, timestamp, Install App) the
+   second; the menu toggle stays at the end, centered across both. DOM and
+   focus order are unchanged. One row could not hold the longer "Fishing
+   Forecast" title with the metadata at 320px on Linux Firefox and WebKit
+   (1.40px and 1.73px of Install App -> menu clearance in CI), so the 640px
+   sizes apply here instead of a squeezed single row. */
 @media (max-width: 480px) {
-  .header-container {
-    /* Was 0.3rem: with justify-content: space-between and exactly two
-       .header-content children, the rendered Install App -> menu-toggle gap
-       equals (available width) - (header-brand content width) - (header-nav
-       width), independent of any explicit gap value on either container --
-       so recovering real available width here (not a gap number) is what
-       actually widens that clearance. */
-    padding: 0 0.2rem;
-  }
-
-  /* Tighten every horizontal contributor at 320px so the always-visible drawer
-     hamburger, the Install App button, and the menu toggle keep measurable
-     clearance on the wider serif/mono fallbacks used by Firefox and WebKit on
-     Linux, not just the ~2px seen on Windows. */
   .header-content {
-    gap: 0.2rem;
+    padding-block: 0.4rem;
   }
 
   .header-brand {
-    /* Was 0.18rem. Shared by all five brand-row items, including the
-       drawer-toggle's own dedicated margin-right below (unchanged) that
-       guarantees its 8px minimum gap to the title -- shaving 0.04rem here
-       still leaves that gap at ~9.4px while recovering width from the other
-       three internal gaps too. */
-    gap: 0.14rem;
+    flex-wrap: wrap;
+    row-gap: 0.3rem;
   }
 
-  .brand-title {
-    font-size: 0.78rem;
-    letter-spacing: 0;
-  }
-
-  .app-version,
-  .timestamp {
-    font-size: 0.53rem;
-    padding: 0.03rem 0.15rem;
+  /* The row and Install App share one minimum height so the button, which
+     appears after load, never changes the header height (CLS stays 0). */
+  .header-brand__meta {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    min-height: 1.75rem;
   }
 
   .header-brand .btn {
-    padding: 0.15rem 0.2rem;
-    font-size: 0.55rem;
-  }
-
-  .header-brand .btn svg {
-    display: none; /* Drop the install icon; keep the label to save row width */
-  }
-
-  .mobile-menu-toggle {
-    width: 1.9rem;
-    height: 1.9rem;
-  }
-
-  .header-brand__drawer-toggle {
-    width: 1.65rem;
-    height: 1.65rem;
-    font-size: 0.78rem;
-    /* Re-declared because the 640px rule's margin-right would otherwise be
-       paired with this narrower breakpoint's tighter `.header-brand` gap,
-       falling under the 8px minimum trigger-to-title separation. */
-    margin-right: 0.45rem;
+    min-height: 1.75rem;
   }
 
   .theme-toggle {

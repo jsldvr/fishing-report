@@ -1,8 +1,8 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 
 /**
- * The only browser-level coverage in the repo. It verifies the responsive
- * header's real layout (single row, contained, no overflow), the shared
+ * Browser-level coverage of the responsive header's real layout (one row on
+ * wider screens, two rows at 480px and below, contained, no overflow), the shared
  * version/timestamp pill treatment, the conditional Install App control, and
  * basic mobile-menu operation. Nothing else about the app is exercised here.
  */
@@ -42,13 +42,14 @@ interface PillStyle {
 const ROW_ALIGNMENT_TOLERANCE_PX = 6;
 
 // Minimum horizontal clearance between the Install App button and the menu
-// toggle at 320px. Ubuntu CI Firefox/WebKit (job 106188024827/106188024873)
-// measured only 2.25px/2.61px against the prior 4px floor -- their wider
-// serif/mono font fallbacks leave less real width than local Windows
-// rendering. The fix recovers real available width (container padding,
-// internal brand-row gap, pill and button padding), not just this assertion;
-// local Windows now measures ~25px of headroom above this 8px floor.
+// toggle whenever the two share vertical space. A squeezed single row at 320px
+// measured only 1.40px (Firefox) and 1.73px (WebKit) on Ubuntu CI with the
+// longer "Fishing Forecast" title and the wider Linux font fallbacks, so the
+// header now uses two rows at 480px and below.
 const MIN_INSTALL_MENU_GAP_PX = 8;
+
+// Widest viewport that uses the two-row header (src/index.css).
+const TWO_ROW_MAX_WIDTH = 480;
 
 async function boxOf(locator: Locator): Promise<Box> {
   const box = await locator.boundingBox();
@@ -80,6 +81,15 @@ function onRowWith(reference: Box, item: Box): boolean {
     Math.abs(verticalCenter(reference) - verticalCenter(item)) <=
     ROW_ALIGNMENT_TOLERANCE_PX
   );
+}
+
+/** True when `upper` ends at or above the top of `lower`: distinct rows. */
+function isAbove(upper: Box, lower: Box): boolean {
+  return upper.y + upper.height <= lower.y + 0.5;
+}
+
+function verticallyOverlaps(a: Box, b: Box): boolean {
+  return !isAbove(a, b) && !isAbove(b, a);
 }
 
 function contains(outer: Box, inner: Box): boolean {
@@ -286,79 +296,169 @@ test("desktop header is one contained row with matching metadata pills", async (
   expect(await noDocumentOverflow(page)).toBe(true);
 });
 
-test("narrow mobile header keeps one row with Install App and a working menu", async ({
-  page,
-}, testInfo) => {
-  await openHeader(page, 320, 568);
+interface HeaderControls {
+  content: Locator;
+  drawerToggle: Locator;
+  title: Locator;
+  version: Locator;
+  timestamp: Locator;
+  installButton: Locator;
+  menuToggle: Locator;
+}
 
-  const headerContent = page.locator(".header-content");
-  const headerBrand = page.locator(".header-brand");
+function headerControls(page: Page): HeaderControls {
+  const brand = page.locator(".header-brand");
+  return {
+    content: page.locator(".header-content"),
+    drawerToggle: brand.getByTestId("mission-drawer-toggle"),
+    title: brand.getByRole("heading", { name: "Fishing Forecast" }),
+    version: brand.locator(".app-version"),
+    timestamp: brand.locator(".timestamp"),
+    installButton: brand.getByRole("button", { name: /install app/i }),
+    menuToggle: page.getByRole("button", { name: /toggle navigation/i }),
+  };
+}
 
-  await dispatchInstallPrompt(page);
-
-  const drawerToggle = headerBrand.getByTestId("mission-drawer-toggle");
-  const title = headerBrand.getByRole("heading", { name: "Fishing Forecast" });
-  const version = headerBrand.locator(".app-version");
-  const timestamp = headerBrand.locator(".timestamp");
-  const installButton = page.getByRole("button", { name: /install app/i });
-  const menuToggle = page.getByRole("button", { name: /toggle navigation/i });
-
-  await expect(drawerToggle).toBeVisible();
-  await expect(title).toBeVisible();
-  await expect(installButton).toBeVisible();
-  await expect(version).toBeVisible();
-  await expect(timestamp).toBeVisible();
-  await expect(menuToggle).toBeVisible();
-
-  const contentBox = await boxOf(headerContent);
-  const titleBox = await boxOf(title);
-  // Order matters: items[3]/items[4] are asserted as Install App / menu toggle
-  // below, so the added hamburger goes last.
-  const items: NamedBox[] = [
-    { name: "brand title", box: titleBox },
-    { name: "app version", box: await boxOf(version) },
-    { name: "status timestamp", box: await boxOf(timestamp) },
-    { name: "Install App button", box: await boxOf(installButton) },
-    { name: "menu toggle", box: await boxOf(menuToggle) },
-    { name: "drawer hamburger", box: await boxOf(drawerToggle) },
-  ];
-
-  // Every control shares the brand title's row; a wrap moves a control's center
-  // far past ROW_ALIGNMENT_TOLERANCE_PX and fails here even though horizontal
-  // spacing and page overflow would still look fine.
+/** Visible, contained, non-overlapping, and no header or page overflow. */
+async function expectContainedHeader(
+  page: Page,
+  controls: HeaderControls,
+  items: NamedBox[]
+): Promise<void> {
+  for (const control of Object.values(controls)) {
+    await expect(control).toBeVisible();
+  }
+  const contentBox = await boxOf(controls.content);
   for (const { name, box } of items) {
-    expect(onRowWith(titleBox, box), `"${name}" left the title's row`).toBe(true);
     expect(contains(contentBox, box), `"${name}" is not contained by the header`).toBe(
       true
     );
   }
-  expectNoPairOverlaps(items);
-
-  const installMenuGap = expectClearance(
-    { name: "Install App button", box: items[3].box },
-    { name: "menu toggle", box: items[4].box },
-    MIN_INSTALL_MENU_GAP_PX
-  );
-  // Surfaced per engine in the test report.
-  console.log(
-    `[${testInfo.project.name}] 320px Install App -> menu toggle gap: ${installMenuGap.toFixed(2)}px`
-  );
-
   expect(await noElementOverflow(page, ".header-content")).toBe(true);
   // .header-brand can, in principle, be forced narrower than its own
   // children (flex-shrink with min-width: 0): scrollWidth would then exceed
   // clientWidth even though every child individually still fits inside the
-  // larger .header-content box above, silently eating into the Install App /
-  // menu-toggle clearance just measured. Catch that case explicitly.
+  // larger .header-content box, silently eating into the Install App /
+  // menu-toggle clearance. Catch that case explicitly.
   expect(await noElementOverflow(page, ".header-brand")).toBe(true);
   expect(await noDocumentOverflow(page)).toBe(true);
+}
 
-  await expect(page.locator(".nav-primary")).toBeHidden();
+async function namedBoxes(controls: HeaderControls): Promise<Record<string, NamedBox>> {
+  const entries: Array<[string, string, Locator]> = [
+    ["drawer", "drawer hamburger", controls.drawerToggle],
+    ["title", "brand title", controls.title],
+    ["version", "app version", controls.version],
+    ["timestamp", "status timestamp", controls.timestamp],
+    ["install", "Install App button", controls.installButton],
+    ["menu", "menu toggle", controls.menuToggle],
+  ];
+  const boxes: Record<string, NamedBox> = {};
+  for (const [key, name, locator] of entries) {
+    boxes[key] = { name, box: await boxOf(locator) };
+  }
+  return boxes;
+}
 
-  await menuToggle.click();
+/** Keyboard reaches Install App, then the menu toggle, which opens and closes the menu. */
+async function expectKeyboardOperableMenu(
+  page: Page,
+  controls: HeaderControls
+): Promise<void> {
+  await controls.drawerToggle.focus();
+  await page.keyboard.press("Tab");
+  await expect(controls.installButton).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(controls.menuToggle).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(page.locator(".mobile-menu-overlay")).toBeVisible();
-  await menuToggle.click();
+  await page.keyboard.press("Enter");
   await expect(page.locator(".mobile-menu-overlay")).toHaveCount(0);
+}
+
+test("narrow mobile header uses two rows with Install App and a working menu", async ({
+  page,
+}, testInfo) => {
+  await openHeader(page, 320, 568);
+  await dispatchInstallPrompt(page);
+  const controls = headerControls(page);
+
+  for (const width of [320, 360, 375, 390, 412, TWO_ROW_MAX_WIDTH]) {
+    await page.setViewportSize({ width, height: 568 });
+    const b = await namedBoxes(controls);
+    await expectContainedHeader(page, controls, Object.values(b));
+
+    // Row one: the drawer trigger, then the title.
+    expect(onRowWith(b.title.box, b.drawer.box), `drawer left the title row at ${width}px`).toBe(
+      true
+    );
+    expect(b.drawer.box.x).toBeLessThan(b.title.box.x);
+    expectNoPairOverlaps([b.drawer, b.title]);
+
+    // Row two, wholly below row one: version, timestamp, Install App, in order.
+    for (const item of [b.timestamp, b.install]) {
+      expect(
+        onRowWith(b.version.box, item.box),
+        `"${item.name}" left the metadata row at ${width}px`
+      ).toBe(true);
+    }
+    for (const item of [b.version, b.timestamp, b.install]) {
+      expect(
+        isAbove(b.title.box, item.box) && isAbove(b.drawer.box, item.box),
+        `"${item.name}" is not on a row below the title at ${width}px`
+      ).toBe(true);
+    }
+    expect(b.version.box.x).toBeLessThan(b.timestamp.box.x);
+    expect(b.timestamp.box.x).toBeLessThan(b.install.box.x);
+    expectNoPairOverlaps([b.version, b.timestamp, b.install]);
+
+    // The menu toggle ends the header, clear of both rows: where it shares
+    // vertical space with a control it keeps the full clearance.
+    for (const item of [b.title, b.install]) {
+      expect(b.menu.box.x).toBeGreaterThan(item.box.x);
+      if (verticallyOverlaps(item.box, b.menu.box)) {
+        const gap = expectClearance(item, b.menu, MIN_INSTALL_MENU_GAP_PX);
+        console.log(
+          `[${testInfo.project.name}] ${width}px ${item.name} -> menu toggle gap: ${gap.toFixed(2)}px`
+        );
+      }
+    }
+
+    await expect(page.locator(".nav-primary")).toBeHidden();
+    await expectKeyboardOperableMenu(page, controls);
+  }
+});
+
+test("header above the two-row width keeps one row with Install App", async ({
+  page,
+}, testInfo) => {
+  await openHeader(page, TWO_ROW_MAX_WIDTH + 1, 568);
+  await dispatchInstallPrompt(page);
+  const controls = headerControls(page);
+
+  for (const width of [TWO_ROW_MAX_WIDTH + 1, 560, 640]) {
+    await page.setViewportSize({ width, height: 568 });
+    const b = await namedBoxes(controls);
+    await expectContainedHeader(page, controls, Object.values(b));
+
+    const items = [b.drawer, b.title, b.version, b.timestamp, b.install, b.menu];
+    for (const { name, box } of items) {
+      expect(onRowWith(b.title.box, box), `"${name}" left the title row at ${width}px`).toBe(
+        true
+      );
+    }
+    for (let i = 1; i < items.length; i += 1) {
+      expect(items[i - 1].box.x, `${items[i - 1].name} before ${items[i].name}`).toBeLessThan(
+        items[i].box.x
+      );
+    }
+    expectNoPairOverlaps(items);
+    const gap = expectClearance(b.install, b.menu, MIN_INSTALL_MENU_GAP_PX);
+    console.log(
+      `[${testInfo.project.name}] ${width}px Install App -> menu toggle gap: ${gap.toFixed(2)}px`
+    );
+    await expectKeyboardOperableMenu(page, controls);
+  }
 });
 
 test("tablet-width header with Install App visible never overlaps navigation", async ({

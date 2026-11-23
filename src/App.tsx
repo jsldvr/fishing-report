@@ -156,27 +156,31 @@ function AppShell() {
                 <Icon name="hamburger" />
               </button>
               <h1 className="brand-title">Fishing Forecast</h1>
-              <div className="app-version" id="app-version">
-                v{APP_VERSION}
+              {/* Metadata group: inline with the title on wider screens, its
+                  own second row on narrow ones (see .header-brand__meta). */}
+              <div className="header-brand__meta" id="header-brand-meta">
+                <div className="app-version" id="app-version">
+                  v{APP_VERSION}
+                </div>
+                <div className="timestamp" id="status-timestamp">
+                  {new Date().toLocaleTimeString("en-US", {
+                    hour12: false,
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+                {installPromptEvent && (
+                  <button
+                    className="header-brand__install btn btn-secondary text-xs px-3 py-1"
+                    id="install-app-button"
+                    onClick={handleInstallApp}
+                    type="button"
+                  >
+                    <Icon name="arrowRight" className="mr-1" />
+                    Install App
+                  </button>
+                )}
               </div>
-              <div className="timestamp" id="status-timestamp">
-                {new Date().toLocaleTimeString("en-US", {
-                  hour12: false,
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-              {installPromptEvent && (
-                <button
-                  className="btn btn-secondary text-xs px-3 py-1"
-                  id="install-app-button"
-                  onClick={handleInstallApp}
-                  type="button"
-                >
-                  <Icon name="arrowRight" className="mr-1" />
-                  Install App
-                </button>
-              )}
             </div>
 
             {/* Navigation Controls */}

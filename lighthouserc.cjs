@@ -12,7 +12,12 @@
  * with this configuration (performance 0.98, accessibility 0.93, best
  * practices 1.00, SEO 0.91, CLS 0). Accessibility is ratcheted to 0.99, the
  * score this change established. Raise floors as scores improve; never lower
- * them to make a run pass. Reports stay on the runner; nothing is uploaded.
+ * them to make a run pass.
+ *
+ * Reports: the filesystem target writes each run's HTML and JSON report and a
+ * manifest.json to lighthouse-reports/ after assertions, including when they
+ * fail. quality.yml keeps exactly those files as the `lighthouse-reports`
+ * workflow artifact; nothing is sent to a public or LHCI server.
  */
 const PORT = 4175;
 
@@ -46,7 +51,7 @@ module.exports = {
     },
     upload: {
       target: "filesystem",
-      outputDir: ".lighthouseci",
+      outputDir: "lighthouse-reports",
     },
   },
 };

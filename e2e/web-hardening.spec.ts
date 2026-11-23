@@ -98,6 +98,39 @@ async function documentOverflows(page: Page): Promise<boolean> {
   );
 }
 
+/**
+ * Shows the Install App control by dispatching a synthetic
+ * `beforeinstallprompt` only after the app has subscribed to it; dispatching
+ * earlier is lost on WebKit. Call before page.goto(), then await the returned
+ * function after navigation. Same approach as e2e/header.spec.ts.
+ */
+async function prepareInstallPrompt(page: Page): Promise<() => Promise<void>> {
+  await page.addInitScript(() => {
+    const flags = window as unknown as { __installListenerReady?: boolean };
+    const native = window.addEventListener.bind(window);
+    window.addEventListener = ((type: string, ...rest: unknown[]) => {
+      if (type === "beforeinstallprompt") {
+        flags.__installListenerReady = true;
+      }
+      // @ts-expect-error passthrough of the original arguments
+      return native(type, ...rest);
+    }) as typeof window.addEventListener;
+  });
+  return async () => {
+    await page.waitForFunction(
+      () => (window as unknown as { __installListenerReady?: boolean }).__installListenerReady === true
+    );
+    await page.evaluate(() => {
+      const event = Object.assign(new Event("beforeinstallprompt"), {
+        prompt: async () => {},
+        userChoice: Promise.resolve({ outcome: "dismissed" as const }),
+      });
+      window.dispatchEvent(event);
+    });
+    await expect(page.getByRole("button", { name: /install app/i })).toBeVisible();
+  };
+}
+
 async function expectNoAxeViolations(page: Page, label: string) {
   // Entrance animations fade content in; contrast is only meaningful at rest.
   await page.evaluate(() =>
@@ -259,6 +292,20 @@ test.describe("accessibility (axe WCAG 2.2 AA)", () => {
       await expect(page.locator("#latitude-error")).toBeVisible();
       await expect(page.getByLabel(/latitude/i)).toHaveAttribute("aria-invalid", "true");
       await expectNoAxeViolations(page, `Home location error (${scheme})`);
+    });
+
+    // Lighthouse on Linux Chrome, where the install prompt fires, found the
+    // header Install App label at 1.04:1; the other scans never show it.
+    test(`Home with the Install App control in ${scheme} scheme`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const showInstallApp = await prepareInstallPrompt(page);
+      await gotoHome(page);
+      await showInstallApp();
+
+      for (const width of [1280, 412, 320]) {
+        await page.setViewportSize({ width, height: 800 });
+        await expectNoAxeViolations(page, `Home with Install App at ${width}px (${scheme})`);
+      }
     });
 
     test(`Privacy in ${scheme} scheme`, async ({ page }) => {
