@@ -55,15 +55,10 @@ test("is installable in Chromium with no manifest errors", async ({ page, browse
 test("serves navigations offline from the precached shell inside the base", async ({
   page,
   context,
-  browserName,
 }) => {
-  // Playwright's Windows WebKit build reports "internal error" for every
-  // offline document navigation even with the worker in control; Linux WebKit
-  // (CI) still runs this check.
-  test.fixme(
-    browserName === "webkit" && process.platform === "win32",
-    "Offline navigation is not observable in Playwright WebKit on Windows."
-  );
+  // Needs @playwright/test >= 1.64.0 for WebKit: earlier releases fail every
+  // service-worker navigation after setOffline(true) with "WebKit encountered
+  // an internal error" (microsoft/playwright#42775).
   await waitForControllingServiceWorker(page);
   await context.setOffline(true);
 
