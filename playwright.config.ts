@@ -13,6 +13,8 @@ const isCI = Boolean(process.env.CI);
 
 export default defineConfig({
   testDir: "./e2e",
+  // PWA specs need a production build; see playwright.pwa.config.ts.
+  testIgnore: "pwa/**",
   fullyParallel: true,
   forbidOnly: isCI,
   // CI runs serially (workers: 1), which avoids the parallel browser-launch

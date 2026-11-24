@@ -9,6 +9,11 @@ interface DateRangePickerProps {
   startDate?: string;
   /** Controlled duration in days. When provided, it is the source of truth. */
   days?: number;
+  /**
+   * The fishing location's IANA zone. Its today is the default start date and
+   * the earliest selectable one; defaults to the viewer's zone.
+   */
+  timeZone?: string;
 }
 
 export default function DateRangePicker({
@@ -16,10 +21,10 @@ export default function DateRangePicker({
   maxDays = 7,
   startDate: startDateProp,
   days: daysProp,
+  timeZone,
 }: DateRangePickerProps) {
-  const [startDate, setStartDate] = useState(
-    startDateProp ?? getCurrentDateISO()
-  );
+  const locationToday = getCurrentDateISO(timeZone);
+  const [startDate, setStartDate] = useState(startDateProp ?? locationToday);
   const [days, setDays] = useState(daysProp ?? 3);
   const [isTimelineOpen, setTimelineOpen] = useState(false);
 
@@ -103,7 +108,7 @@ export default function DateRangePicker({
             type="date"
             className="input"
             value={startDate}
-            min={getCurrentDateISO()}
+            min={locationToday}
             onChange={(e) => setStartDate(e.target.value)}
           />
         </div>

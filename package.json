@@ -1,6 +1,6 @@
 {
   "name": "fishing-report",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Production-ready React + TypeScript fishing forecast app",
   "type": "module",
   "scripts": {
@@ -13,7 +13,13 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test:e2e:pwa": "playwright test --config playwright.pwa.config.ts",
+    "test:coverage": "vitest run --coverage --maxWorkers=4",
+    "coverage:changed": "tsx scripts/check-changed-coverage.ts",
+    "verify:pwa": "tsx scripts/verify-pwa-build.ts",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 && npm run lint:html",
+    "lint:html": "html-validate index.html",
+    "lint:html:dist": "html-validate dist/index.html dist/404.html",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -30,7 +36,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.3",
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.64.0",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^13.4.0",
     "@types/node": "^24.9.1",
@@ -45,6 +51,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.3.0",
+    "html-validate": "^11.21.1",
     "jsdom": "^23.0.1",
     "tsx": "^4.6.0",
     "typescript": "^5.2.2",

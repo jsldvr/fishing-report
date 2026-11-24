@@ -11,7 +11,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "../App";
 import { missionStorage, type MissionRun } from "../lib/missionStorage";
-import { getCurrentDateISO } from "../lib/time";
+import { getLocationTodayISO } from "../lib/time";
 
 const navigateMock = vi.fn();
 
@@ -151,7 +151,7 @@ describe("MissionDrawer", () => {
     );
 
     expect(navigateMock).toHaveBeenCalledWith(
-      `/results?lat=40.7128&lon=-74.006&startDate=${getCurrentDateISO()}&days=3&name=Harbor+Alias`
+      `/results?lat=40.7128&lon=-74.006&startDate=${getLocationTodayISO(40.7128, -74.006)}&days=3&name=Harbor+Alias`
     );
   });
 
@@ -174,7 +174,7 @@ describe("MissionDrawer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
 
     expect(navigateMock).toHaveBeenCalledWith(
-      `/results?lat=40.7128&lon=-74.006&startDate=${getCurrentDateISO()}&days=3&name=Dock+B`
+      `/results?lat=40.7128&lon=-74.006&startDate=${getLocationTodayISO(40.7128, -74.006)}&days=3&name=Dock+B`
     );
     expect(screen.queryByRole("dialog")).toBeNull();
 

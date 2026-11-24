@@ -1,5 +1,5 @@
 /*
-Fishing Report
+Fishing Forecast
 Design tokens: Deep Water, River Green, Fog, Sand, Storm, Alert Red
 */
 
@@ -65,65 +65,67 @@ body {
     Consolas, monospace;
 }
 
-/* LIGHT MODE */
+/* COLOR SCHEME
+   Follows the system by default; no JS is required for that. An explicit
+   override is written, before first paint (inline script in index.html) and on
+   every toggle (src/lib/colorScheme.ts), to both <meta name="color-scheme">
+   (the browser's early hint) and :root[data-color-scheme]. The meta alone is a
+   presentational hint that author CSS overrides, so the attribute maps the
+   override onto the root property. An attribute is used instead of
+   :root:has(> head > meta[...]) because that selector measured 15-50 ms of
+   added Total Blocking Time in Lighthouse. Tokens use light-dark() and follow
+   the computed color-scheme, as do native controls, scrollbars, and the
+   canvas. */
 :root {
-  --bg-primary: var(--fog);
-  --bg-secondary: var(--neutral-0);
-  --bg-tertiary: var(--neutral-100);
-  --bg-surface: var(--neutral-50);
-  --bg-card: rgba(255, 255, 255, 0.97);
-  --bg-overlay: rgba(238, 243, 239, 0.92);
-
-  --text-primary: var(--neutral-900);
-  --text-secondary: var(--storm);
-  --text-tertiary: #64748b;
-  --text-accent: var(--river-green);
-  --text-inverse: #ffffff;
-
-  --border-primary: var(--neutral-200);
-  --border-secondary: var(--neutral-300);
-  --border-focus: var(--river-green);
-
-  --button-primary: var(--river-green);
-  --button-primary-hover: var(--river-green-dark);
-  --button-secondary: var(--neutral-100);
-  --button-secondary-hover: var(--neutral-200);
-
-  --shadow-sm: 0 1px 3px rgba(16, 40, 32, 0.08);
-  --shadow-md: 0 6px 20px rgba(16, 40, 32, 0.1);
-
-  --gradient-primary: linear-gradient(180deg, var(--fog) 0%, var(--neutral-50) 100%);
+  color-scheme: light dark;
 }
 
-/* DARK MODE */
-[data-theme="dark"] {
-  --bg-primary: var(--neutral-900);
-  --bg-secondary: #1a2a24;
-  --bg-tertiary: #22342c;
-  --bg-surface: #16241e;
-  --bg-card: rgba(26, 42, 36, 0.95);
-  --bg-overlay: rgba(16, 40, 32, 0.92);
+:root[data-color-scheme="light"] {
+  color-scheme: light;
+}
 
-  --text-primary: #eef3ef;
-  --text-secondary: #b8c4bd;
-  --text-tertiary: #8fa298;
-  --text-accent: #6fae95;
+:root[data-color-scheme="dark"] {
+  color-scheme: dark;
+}
+
+/* THEME TOKENS: light-dark(light value, dark value) */
+:root {
+  --bg-primary: light-dark(var(--fog), var(--neutral-900));
+  --bg-secondary: light-dark(var(--neutral-0), #1a2a24);
+  --bg-tertiary: light-dark(var(--neutral-100), #22342c);
+  --bg-surface: light-dark(var(--neutral-50), #16241e);
+  --bg-card: light-dark(rgba(255, 255, 255, 0.97), rgba(26, 42, 36, 0.95));
+  --bg-overlay: light-dark(rgba(238, 243, 239, 0.92), rgba(16, 40, 32, 0.92));
+
+  --text-primary: light-dark(var(--neutral-900), #eef3ef);
+  --text-secondary: light-dark(var(--storm), #b8c4bd);
+  /* Light value darkened from #64748b (4.24:1 on fog) to meet WCAG AA 4.5:1. */
+  --text-tertiary: light-dark(#5d6c82, #8fa298);
+  --text-accent: light-dark(var(--river-green), #6fae95);
   --text-inverse: #ffffff;
-  --status-info: #8fc7ff;
+  --status-info: light-dark(#2563a8, #8fc7ff);
 
-  --border-primary: #2c4238;
-  --border-secondary: #38544a;
-  --border-focus: #6fae95;
+  --border-primary: light-dark(var(--neutral-200), #2c4238);
+  --border-secondary: light-dark(var(--neutral-300), #38544a);
+  --border-focus: light-dark(var(--river-green), #6fae95);
 
-  --button-primary: #3d715f;
-  --button-primary-hover: #4a8571;
-  --button-secondary: #22342c;
-  --button-secondary-hover: #2c4238;
+  --button-primary: light-dark(var(--river-green), #3d715f);
+  --button-primary-hover: light-dark(var(--river-green-dark), #4a8571);
+  --button-secondary: light-dark(var(--neutral-100), #22342c);
+  --button-secondary-hover: light-dark(var(--neutral-200), #2c4238);
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 1px 3px light-dark(rgba(16, 40, 32, 0.08), rgba(0, 0, 0, 0.35));
+  /* light-dark() only switches colors, so each scheme's geometry is its own
+     layer and the other scheme's layer is transparent. */
+  --shadow-md: 0 6px 20px light-dark(rgba(16, 40, 32, 0.1), transparent),
+    0 8px 24px light-dark(transparent, rgba(0, 0, 0, 0.45));
 
-  --gradient-primary: linear-gradient(180deg, var(--neutral-900) 0%, #16241e 100%);
+  /* Same stops as before in each scheme: bg-primary to bg-surface. */
+  --gradient-primary: linear-gradient(
+    180deg,
+    var(--bg-primary) 0%,
+    var(--bg-surface) 100%
+  );
 }
 
 /* Backwards-compatible aliases used by a few older selectors */
@@ -211,11 +213,6 @@ input[type="date"] {
 .wx-outlook-day-card:hover {
   border-color: var(--border-focus);
   box-shadow: var(--shadow-md);
-}
-
-[data-theme="dark"] .wx-outlook-day-card {
-  background: var(--bg-card);
-  border-color: var(--border-primary);
 }
 
 /* Mobile-specific enhancements for weather cards */
@@ -1077,9 +1074,15 @@ div#wx-outlook-controls {
   margin-left: auto;
 }
 
-/* Brand metadata (version, timestamp, install control) render inline
-   after the brand title in the single header row. Version and timestamp
-   share one restrained neutral pill treatment, subordinate to the title. */
+/* Brand metadata (version, timestamp, install control) render inline after
+   the brand title on wider screens; the group box is transparent to layout
+   there and becomes its own second row at 480px and below. Version and
+   timestamp share one restrained neutral pill treatment, subordinate to the
+   title. */
+.header-brand__meta {
+  display: contents;
+}
+
 .app-version,
 .timestamp {
   display: inline-flex;
@@ -1098,6 +1101,26 @@ div#wx-outlook-controls {
 .header-brand .btn {
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+/* The header is --deep-water in both color schemes, so Install App uses the
+   same light-on-dark treatment as the other header controls instead of
+   .btn-secondary's page text color (#14231d on #102820, 1.04:1 in light). */
+.header-brand .header-brand__install {
+  color: rgba(238, 243, 239, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.header-brand .header-brand__install:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.header-brand .header-brand__install:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 2px;
 }
 
 /* ===========================================
@@ -1200,68 +1223,37 @@ div#wx-outlook-controls {
   }
 }
 
-/* Extra Small Mobile */
+/* Extra Small Mobile: two header rows. The drawer trigger and title form the
+   first row and the metadata group (version, timestamp, Install App) the
+   second; the menu toggle stays at the end, centered across both. DOM and
+   focus order are unchanged. One row could not hold the longer "Fishing
+   Forecast" title with the metadata at 320px on Linux Firefox and WebKit
+   (1.40px and 1.73px of Install App -> menu clearance in CI), so the 640px
+   sizes apply here instead of a squeezed single row. */
 @media (max-width: 480px) {
-  .header-container {
-    /* Was 0.3rem: with justify-content: space-between and exactly two
-       .header-content children, the rendered Install App -> menu-toggle gap
-       equals (available width) - (header-brand content width) - (header-nav
-       width), independent of any explicit gap value on either container --
-       so recovering real available width here (not a gap number) is what
-       actually widens that clearance. */
-    padding: 0 0.2rem;
-  }
-
-  /* Tighten every horizontal contributor at 320px so the always-visible drawer
-     hamburger, the Install App button, and the menu toggle keep measurable
-     clearance on the wider serif/mono fallbacks used by Firefox and WebKit on
-     Linux, not just the ~2px seen on Windows. */
   .header-content {
-    gap: 0.2rem;
+    padding-block: 0.4rem;
   }
 
   .header-brand {
-    /* Was 0.18rem. Shared by all five brand-row items, including the
-       drawer-toggle's own dedicated margin-right below (unchanged) that
-       guarantees its 8px minimum gap to the title -- shaving 0.04rem here
-       still leaves that gap at ~9.4px while recovering width from the other
-       three internal gaps too. */
-    gap: 0.14rem;
+    flex-wrap: wrap;
+    row-gap: 0.3rem;
   }
 
-  .brand-title {
-    font-size: 0.78rem;
-    letter-spacing: 0;
-  }
-
-  .app-version,
-  .timestamp {
-    font-size: 0.53rem;
-    padding: 0.03rem 0.15rem;
+  /* The row and Install App share one minimum height so the button, which
+     appears after load, never changes the header height (CLS stays 0). */
+  .header-brand__meta {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    min-height: 1.75rem;
   }
 
   .header-brand .btn {
-    padding: 0.15rem 0.2rem;
-    font-size: 0.55rem;
-  }
-
-  .header-brand .btn svg {
-    display: none; /* Drop the install icon; keep the label to save row width */
-  }
-
-  .mobile-menu-toggle {
-    width: 1.9rem;
-    height: 1.9rem;
-  }
-
-  .header-brand__drawer-toggle {
-    width: 1.65rem;
-    height: 1.65rem;
-    font-size: 0.78rem;
-    /* Re-declared because the 640px rule's margin-right would otherwise be
-       paired with this narrower breakpoint's tighter `.header-brand` gap,
-       falling under the 8px minimum trigger-to-title separation. */
-    margin-right: 0.45rem;
+    min-height: 1.75rem;
   }
 
   .theme-toggle {

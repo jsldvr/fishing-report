@@ -3,7 +3,11 @@ import type {
   MarineWeatherData,
   TideEvent,
 } from "../types/forecast.js";
-import { addDaysToDate } from "./time.js";
+import {
+  addDaysToDate,
+  getTimezoneFromCoords,
+  zonedDayBounds,
+} from "./time.js";
 
 const NOAA_METADATA_ENDPOINT =
   "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json";
@@ -104,7 +108,11 @@ export async function fetchNoaaMarineConditionsWithMeta(
     const [tideEvents, windSample, waterTempSample] =
       await Promise.all([
         supports("predictions")
-          ? fetchTidePredictions(station.id, day.date)
+          ? fetchTidePredictions(
+              station.id,
+              day.date,
+              getTimezoneFromCoords(day.lat, day.lon)
+            )
           : Promise.resolve<TideEvent[]>([]),
         supports("wind")
           ? fetchLatestWindSample(station.id)
@@ -238,9 +246,15 @@ async function findNearestStation(
   return null;
 }
 
+/**
+ * Tide predictions for `isoDate` as a calendar day in the fishing location's
+ * IANA zone. NOAA is queried in GMT across isoDate and the following GMT day,
+ * which covers every North American local day, then filtered to local bounds.
+ */
 async function fetchTidePredictions(
   stationId: string,
-  isoDate: string
+  isoDate: string,
+  timeZone: string
 ): Promise<TideEvent[]> {
   try {
     const beginDate = isoDate.replace(/-/g, "");
@@ -275,8 +289,7 @@ async function fetchTidePredictions(
       return [];
     }
 
-    const start = new Date(isoDate + "T00:00:00Z").getTime();
-    const end = new Date(addDaysToDate(isoDate, 1) + "T00:00:00Z").getTime();
+    const { startMs: start, endMs: end } = zonedDayBounds(isoDate, timeZone);
 
     return data.predictions
       .map((prediction) => {

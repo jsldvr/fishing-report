@@ -14,8 +14,10 @@ import {
 import {
   MissionContext,
   createDefaultDraft,
+  mergeDraft,
   type ApplyDraftOptions,
   type ForecastDraft,
+  type ForecastDraftChange,
   type MissionContextValue,
 } from "./missionContext";
 
@@ -61,17 +63,9 @@ export function MissionProvider({ children }: MissionProviderProps) {
 
   const setDraftLocation = useCallback(
     (lat: number, lon: number, name?: string) => {
-      const nextName = name ?? "";
-      setDraft((previous) => {
-        if (
-          previous.lat === lat &&
-          previous.lon === lon &&
-          previous.name === nextName
-        ) {
-          return previous;
-        }
-        return { ...previous, lat, lon, name: nextName };
-      });
+      setDraft((previous) =>
+        mergeDraft(previous, { lat, lon, name: name ?? "" })
+      );
       // A named location prefills the saved-spot name, as the inline panel did.
       if (name) {
         setWaypointNameDraft(name);
@@ -81,17 +75,14 @@ export function MissionProvider({ children }: MissionProviderProps) {
   );
 
   const setDraftDateRange = useCallback((startDate: string, days: number) => {
-    setDraft((previous) => {
-      if (previous.startDate === startDate && previous.days === days) {
-        return previous;
-      }
-      return { ...previous, startDate, days };
-    });
+    setDraft((previous) => mergeDraft(previous, { startDate, days }));
   }, []);
 
   const applyDraft = useCallback(
-    (next: Partial<ForecastDraft>, options?: ApplyDraftOptions) => {
-      setDraft((previous) => ({ ...previous, ...next }));
+    (next: ForecastDraftChange, options?: ApplyDraftOptions) => {
+      // Callers of applyDraft (a Results URL, a selected waypoint) state their
+      // values outright, so any start date they pass is an explicit choice.
+      setDraft((previous) => mergeDraft(previous, next, true));
       if (options?.prefill) {
         setLocationPrefillToken((token) => token + 1);
       }

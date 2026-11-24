@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MissionProvider } from "./MissionProvider";
 import { useMissionContext } from "./missionContext";
-import { getCurrentDateISO } from "../lib/time";
+import { getLocationTodayISO } from "../lib/time";
 import * as missionStorage from "../lib/missionStorage";
 
 function Probe() {
@@ -81,7 +81,7 @@ describe("MissionProvider", () => {
   it("starts from the approved default draft", () => {
     renderProvider();
     expect(screen.getByTestId("draft").textContent).toBe(
-      `40.7128|-74.006|${getCurrentDateISO()}|3|`
+      `40.7128|-74.006|${getLocationTodayISO(40.7128, -74.006)}|3|`
     );
   });
 

@@ -285,3 +285,9 @@ playground/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+.lighthouseci/
+
+# Lighthouse CI reports
+.lighthouseci/
+/lighthouse-reports/
